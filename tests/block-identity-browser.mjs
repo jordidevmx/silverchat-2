@@ -106,6 +106,7 @@ const ownMembership2 = { ...ownMembership, chat_id: chatId2 };
 const otherMembership2 = { ...ownMembership2, user_id: otherId2 };
 let blocked = false;
 const writes = [];
+const messagePosts = [];
 const fulfill = (route, body, status = 200) =>
   route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 const wire = (m) =>
@@ -189,7 +190,22 @@ await context.route("https://supabase.test/**", async (route) => {
   }
   if (path.endsWith("/message_receipts")) return fulfill(route, []);
   if (path.endsWith("/chat_requests")) return fulfill(route, s.has("chat_id") ? null : []);
-  if (path.endsWith("/messages"))
+  if (path.endsWith("/messages")) {
+    if (method === "POST") {
+      const body = req.postDataJSON();
+      messagePosts.push(body);
+      return fulfill(route, [
+        {
+          id: `66666666-6666-4666-8666-${String(messagePosts.length).padStart(12, "0")}`,
+          chat_id: chatId,
+          sender_id: me,
+          content: body?.content ?? "",
+          type: "text",
+          created_at: new Date().toISOString(),
+          deleted_for_everyone: false,
+        },
+      ]);
+    }
     return fulfill(route, [
       {
         id: "33333333-3333-4333-8333-333333333333",
@@ -201,6 +217,7 @@ await context.route("https://supabase.test/**", async (route) => {
         deleted_for_everyone: false,
       },
     ]);
+  }
   if (path.includes("/storage/v1/object/sign/avatars") && method === "POST")
     return fulfill(route, { signedURL: signedPath });
   if (path.startsWith("/storage/v1/object/sign/avatars/") && method === "GET")
@@ -370,6 +387,18 @@ try {
   await page.waitForFunction(() => !document.querySelector("dialog[open]"));
   await openMenu();
   assert.equal(await menuItem("Block").count(), 1, "menu flips back to Block");
+  await page.keyboard.press("Escape");
+  const composer = page.getByRole("textbox", { name: "Message" });
+  assert.equal(await composer.isEnabled(), true, "composer is enabled after unblock");
+  await composer.fill("Sent after unblock");
+  await composer.press("Enter");
+  await page.waitForFunction(
+    () => document.querySelector(".composer-input textarea")?.value === "",
+  );
+  assert.ok(
+    messagePosts.some((body) => body?.content === "Sent after unblock"),
+    "message posts successfully after unblock",
+  );
   await page.goto(`${base}/chats`);
   await row.waitFor();
   assert.equal(await row.evaluate((el) => el.classList.contains("is-blocked")), false);
