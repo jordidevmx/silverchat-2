@@ -69,21 +69,12 @@ export function useBlockedUsers() {
     queryKey: ["blocked", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const r = await supabase
-        .from("user_blocks")
-        .select("blocked_id")
-        .eq("blocker_id", user?.id ?? "")
-        .order("blocked_id");
+      const r = await supabase.from("profiles_blocked").select("*").order("display_name");
       if (r.error) throw r.error;
-      return (r.data ?? []).map((row) => {
-        const shortId = row.blocked_id.replace(/-/g, "").slice(0, 8);
-        return {
-          id: row.blocked_id,
-          display_name: `User ${shortId}`,
-          username: `user_${shortId}`,
-          avatar_initials: "U",
-        };
-      });
+      return (r.data ?? []).map(({ avatar_initials, ...profile }) => ({
+        ...profile,
+        initials: avatar_initials,
+      }));
     },
   });
 }
@@ -92,6 +83,14 @@ export async function blockUser(targetUserId: string, currentUserId: string) {
     .from("user_blocks")
     .insert({ blocker_id: currentUserId, blocked_id: targetUserId });
   if (r.error && r.error.code !== "23505") throw r.error;
+}
+export async function unblockUser(targetUserId: string, currentUserId: string) {
+  const r = await supabase
+    .from("user_blocks")
+    .delete()
+    .eq("blocker_id", currentUserId)
+    .eq("blocked_id", targetUserId);
+  if (r.error) throw r.error;
 }
 export function useContacts() {
   const { user } = useAuth();

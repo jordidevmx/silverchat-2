@@ -12,19 +12,23 @@ export type ChatAction =
   | "unpin"
   | "clear_chat"
   | "block"
+  | "unblock"
   | "view_members"
   | "add_members"
   | "leave_group";
-
 import { canAddGroupMembers, resolveGroupRole } from "../../roles/lib/permissions.ts";
 
-export function getAvailableChatActions(chat: ChatDetails): ChatAction[] {
+export function getAvailableChatActions(
+  chat: ChatDetails,
+  options: { isBlocked?: boolean } = {},
+): ChatAction[] {
   const pin = chat.own?.pinned_at ? "unpin" : "pin";
+  const blockAction = options.isBlocked ? "unblock" : "block";
   if (chat.type === "self") return ["search_in_chat", pin, "clear_chat"];
   if (chat.readOnly) {
     if (chat.type === "community_chat") return ["view_community_info", "search_in_chat"];
     if (chat.type === "group") return ["view_group_info", "search_in_chat"];
-    return ["view_profile", "search_in_chat", "block"];
+    return ["view_profile", "search_in_chat", blockAction];
   }
   const muted = !!chat.own?.muted_until && Date.parse(chat.own.muted_until) > Date.now();
   const common: ChatAction[] = [
@@ -34,7 +38,7 @@ export function getAvailableChatActions(chat: ChatDetails): ChatAction[] {
     pin,
     "clear_chat",
   ];
-  if (chat.type === "direct") return ["view_profile", ...common, "block"];
+  if (chat.type === "direct") return ["view_profile", ...common, blockAction];
   if (chat.type === "community_chat")
     return [
       "view_community_info",

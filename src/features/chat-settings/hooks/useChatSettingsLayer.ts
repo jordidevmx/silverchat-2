@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRealtimeMessages } from "@/features/messages/hooks/useRealtimeMessages";
 import { useMessageText } from "@/features/messages/i18n";
 import type { ChatDetails } from "@/features/messages/types";
+import { useBlockedUsers } from "@/features/settings/hooks";
 import { useAuth } from "@/lib/auth-provider";
 import { supabase } from "@/lib/supabase";
 import { refreshChatSettings } from "../lib/cache";
@@ -20,6 +21,8 @@ export function useChatSettingsLayer(
   const { say } = useMessageText();
   const cache = useQueryClient();
   const router = useRouter();
+  const blocked = useBlockedUsers();
+  const isBlocked = !!chat.otherUserId && !!blocked.data?.some((p) => p.id === chat.otherUserId);
   const [busy, setBusy] = useState(false);
   useRealtimeMessages(chat.id, context !== "community");
   useEffect(
@@ -56,12 +59,13 @@ export function useChatSettingsLayer(
   };
   const choose = async (action: ChatAction) => {
     ui.close();
-    if (action === "view_profile" || action === "block") {
+    if (action === "view_profile" || action === "block" || action === "unblock") {
       if (chat.otherUserId)
         ui.open(chat.id, {
-          kind: action === "view_profile" ? "contact" : action,
+          kind: action === "view_profile" ? "contact" : "block",
           userId: chat.otherUserId,
           name: chat.other?.display_name ?? chat.name,
+          mode: action === "unblock" ? "unblock" : "block",
         });
       return;
     }
@@ -119,5 +123,5 @@ export function useChatSettingsLayer(
     ui.close();
     void refreshChatSettings(cache, user?.id ?? "", chat.id);
   };
-  return { ui, modal, busy, update, choose, afterBlock };
+  return { ui, modal, busy, isBlocked, update, choose, afterBlock };
 }

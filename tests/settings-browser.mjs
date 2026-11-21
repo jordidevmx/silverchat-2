@@ -510,7 +510,7 @@ try {
     .getByRole("alert")
     .filter({ hasText: "Something went wrong. Please try again." })
     .waitFor();
-  await page.getByText("User 22222222", { exact: true }).waitFor();
+  await page.getByText("Bob Stone", { exact: true }).waitFor();
   failUnblock = false;
   await page.getByRole("button", { name: "Unblock" }).click();
   await page.getByText("You haven’t blocked anyone.").waitFor();

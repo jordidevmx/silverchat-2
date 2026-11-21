@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/app/providers/i18n-provider";
 import { useAuth } from "@/lib/auth-provider";
 import { blockUser } from "../hooks";
+import { invalidateBlockState } from "./blockCache";
 import { useAction } from "./useAction";
 export function useBlockUser(targetId: string, onClose: () => void) {
   const { user } = useAuth();
@@ -12,11 +13,7 @@ export function useBlockUser(targetId: string, onClose: () => void) {
     action.run(async () => {
       if (!user) return;
       await blockUser(targetId, user.id);
-      await Promise.all(
-        ["blocked", "contacts", "public-profile", "avatar-url", "chats"].map((key) =>
-          cache.invalidateQueries({ queryKey: [key] }),
-        ),
-      );
+      await invalidateBlockState(cache, user.id);
       onClose();
     });
   return { user, action, t, language, block };

@@ -1,39 +1,59 @@
 import { Button } from "@/components/ui/button";
 import { SettingsDialog } from "@/components/ui/settings-surfaces";
 import { useBlockUser } from "../hooks/useBlockUser";
+import { useUnblockUser } from "../hooks/useUnblockUser";
 export function BlockUserModal({
   target,
   onClose,
+  mode = "block",
 }: {
   target: { id: string; display_name: string };
   onClose: () => void;
+  mode?: "block" | "unblock";
 }) {
   const { user, action, t, language, block } = useBlockUser(target.id, onClose);
+  const { action: unblockAction, unblock } = useUnblockUser(target.id, onClose);
+  const active = mode === "block" ? action : unblockAction;
+  const submit = mode === "block" ? block : unblock;
   return (
     <SettingsDialog
-      title={`${t("Block")} ${target.display_name}?`}
+      title={
+        mode === "block"
+          ? `${t("Block")} ${target.display_name}?`
+          : `${t("Unblock")} ${target.display_name}?`
+      }
       onClose={onClose}
-      canClose={!action.busy}
+      canClose={!active.busy}
     >
       {(close) => (
         <>
           <p>
-            {language === "es"
-              ? "No podrán enviarte mensajes y no verás sus mensajes."
-              : "They won’t be able to message you, and you won’t see their messages."}
+            {mode === "block"
+              ? language === "es"
+                ? "No podrán enviarte mensajes y no verás sus mensajes."
+                : "They won’t be able to message you, and you won’t see their messages."
+              : language === "es"
+                ? "Volverás a ver sus mensajes y podrán escribirte."
+                : "You’ll see their messages again and they’ll be able to message you."}
           </p>
-          {action.feedback}
+          {active.feedback}
           <div className="modal-actions">
-            <Button variant="outline" type="button" disabled={action.busy} onClick={close}>
+            <Button
+              variant="outline"
+              type="button"
+              autoFocus
+              disabled={active.busy}
+              onClick={close}
+            >
               {t("Cancel")}
             </Button>
             <Button
-              variant="destructive"
+              variant={mode === "block" ? "destructive" : "default"}
               type="button"
-              disabled={action.busy || !user}
-              onClick={() => void block()}
+              disabled={active.busy || !user}
+              onClick={() => void submit()}
             >
-              {t("Block")}
+              {mode === "block" ? t("Block") : t("Unblock")}
             </Button>
           </div>
         </>

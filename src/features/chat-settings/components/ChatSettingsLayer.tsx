@@ -41,7 +41,7 @@ export function ChatSettingsLayer({
   onSearch?: () => void;
   context?: "group" | "community";
 }) {
-  const { ui, modal, busy, update, choose, afterBlock } = useChatSettingsLayer(
+  const { ui, modal, busy, isBlocked, update, choose, afterBlock } = useChatSettingsLayer(
     chat,
     onSearch,
     context,
@@ -53,6 +53,7 @@ export function ChatSettingsLayer({
         <ChatOptionsMenu
           contextType={chat.type === "community_chat" ? "community_chat" : "chat"}
           chat={chat}
+          isBlocked={isBlocked}
           point={modal}
           onChoose={(action: ChatAction) => void choose(action)}
           onClose={ui.close}
@@ -68,6 +69,7 @@ export function ChatSettingsLayer({
       return (
         <BlockUserModal
           target={{ id: modal.userId, display_name: modal.name ?? "" }}
+          mode={modal.mode ?? "block"}
           onClose={afterBlock}
         />
       );

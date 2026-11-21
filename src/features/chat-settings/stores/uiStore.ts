@@ -3,7 +3,7 @@ import { type ToastTone, toastStore } from "../../../lib/toast-store.ts";
 import { reactionNotificationStore } from "../../chats/utils/reactionNotifications.ts";
 
 export type ChatModal =
-  | { kind: "contact" | "block"; userId: string; name?: string }
+  | { kind: "contact" | "block"; userId: string; name?: string; mode?: "block" | "unblock" }
   | { kind: "menu"; x: number; y: number }
   | { kind: "photo" | "mute" | "add" | "clear" | "leave" };
 

@@ -2414,6 +2414,7 @@ export type Database = {
       profiles_blocked: {
         Row: {
           avatar_initials: string | null;
+          avatar_url: string | null;
           display_name: string | null;
           id: string | null;
           username: string | null;

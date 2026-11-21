@@ -198,14 +198,6 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
       ),
     )
   ).flat();
-  const blockedProfiles = blocks.map((b) => {
-    const shortId = b.blocked_id.replace(/-/g, "").slice(0, 8);
-    return {
-      id: b.blocked_id,
-      display_name: `User ${shortId}`,
-      username: `user_${shortId}`,
-    };
-  });
   const allHydratedEntries: ReactionNotificationEntry[] = unreadReactions.map(({ row, msg }) => {
     const m = membershipByChat.get(msg.chat_id ?? "");
     return {
@@ -233,10 +225,8 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
           ? c.direct_pair_key?.split("::").find((id) => id !== userId)
           : undefined;
       const other = profiles.find((p) => p.id === otherId);
-      const fallback = blockedProfiles.find((p) => p.id === otherId);
       const own = profiles.find((p) => p.id === userId);
       const sender = profiles.find((p) => p.id === c.last_message?.sender_id);
-      const otherProfile = other ?? fallback;
       const recipients = c.type === "direct" && otherId ? [otherId] : others.map((o) => o.user_id);
       const chatReactionEntries = allHydratedEntries.filter((entry) => entry.chatId === c.id);
       const reactionData = buildChatReactionSummary(chatReactionEntries);
@@ -257,7 +247,7 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
           c.type === "self"
             ? "Message yourself"
             : c.type === "direct"
-              ? (other?.display_name ?? fallback?.display_name ?? "Unavailable contact")
+              ? (other?.display_name ?? "Unavailable contact")
               : (c.name ?? "Group"),
         avatarUrl:
           c.type === "direct"
@@ -266,10 +256,10 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
               ? (own?.avatar_url ?? null)
               : c.avatar_url,
         avatarInitials:
-          c.type === "direct" && otherProfile
+          c.type === "direct" && other
             ? getInitials({
-                display_name: otherProfile.display_name ?? "",
-                username: otherProfile.username ?? "",
+                display_name: other.display_name ?? "",
+                username: other.username ?? "",
               })
             : c.type === "self" && own
               ? getInitials({
@@ -278,7 +268,7 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
                 })
               : undefined,
         otherUserId: otherId,
-        otherUsername: other?.username ?? fallback?.username ?? undefined,
+        otherUsername: other?.username ?? undefined,
         lastSeenAt: other?.last_seen_at,
         memberNames: others.map(
           (o) => profiles.find((p) => p.id === o.user_id)?.display_name ?? "",

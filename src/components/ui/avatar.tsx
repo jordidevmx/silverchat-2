@@ -30,7 +30,7 @@ export function Avatar({
     <span
       data-slot="avatar"
       className={cn(
-        "relative inline-grid shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-gradient-silver font-semibold shadow-silver",
+        "relative inline-grid aspect-square flex-none place-items-center overflow-hidden rounded-full border border-border bg-gradient-silver font-semibold shadow-silver",
         gradient ? "text-white" : "text-foreground/80",
         sizes[size],
         className,
