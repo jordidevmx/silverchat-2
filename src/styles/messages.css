@@ -119,6 +119,74 @@
     color: color-mix(in oklab, var(--foreground) 65%, var(--neon) 35%);
     opacity: 0.075;
   }
+  .chat-background {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .chat-background-image {
+    position: absolute;
+    inset: -2px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .chat-background-aurora {
+    background-image: url("/backgrounds/aurora-1x.webp");
+    /* biome-ignore lint/suspicious/noDuplicateProperties: fallback for browsers without image-set() */
+    background-image: image-set(
+      url("/backgrounds/aurora-1x.avif") type("image/avif") 1x,
+      url("/backgrounds/aurora-2x.avif") type("image/avif") 2x,
+      url("/backgrounds/aurora-1x.webp") type("image/webp") 1x,
+      url("/backgrounds/aurora-2x.webp") type("image/webp") 2x
+    );
+  }
+  .chat-background-dusk {
+    background-image: url("/backgrounds/dusk-1x.webp");
+    /* biome-ignore lint/suspicious/noDuplicateProperties: fallback for browsers without image-set() */
+    background-image: image-set(
+      url("/backgrounds/dusk-1x.avif") type("image/avif") 1x,
+      url("/backgrounds/dusk-2x.avif") type("image/avif") 2x,
+      url("/backgrounds/dusk-1x.webp") type("image/webp") 1x,
+      url("/backgrounds/dusk-2x.webp") type("image/webp") 2x
+    );
+  }
+  .chat-background-nebula {
+    background-image: url("/backgrounds/nebula-1x.webp");
+    /* biome-ignore lint/suspicious/noDuplicateProperties: fallback for browsers without image-set() */
+    background-image: image-set(
+      url("/backgrounds/nebula-1x.avif") type("image/avif") 1x,
+      url("/backgrounds/nebula-2x.avif") type("image/avif") 2x,
+      url("/backgrounds/nebula-1x.webp") type("image/webp") 1x,
+      url("/backgrounds/nebula-2x.webp") type("image/webp") 2x
+    );
+  }
+  .chat-background-scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--background);
+    transition: opacity var(--duration-base) var(--ease-out);
+  }
+  :root[data-theme="dark"] .chat-background-scrim {
+    background: color-mix(in oklab, var(--background) 86%, black);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .chat-background-image {
+      animation: chat-background-enter var(--duration-slower) var(--ease-out) both;
+    }
+    @keyframes chat-background-enter {
+      from {
+        opacity: 0;
+        transform: scale(1.03);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
   .conversation-canvas-content {
     position: relative;
     z-index: 1;
@@ -427,7 +495,8 @@
     box-shadow: none;
   }
   @media (forced-colors: active) {
-    .conversation-doodle-pattern {
+    .conversation-doodle-pattern,
+    .chat-background {
       display: none;
     }
     .system-pill {

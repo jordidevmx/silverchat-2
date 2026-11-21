@@ -68,6 +68,30 @@ const spanish: Record<string, string> = {
   "Make yourself at home.": "Siéntete como en casa.",
   "These preferences follow you across devices.":
     "Estas preferencias te acompañan en todos tus dispositivos.",
+  "Chat background": "Fondo de chat",
+  "Choose a background for your conversations.":
+    "Elige un fondo para tus conversaciones.",
+  Default: "Predeterminado",
+  aurora: "Aurora",
+  dusk: "Crepúsculo",
+  nebula: "Nebulosa",
+  "Custom image": "Imagen personalizada",
+  "Upload image": "Subir imagen",
+  "Remove custom image": "Quitar imagen personalizada",
+  "Background dimming": "Atenuación del fondo",
+  "This background is stored on this device.":
+    "Este fondo se guarda en este dispositivo.",
+  "Unsupported image format. Use PNG, JPG, WebP, GIF, BMP, or AVIF.":
+    "Formato de imagen no admitido. Usa PNG, JPG, WebP, GIF, BMP o AVIF.",
+  "Choose an image smaller than 10 MB.": "Elige una imagen de menos de 10 MB.",
+  "That file is empty. Try another image.":
+    "Ese archivo está vacío. Prueba con otra imagen.",
+  "This image could not be read. Try another one.":
+    "No se pudo leer esta imagen. Prueba con otra.",
+  "This image could not be saved on this device.":
+    "No se pudo guardar esta imagen en este dispositivo.",
+  "Custom image applied.": "Imagen personalizada aplicada.",
+  "Custom background removed.": "Fondo personalizado eliminado.",
   Sound: "Sonido",
   "Message previews": "Vista previa de mensajes",
   "Notification preferences": "Preferencias de notificaciones",

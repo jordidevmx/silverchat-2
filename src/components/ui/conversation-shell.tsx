@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { ChatDoodlePattern } from "./chat-doodle-pattern";
+import { ChatBackgroundHost } from "./chat-background";
 
 /**
  * Shared conversation layout for all chat types (channels, direct, group, self, community).
@@ -28,7 +28,7 @@ export function ConversationShell({
       </div>
       {banners}
       <div className="conversation-canvas" data-slot="conversation-canvas">
-        <ChatDoodlePattern />
+        <ChatBackgroundHost />
         <div className="conversation-canvas-content">{children}</div>
       </div>
       {footer && (
