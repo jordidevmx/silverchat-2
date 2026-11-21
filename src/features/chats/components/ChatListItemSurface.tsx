@@ -17,7 +17,10 @@ import {
 } from "lucide-react";
 import { type MouseEvent, type ReactNode, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
+import { CallEventCard } from "@/features/calls/components/CallEventCard";
+import { parseCallEvent } from "@/features/calls/lib/callEvent";
 import type { OutboxEntry } from "@/features/messages/lib/outbox";
+import { useAuth } from "@/lib/auth-provider";
 import type { Chat, ChatAction, Draft } from "../types";
 import { badgeText, computeChatDisplay, isMuted } from "../utils/computeChatDisplay";
 import { formatChatTimestamp } from "../utils/formatChatTimestamp";
@@ -67,9 +70,14 @@ export function ChatListItemSurface({
   const origin = useRef({ x: 0, y: 0 });
   const consumed = useRef(false);
   useEffect(() => () => clearTimeout(hold.current), []);
+  const { user } = useAuth();
   const display = computeChatDisplay(chat, draft, language, outbox),
     muted = isMuted(chat),
     unreadTotal = chat.unreadCount + (chat.unreadReactionCount ?? 0);
+  const callEvent =
+    display.state === "message" && chat.lastMessageType === "system"
+      ? parseCallEvent(chat.lastMessagePreview, user?.id ?? "")
+      : null;
   const Media =
     chat.lastMessageType && chat.lastMessageType in mediaIcons
       ? mediaIcons[chat.lastMessageType as keyof typeof mediaIcons]
@@ -158,10 +166,20 @@ export function ChatListItemSurface({
                 ) : display.state === "message" && Media ? (
                   <Media size={16} aria-hidden="true" />
                 ) : null}
-                <span className="preview-text">
-                  {display.prefix ? `${t(display.prefix)}: ` : ""}
-                  {display.translateText ? t(display.text) : display.text}
-                </span>
+                {callEvent ? (
+                  <CallEventCard
+                    event={callEvent}
+                    presentation="compact"
+                    chatContext={chat.type}
+                    locale={language}
+                    className="chat-preview-call"
+                  />
+                ) : (
+                  <span className="preview-text">
+                    {display.prefix ? `${t(display.prefix)}: ` : ""}
+                    {display.translateText ? t(display.text) : display.text}
+                  </span>
+                )}
                 {display.status === "sent" ? (
                   <Check size={17} aria-label={t("sent")} />
                 ) : display.status ? (

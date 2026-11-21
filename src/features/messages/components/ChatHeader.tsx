@@ -1,6 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { ChevronLeft, MoreVertical, Phone, Pin, Search, Users, Video } from "lucide-react";
+import { ChevronLeft, MoreVertical, Phone, Pin, Search, Users } from "lucide-react";
 import { ConversationHeaderSurface } from "@/components/ui/conversation-surface";
+import { useVoiceCallStart } from "@/features/calls/hooks/useVoiceCallStart";
 import { useChatUIStore } from "@/features/chat-settings/stores/uiStore";
 import { Avatar } from "@/features/settings/components/shared";
 import { useChatPresence } from "../hooks/useChatPresence";
@@ -12,6 +13,7 @@ export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: ()
   const router = useRouter();
   const { say, language } = useMessageText();
   const presence = useChatPresence(chat);
+  const { start: startVoiceCall, isPending: callPending } = useVoiceCallStart();
   const last = presence.data?.find((p) => p.id === chat.other?.id)?.last_seen_at;
   const elapsed = last ? Math.max(0, Date.now() - Date.parse(last)) : Infinity;
   const online = elapsed < 120000;
@@ -36,6 +38,7 @@ export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: ()
               ? `${say("Last seen", "Última conexión")} ${relative}`
               : say("Offline", "Desconectado");
   const name = chat.type === "self" ? say("You", "Tú") : chat.name;
+  const callLabel = say("Start voice call", "Iniciar llamada de voz");
   const identity = (
     <>
       {(chat.type === "group" || chat.type === "community_chat") && !chat.avatar ? (
@@ -115,22 +118,18 @@ export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: ()
         >
           <Search size={20} />
         </button>
-        {chat.type !== "community_chat" &&
-          [
-            { Icon: Phone, label: say("Voice calls coming soon", "Llamadas próximamente") },
-            { Icon: Video, label: say("Video calls coming soon", "Videollamadas próximamente") },
-          ].map(({ Icon, label }) => (
-            <button
-              key={label}
-              className="message-icon"
-              type="button"
-              disabled
-              aria-label={label}
-              title={label}
-            >
-              <Icon size={20} />
-            </button>
-          ))}
+        {chat.type !== "self" && (
+          <button
+            type="button"
+            className="message-icon conversation-call-trigger"
+            aria-label={callLabel}
+            title={callLabel}
+            disabled={callPending}
+            onClick={() => startVoiceCall(chat.id)}
+          >
+            <Phone size={20} />
+          </button>
+        )}
         <button
           type="button"
           className="message-icon"

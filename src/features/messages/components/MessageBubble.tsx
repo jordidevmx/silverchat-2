@@ -1,6 +1,8 @@
 import { AlertCircle, Check, CheckCheck, LoaderCircle, MoreHorizontal, Reply } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { MessageSurface } from "@/components/ui/conversation-surface";
+import { CallEventCard } from "@/features/calls/components/CallEventCard";
+import { parseCallEvent } from "@/features/calls/lib/callEvent";
 import { Avatar } from "@/features/settings/components/shared";
 import { useAuth } from "@/lib/auth-provider";
 import { useSwipeToReply } from "../hooks/useSwipeToReply";
@@ -65,12 +67,29 @@ export function MessageBubble({
     onSwipeLock: cancelPress,
   });
   const status = messageStatus(message, chat.members);
-  if (message.type === "system" && !message.deleted_for_everyone)
+  if (message.type === "system" && !message.deleted_for_everyone) {
+    const callEvent = parseCallEvent(message.content, user?.id ?? "");
     return (
       <div data-message-id={message.id}>
-        <MessageContent message={message} members={chat.members} onOpen={() => {}} />
+        {callEvent ? (
+          <CallEventCard
+            event={callEvent}
+            presentation="full"
+            chatContext={chat.type}
+            locale={language}
+            participants={chat.members.map((member) => ({
+              id: member.user_id,
+              display_name: member.profile?.display_name,
+              username: member.profile?.username,
+              avatar_url: member.profile?.avatar_url,
+            }))}
+          />
+        ) : (
+          <MessageContent message={message} members={chat.members} onOpen={() => {}} />
+        )}
       </div>
     );
+  }
   const statusLabel = {
     pending: say("Sending", "Enviando"),
     failed: say("Send failed. Retry", "El envío falló. Reintentar"),

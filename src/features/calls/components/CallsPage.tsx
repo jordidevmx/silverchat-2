@@ -6,11 +6,10 @@ import { useI18n } from "@/app/providers/i18n-provider";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { QueryState } from "@/features/settings/components/shared";
 import { useCalls } from "../hooks/useCalls";
-import { CallStartError, useStartCall } from "../hooks/useStartCall";
+import { useVoiceCallStart } from "../hooks/useVoiceCallStart";
 import { useCallText } from "../i18n";
 import { groupCallsByDay } from "../lib/callFormatter";
 import type { CallLogEntry } from "../lib/callState";
-import { notifyCall } from "../stores/callStore";
 import { CallLogItem } from "./CallLogItem";
 import { NewCallModal } from "./NewCallModal";
 
@@ -20,7 +19,7 @@ export function CallsPage() {
   const say = useCallText();
   const { language } = useI18n();
   const calls = useCalls();
-  const startCall = useStartCall();
+  const { start: startCall } = useVoiceCallStart();
   const [filter, setFilter] = useState<CallsFilter>("all");
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
@@ -51,28 +50,7 @@ export function CallsPage() {
     [visible, say, language],
   );
 
-  const onCall = (entry: CallLogEntry, type: "voice" | "video") => {
-    startCall.mutate(
-      { chatId: entry.chatId, type },
-      {
-        onError: (error) => {
-          if (error instanceof CallStartError && error.kind === "permission") {
-            notifyCall(
-              say("Camera/microphone access is required. Enable it in your browser settings."),
-            );
-            return;
-          }
-          notifyCall(
-            say(
-              error instanceof CallStartError && error.kind === "busy"
-                ? "You are already in a call"
-                : "Failed to start call. Try again.",
-            ),
-          );
-        },
-      },
-    );
-  };
+  const onCall = (entry: CallLogEntry) => startCall(entry.chatId);
 
   return (
     <main id="main" className="mx-auto w-full max-w-2xl px-4 pt-6 pb-24">
@@ -136,7 +114,6 @@ export function CallsPage() {
                     key={entry.id}
                     entry={entry}
                     locale={language === "es" ? "es" : "en"}
-                    dayLabels={{ today: say("Today"), yesterday: say("Yesterday") }}
                     onCall={onCall}
                   />
                 ))}

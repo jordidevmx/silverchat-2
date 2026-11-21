@@ -89,6 +89,22 @@
     opacity: 0.35;
     cursor: default;
   }
+  .conversation-call-trigger {
+    color: var(--neon);
+    transition:
+      scale var(--duration-fast) var(--ease-out),
+      background var(--duration-fast) var(--ease-out);
+  }
+  .conversation-call-trigger:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--neon) 14%, transparent);
+  }
+  .conversation-call-trigger:active:not(:disabled) {
+    scale: 0.9;
+  }
+  .conversation-call-trigger:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
   .conversation-back {
     display: inline-flex;
   }

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ChatSettingsDialog } from "@/components/ui/chat-settings-surfaces";
 import { PublicProfileSurface } from "@/components/ui/public-profile-surface";
+import { useVoiceCallStart } from "@/features/calls/hooks/useVoiceCallStart";
 import type { ChatDetails } from "@/features/messages/types";
 import { Avatar, QueryState } from "@/features/settings/components/shared";
 import { socialHref } from "@/lib/social-links";
@@ -21,6 +22,7 @@ export function ContactProfileModal({ userId, chat }: { userId: string; chat: Ch
     sendMessage,
     viewFullProfile,
   } = useContactProfileActions(userId, chat);
+  const { start: startCall, isPending: callPending } = useVoiceCallStart();
   return (
     <ChatSettingsDialog
       title={say("Contact profile", "Perfil del contacto")}
@@ -88,24 +90,19 @@ export function ContactProfileModal({ userId, chat }: { userId: string; chat: Ch
                 <Button type="button" disabled={action.busy} onClick={() => void sendMessage()}>
                   {say("Message", "Mensaje")}
                 </Button>
-                {[say("Call", "Llamar"), say("Video", "Video")].map((label) => (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    key={label}
-                    disabled
-                    title={
-                      active
-                        ? say("Calls coming soon", "Llamadas próximamente")
-                        : say(
-                            "Accept the chat request first",
-                            "Acepta la solicitud del chat primero",
-                          )
-                    }
-                  >
-                    {label}
-                  </Button>
-                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!active || action.busy || callPending}
+                  title={
+                    active
+                      ? say("Start voice call", "Iniciar llamada de voz")
+                      : say("Accept the chat request first", "Acepta la solicitud del chat primero")
+                  }
+                  onClick={() => startCall(chat.id)}
+                >
+                  {say("Call", "Llamar")}
+                </Button>
               </div>
               {userId !== user?.id && (
                 <div className="contact-actions">

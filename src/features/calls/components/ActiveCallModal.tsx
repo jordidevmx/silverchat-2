@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useLiveKitRoom } from "../hooks/useLiveKitRoom";
 import { useCallText } from "../i18n";
-import { hangupActiveCall } from "../lib/callActions";
+import { hangupActiveCall, markCallVideo } from "../lib/callActions";
 import { formatDuration } from "../lib/callFormatter";
 import { notifyCall, useCallStore } from "../stores/callStore";
 import { CallAvatar } from "./CallAvatar";
@@ -137,6 +137,14 @@ export function ActiveCallModal() {
           isCameraEnabled: next,
           localVideoTrack: next ? (publication?.videoTrack ?? null) : null,
         });
+        // Only a camera that actually published marks the call as video.
+        // Never mutate store.call.type here: useLiveKitRoom keys its effect on
+        // that value and would reconnect the room mid-call.
+        if (next && call) {
+          void markCallVideo(call.id).then((ok) => {
+            if (!ok) notifyCall(say("Could not update call details"));
+          });
+        }
       })
       .catch(() => notifyCall(say("Call failed. Try again.")));
   };
@@ -160,7 +168,7 @@ export function ActiveCallModal() {
 
   return (
     <CallModalShell
-      title={`${say(call.type === "voice" ? "Voice call" : "Video call")} — ${name}`}
+      title={`${say(call.type === "video" || isCameraEnabled ? "Video call" : "Voice call")} — ${name}`}
       onClose={() => {}}
       className="call-modal-video"
     >

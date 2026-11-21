@@ -235,8 +235,29 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims','{"sub":"e3333333-3333-4333-8333-333333333333","role":"authenticated","aal":"aal1"}',true);
 SET LOCAL ROLE authenticated;
 SELECT pg_temp.rejects($q$SELECT public.start_call('a1111111-1111-4111-8111-111111111111','voice')$q$,'Not a member');
-SELECT pg_temp.rejects($q$SELECT public.start_call('a2222222-2222-4222-8222-222222222222','voice')$q$,'only supported in direct chats');
+-- Group chats now support calls (carol is a member and is not busy here).
+SELECT public.start_call('a2222222-2222-4222-8222-222222222222','voice') AS group_call \gset
+SELECT pg_temp.assert_true(EXISTS (
+  SELECT 1 FROM public.calls WHERE id=:'group_call' AND chat_id='a2222222-2222-4222-8222-222222222222'
+    AND status='ringing'
+), 'Group chats support calls');
+WITH updated AS (
+  UPDATE public.calls SET status='canceled', decline_reason='canceled', ended_at=now()
+  WHERE id=:'group_call' AND status='ringing'
+  RETURNING id
+) SELECT count(*) AS group_canceled FROM updated \gset
+SELECT pg_temp.assert_true((:'group_canceled'::int)=1,'Group call cancels with the ringing precondition (1 row)');
+-- A terminal call writes exactly one namespaced timeline event.
+SELECT pg_temp.assert_true((
+  SELECT count(*)=1 FROM public.messages
+  WHERE chat_id='a2222222-2222-4222-8222-222222222222'
+    AND type='system' AND content LIKE 'call:v1:%'
+    AND substring(content from 9)::jsonb->>'callId' = :'group_call'
+), 'Terminal call writes exactly one call event message');
 RESET ROLE;
+SELECT pg_temp.assert_true(
+  has_function_privilege('authenticated','public.mark_call_video(uuid)','EXECUTE'),
+  'authenticated may execute mark_call_video');
 
 -- ─── Callee permissions: read the ringing row (notification path) ──────────
 SELECT set_config('request.jwt.claims','{"sub":"e2222222-2222-4222-8222-222222222222","role":"authenticated","aal":"aal1"}',true);
