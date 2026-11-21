@@ -5,20 +5,24 @@ BEGIN;
 
 CREATE OR REPLACE FUNCTION public.can_view_avatar(p_owner uuid, p_viewer uuid) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT CASE
-    WHEN p_owner = p_viewer THEN true
-    WHEN public.is_blocked(p_owner, p_viewer) THEN false
-    ELSE COALESCE((
-      SELECT CASE
-        WHEN profile_photo_visibility = 'everyone' THEN true
-        WHEN profile_photo_visibility = 'nobody' THEN false
-        WHEN profile_photo_visibility = 'contacts' THEN public.is_contact(p_owner, p_viewer)
-        WHEN profile_photo_visibility = 'contacts_except' THEN
-          public.is_contact(p_owner, p_viewer) AND NOT (p_viewer = ANY(profile_photo_exclusions))
-        ELSE false END
-      FROM public.user_settings WHERE user_id = p_owner
-    ), true)
-  END;
+  -- Preserve the MFA guard added by the newer remote migration; only the
+  -- block-direction check changes here.
+  SELECT public.auth_mfa_satisfied() AND (
+    CASE
+      WHEN p_owner = p_viewer THEN true
+      WHEN public.is_blocked(p_owner, p_viewer) THEN false
+      ELSE COALESCE((
+        SELECT CASE
+          WHEN profile_photo_visibility = 'everyone' THEN true
+          WHEN profile_photo_visibility = 'nobody' THEN false
+          WHEN profile_photo_visibility = 'contacts' THEN public.is_contact(p_owner, p_viewer)
+          WHEN profile_photo_visibility = 'contacts_except' THEN
+            public.is_contact(p_owner, p_viewer) AND NOT (p_viewer = ANY(profile_photo_exclusions))
+          ELSE false END
+        FROM public.user_settings WHERE user_id = p_owner
+      ), true)
+    END
+  );
 $$;
 ALTER FUNCTION public.can_view_avatar(uuid, uuid) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.can_view_avatar(uuid, uuid) FROM PUBLIC, anon, service_role;
