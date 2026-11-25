@@ -30,11 +30,11 @@ export function BlockUserModal({
           <p>
             {mode === "block"
               ? language === "es"
-                ? "No podrán enviarte mensajes y no verás sus mensajes."
-                : "They won’t be able to message you, and you won’t see their messages."
+                ? "No podrán enviarte mensajes y tampoco podrás enviarles mensajes."
+                : "They won’t be able to message you, and you won’t be able to message them."
               : language === "es"
-                ? "Volverás a ver sus mensajes y podrán escribirte."
-                : "You’ll see their messages again and they’ll be able to message you."}
+                ? "Ambos podrán volver a enviarse mensajes."
+                : "You’ll both be able to message each other again."}
           </p>
           {active.feedback}
           <div className="modal-actions">

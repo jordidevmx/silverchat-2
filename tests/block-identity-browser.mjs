@@ -10,6 +10,7 @@ const otherId = "ee131809-4a43-4388-b73f-b0447877a912";
 const chatId = "22222222-2222-4222-8222-222222222222";
 const otherId2 = "44444444-4444-4444-8444-444444444444";
 const chatId2 = "55555555-5555-4555-8555-555555555555";
+const groupChatId = "77777777-7777-4777-8777-777777777777";
 const name = "Test User B";
 const handle = "test-user-b";
 const avatarPath = `${otherId}/avatar.png`;
@@ -104,6 +105,19 @@ const chatRow2 = {
 };
 const ownMembership2 = { ...ownMembership, chat_id: chatId2 };
 const otherMembership2 = { ...ownMembership2, user_id: otherId2 };
+const groupChatRow = {
+  ...chatRow,
+  id: groupChatId,
+  type: "group",
+  name: "Design Squad",
+  direct_pair_key: null,
+  last_message_preview: "Group hello",
+};
+const groupMemberships = [
+  { ...ownMembership, chat_id: groupChatId, user_id: me, role: "admin" },
+  { ...ownMembership, chat_id: groupChatId, user_id: otherId, role: "member" },
+  { ...ownMembership, chat_id: groupChatId, user_id: otherId2, role: "member" },
+];
 let blocked = false;
 const writes = [];
 const messagePosts = [];
@@ -176,13 +190,17 @@ await context.route("https://supabase.test/**", async (route) => {
   if (path.endsWith("/chats")) {
     if (s.has("id") || s.has("direct_pair_key")) {
       const lookup = s.get("id") ?? s.get("direct_pair_key") ?? "";
+      if (lookup.includes(groupChatId)) return fulfill(route, groupChatRow);
       return fulfill(route, lookup.includes(chatId2) || lookup.includes(otherId2) ? chatRow2 : chatRow);
     }
-    return fulfill(route, [chatRow, chatRow2]);
+    return fulfill(route, [chatRow, chatRow2, groupChatRow]);
   }
   if (path.endsWith("/chat_members")) {
     if (s.get("chat_id")?.startsWith("eq.")) {
-      const target = s.get("chat_id")?.includes(chatId2);
+      const cid = s.get("chat_id") ?? "";
+      if (cid.includes(groupChatId))
+        return fulfill(route, method === "PATCH" ? { chat_id: groupChatId } : groupMemberships);
+      const target = cid.includes(chatId2);
       return fulfill(
         route,
         method === "PATCH"
@@ -196,6 +214,7 @@ await context.route("https://supabase.test/**", async (route) => {
       return fulfill(route, [
         { ...ownMembership, chat: chatRow },
         { ...ownMembership2, chat: chatRow2 },
+        { ...groupMemberships[0], chat: groupChatRow },
       ]);
     return fulfill(route, [ownMembership, otherMembership]);
   }
@@ -217,6 +236,28 @@ await context.route("https://supabase.test/**", async (route) => {
         },
       ]);
     }
+    if (s.get("chat_id")?.includes(groupChatId)) {
+      return fulfill(route, [
+        {
+          id: "88888888-8888-4888-8888-888888888881",
+          chat_id: groupChatId,
+          sender_id: otherId,
+          content: "Message from blocked member",
+          type: "text",
+          created_at: ago(2),
+          deleted_for_everyone: false,
+        },
+        {
+          id: "88888888-8888-4888-8888-888888888882",
+          chat_id: groupChatId,
+          sender_id: otherId2,
+          content: "Message from regular member",
+          type: "text",
+          created_at: ago(1),
+          deleted_for_everyone: false,
+        },
+      ]);
+    }
     return fulfill(route, [
       {
         id: "33333333-3333-4333-8333-333333333333",
@@ -233,6 +274,42 @@ await context.route("https://supabase.test/**", async (route) => {
     return fulfill(route, { signedURL: signedPath });
   if (path.startsWith("/storage/v1/object/sign/avatars/") && method === "GET")
     return route.fulfill({ status: 200, contentType: "image/png", body: pixel });
+  if (path.endsWith("/rpc/get_chat_messages")) {
+    const body = req.postDataJSON() ?? {};
+    if (body.p_chat_id === groupChatId) {
+      return fulfill(route, [
+        {
+          id: "88888888-8888-4888-8888-888888888881",
+          chat_id: groupChatId,
+          sender_id: otherId,
+          content: "Message from blocked member",
+          type: "text",
+          created_at: ago(2),
+          deleted_for_everyone: false,
+        },
+        {
+          id: "88888888-8888-4888-8888-888888888882",
+          chat_id: groupChatId,
+          sender_id: otherId2,
+          content: "Message from regular member",
+          type: "text",
+          created_at: ago(1),
+          deleted_for_everyone: false,
+        },
+      ]);
+    }
+    return fulfill(route, [
+      {
+        id: "33333333-3333-4333-8333-333333333333",
+        chat_id: chatId,
+        sender_id: otherId,
+        content: "See you soon!",
+        type: "text",
+        created_at: ago(1),
+        deleted_for_everyone: false,
+      },
+    ]);
+  }
   if (path.includes("/rpc/")) return fulfill(route, null);
   return fulfill(route, []);
 });
@@ -332,8 +409,37 @@ try {
   assert.equal(await menuItem("Block").count(), 1);
   assert.equal(await menuItem("Unblock").count(), 0);
   await menuItem("Block").click();
-  await page.getByRole("dialog", { name: "Block Test User B?" }).waitFor();
-  await page.getByRole("dialog").getByRole("button", { name: "Block", exact: true }).click();
+  const blockDialog = page.getByRole("dialog", { name: "Block Test User B?" });
+  await blockDialog.waitFor();
+  assert.match(
+    await blockDialog.textContent(),
+    /They won’t be able to message you, and you won’t be able to message them\./,
+  );
+  await blockDialog.getByRole("button", { name: "Block", exact: true }).click();
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+
+  // Blocked direct chat shows header badge, muted subtitle, and composer action bar.
+  assert.equal(
+    await page.locator('[data-slot="conversation-header"]').getAttribute("data-blocked"),
+    "true",
+  );
+  assert.equal(await page.locator('[data-slot="blocked-header-badge"]').textContent(), "Blocked");
+  assert.match(
+    await page.locator(".conversation-identity small").textContent(),
+    /Messaging disabled/,
+  );
+  const blockedBar = page.locator('[data-slot="blocked-composer-bar"]');
+  await blockedBar.waitFor();
+  assert.equal(await page.getByRole("textbox", { name: "Message" }).count(), 0);
+  assert.equal(await blockedBar.getByRole("button", { name: "Delete chat" }).count(), 1);
+  assert.equal(await blockedBar.getByRole("button", { name: "Unblock" }).count(), 1);
+  for (const width of [375, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await assertNoOverflow(`blocked conversation @${width}`);
+  }
+  await blockedBar.getByRole("button", { name: "Delete chat" }).click();
+  await page.getByRole("dialog", { name: "Delete chat (1)" }).waitFor();
+  await page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector("dialog[open]"));
 
   await openMenu();
@@ -346,6 +452,23 @@ try {
   );
   assert.equal(writes.at(-1).method, "POST");
   assert.deepEqual(writes.at(-1).body, { blocker_id: me, blocked_id: otherId });
+
+  // Group chat marks messages from blocked senders while leaving regular members untouched.
+  await page.goto(`${base}/chats/${groupChatId}`);
+  const blockedGroupMsg = page.locator('[data-message-id="88888888-8888-4888-8888-888888888881"]');
+  const regularGroupMsg = page.locator('[data-message-id="88888888-8888-4888-8888-888888888882"]');
+  await blockedGroupMsg.waitFor();
+  await regularGroupMsg.waitFor();
+  assert.equal(await blockedGroupMsg.getAttribute("data-blocked-sender"), "true");
+  assert.equal(
+    await blockedGroupMsg.locator('[data-slot="blocked-sender-badge"]').textContent(),
+    "Blocked",
+  );
+  assert.equal(await regularGroupMsg.getAttribute("data-blocked-sender"), null);
+  assert.equal(await regularGroupMsg.locator('[data-slot="blocked-sender-badge"]').count(), 0);
+  await page.goto(`${base}/chats/${chatId}`);
+  await page.locator(".chat-title").waitFor();
+  await openMenu();
 
   // Contact profile modal preserves identity and offers Unblock while blocked.
   await menuItem("View profile").click();
@@ -432,11 +555,19 @@ try {
   await openMenu();
   assert.equal(await menuItem("Unblock").count(), 1, "blocked state persists after reload");
 
-  // Unblock from the chat: dialog names the exact user, blur lifts, menu flips back.
-  await menuItem("Unblock").click();
-  await page.getByRole("dialog", { name: "Unblock Test User B?" }).waitFor();
-  await page.getByRole("dialog").getByRole("button", { name: "Unblock", exact: true }).click();
+  // Unblock from the blocked composer bar: dialog uses updated copy, header/composer restore.
+  await page.keyboard.press("Escape");
+  await page.locator('[data-slot="blocked-composer-bar"]').getByRole("button", { name: "Unblock" }).click();
+  const unblockDialog = page.getByRole("dialog", { name: "Unblock Test User B?" });
+  await unblockDialog.waitFor();
+  assert.match(
+    await unblockDialog.textContent(),
+    /You’ll both be able to message each other again\./,
+  );
+  await unblockDialog.getByRole("button", { name: "Unblock", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  assert.equal(await page.locator('[data-slot="blocked-header-badge"]').count(), 0);
+  assert.equal(await page.locator('[data-slot="blocked-composer-bar"]').count(), 0);
   await openMenu();
   assert.equal(await menuItem("Block").count(), 1, "menu flips back to Block");
   await page.keyboard.press("Escape");
