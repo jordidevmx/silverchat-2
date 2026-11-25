@@ -9,6 +9,7 @@ import { QueryState } from "@/features/settings/components/shared";
 import { getInitials } from "@/lib/avatar";
 import { useVoiceCallStart } from "../hooks/useVoiceCallStart";
 import { useCallText } from "../i18n";
+import { isChatCallable } from "../lib/callEligibility";
 
 export function NewCallModal({ onClose }: { onClose: () => void }) {
   const say = useCallText();
@@ -17,7 +18,9 @@ export function NewCallModal({ onClose }: { onClose: () => void }) {
   const { start: startCall, isPending } = useVoiceCallStart();
 
   const candidates = useMemo(() => {
-    const callable = (chats.data ?? []).filter((chat) => chat.type !== "self" && !chat.isBlocked);
+    const callable = (chats.data ?? []).filter((chat) =>
+      isChatCallable({ type: chat.type, status: "active", isBlocked: chat.isBlocked }),
+    );
     const query = search.trim().toLowerCase();
     if (!query) return callable;
     return callable.filter(

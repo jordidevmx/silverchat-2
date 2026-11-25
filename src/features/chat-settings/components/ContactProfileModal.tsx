@@ -18,7 +18,8 @@ export function ContactProfileModal({ userId, chat }: { userId: string; chat: Ch
     gradient,
     links,
     last,
-    active,
+    callChatId,
+    callEligibility,
     sendMessage,
     viewFullProfile,
   } = useContactProfileActions(userId, chat);
@@ -90,19 +91,33 @@ export function ContactProfileModal({ userId, chat }: { userId: string; chat: Ch
                 <Button type="button" disabled={action.busy} onClick={() => void sendMessage()}>
                   {say("Message", "Mensaje")}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!active || action.busy || callPending}
-                  title={
-                    active
-                      ? say("Start voice call", "Iniciar llamada de voz")
-                      : say("Accept the chat request first", "Acepta la solicitud del chat primero")
-                  }
-                  onClick={() => startCall(chat.id)}
-                >
-                  {say("Call", "Llamar")}
-                </Button>
+                {userId !== user?.id && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={
+                      !callEligibility.eligible || !callChatId || action.busy || callPending
+                    }
+                    title={
+                      callEligibility.eligible
+                        ? say("Start voice call", "Iniciar llamada de voz")
+                        : callEligibility.reason === "blocked"
+                          ? say(
+                              "Unblock this contact to call",
+                              "Desbloquea a este contacto para llamar",
+                            )
+                          : say(
+                              "Accept the chat request first",
+                              "Acepta la solicitud del chat primero",
+                            )
+                    }
+                    onClick={() => {
+                      if (callChatId && callEligibility.eligible) startCall(callChatId, dismiss);
+                    }}
+                  >
+                    {say("Call", "Llamar")}
+                  </Button>
+                )}
               </div>
               {userId !== user?.id && (
                 <div className="contact-actions">

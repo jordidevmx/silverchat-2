@@ -9,7 +9,7 @@ export function useContactProfile(userId: string) {
     queryKey: ["contact-profile", user?.id, userId],
     ...CHAT_QUERY_OPTIONS,
     queryFn: async () => {
-      const [profile, chat] = await Promise.all([
+      const [profile, chat, block] = await Promise.all([
         supabase.from("profiles_visible").select("*").eq("id", userId).maybeSingle(),
         supabase
           .from("chats")
@@ -17,10 +17,22 @@ export function useContactProfile(userId: string) {
           .eq("type", "direct")
           .eq("direct_pair_key", directPairKey(userId, user?.id ?? ""))
           .maybeSingle(),
+        user?.id
+          ? supabase
+              .from("user_blocks")
+              .select("blocked_id")
+              .eq("blocker_id", user.id)
+              .eq("blocked_id", userId)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
       ]);
       if (profile.error) throw profile.error;
       if (chat.error) throw chat.error;
-      return { profile: profile.data, chat: chat.data };
+      return {
+        profile: profile.data,
+        chat: chat.data,
+        isBlocked: !block.error && Boolean(block.data),
+      };
     },
   });
 }

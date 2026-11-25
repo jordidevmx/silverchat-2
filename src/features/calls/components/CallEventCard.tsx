@@ -2,11 +2,18 @@
 // call history all consume this component, so labels, icons and formatting
 // cannot drift between surfaces.
 import { ArrowDownLeft, ArrowUpRight, Phone, Video } from "lucide-react";
+import { useI18n } from "@/app/providers/i18n-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import { useCallText } from "../i18n";
-import { type CallEventModel, type CallOutcome, formatCallEventDuration } from "../lib/callEvent";
+import {
+  type CallEventModel,
+  type CallOutcome,
+  formatCallEventDuration,
+  getCallEventOutcomeLabel,
+  shouldRenderCallParticipants,
+} from "../lib/callEvent";
 import { formatCallTimestamp } from "../lib/callFormatter";
 import type { CallParticipant } from "../types";
 
@@ -23,6 +30,7 @@ export interface CallEventCardProps {
   subjectName?: string;
   className?: string;
   onCallBack?: () => void;
+  callBackDisabled?: boolean;
 }
 
 const outcomeTone: Record<CallOutcome, string> = {
@@ -35,22 +43,8 @@ const outcomeTone: Record<CallOutcome, string> = {
 };
 
 function useOutcomeLabel(outcome: CallOutcome, type: "voice" | "video") {
-  const say = useCallText();
-  const kind = type === "video" ? say("Video call") : say("Voice call");
-  switch (outcome) {
-    case "completed":
-      return kind;
-    case "busy":
-      return say("Busy");
-    case "missed":
-      return kind === say("Video call") ? say("Missed video call") : say("Missed voice call");
-    case "declined":
-      return say("Declined call");
-    case "canceled":
-      return say("Canceled call");
-    case "failed":
-      return say("Call failed");
-  }
+  const { language } = useI18n();
+  return getCallEventOutcomeLabel(outcome, type, language);
 }
 
 /** Shared icon/outcome machinery used by both presentations. */
@@ -83,6 +77,7 @@ export function CallEventCard({
   subjectName,
   className,
   onCallBack,
+  callBackDisabled = false,
 }: CallEventCardProps) {
   const say = useCallText();
   const outcomeLabel = useOutcomeLabel(event.outcome, event.type);
@@ -128,8 +123,13 @@ export function CallEventCard({
     );
   }
 
-  const visibleParticipants = participants.filter((p) => p.id !== event.initiatorId).slice(0, 2);
-  const extra = Math.max(0, participants.length - 1 - visibleParticipants.length);
+  const visibleParticipants = isGroup
+    ? participants.filter((p) => p.id !== event.initiatorId).slice(0, 2)
+    : [];
+  const showParticipants = shouldRenderCallParticipants(chatContext, visibleParticipants.length);
+  const extra = showParticipants
+    ? Math.max(0, participants.length - 1 - visibleParticipants.length)
+    : 0;
 
   return (
     <div className={cn("call-event-row", className)} data-call-outcome={event.outcome}>
@@ -150,14 +150,14 @@ export function CallEventCard({
             {duration && <span className="call-event-duration">{duration}</span>}
             <time dateTime={event.startedAt}>{timestamp}</time>
           </div>
-          {(isGroup || visibleParticipants.length > 0) && (
+          {isGroup && (event.initiatorName || showParticipants) && (
             <div className="call-event-group">
-              {isGroup && event.initiatorName && (
+              {event.initiatorName && (
                 <span className="call-event-initiator">
                   {say("Started by {name}").replace("{name}", event.initiatorName)}
                 </span>
               )}
-              {visibleParticipants.length > 0 && (
+              {showParticipants && (
                 <span className="call-event-avatars" role="img" aria-label={say("Participants")}>
                   {visibleParticipants.map((participant) => (
                     <Avatar
@@ -181,6 +181,7 @@ export function CallEventCard({
             type="button"
             className="call-event-callback"
             aria-label={say("Tap to call back")}
+            disabled={callBackDisabled}
             onClick={onCallBack}
           >
             <Phone size={15} aria-hidden="true" />

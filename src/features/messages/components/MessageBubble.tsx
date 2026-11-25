@@ -2,6 +2,8 @@ import { AlertCircle, Check, CheckCheck, LoaderCircle, MoreHorizontal, Reply } f
 import { useCallback, useEffect, useRef } from "react";
 import { MessageSurface } from "@/components/ui/conversation-surface";
 import { CallEventCard } from "@/features/calls/components/CallEventCard";
+import { useVoiceCallStart } from "@/features/calls/hooks/useVoiceCallStart";
+import { getCallEligibility } from "@/features/calls/lib/callEligibility";
 import { parseCallEvent } from "@/features/calls/lib/callEvent";
 import { Avatar } from "@/features/settings/components/shared";
 import { useAuth } from "@/lib/auth-provider";
@@ -36,6 +38,7 @@ export function MessageBubble({
   const { language, say } = useMessageText();
   const ui = useMessageActionUI();
   const { user } = useAuth();
+  const { start: startVoiceCall, isPending: callPending } = useVoiceCallStart();
   const suppressClickUntil = useRef(0);
   const press = useRef<{
     x: number;
@@ -69,6 +72,7 @@ export function MessageBubble({
   const status = messageStatus(message, chat.members);
   if (message.type === "system" && !message.deleted_for_everyone) {
     const callEvent = parseCallEvent(message.content, user?.id ?? "");
+    const callEligibility = getCallEligibility(chat);
     return (
       <div data-message-id={message.id}>
         {callEvent ? (
@@ -77,12 +81,18 @@ export function MessageBubble({
             presentation="full"
             chatContext={chat.type}
             locale={language}
-            participants={chat.members.map((member) => ({
-              id: member.user_id,
-              display_name: member.profile?.display_name,
-              username: member.profile?.username,
-              avatar_url: member.profile?.avatar_url,
-            }))}
+            participants={
+              chat.type === "group" || chat.type === "community_chat"
+                ? chat.members.map((member) => ({
+                    id: member.user_id,
+                    display_name: member.profile?.display_name,
+                    username: member.profile?.username,
+                    avatar_url: member.profile?.avatar_url,
+                  }))
+                : undefined
+            }
+            onCallBack={callEligibility.eligible ? () => startVoiceCall(chat.id) : undefined}
+            callBackDisabled={callPending}
           />
         ) : (
           <MessageContent message={message} members={chat.members} onOpen={() => {}} />

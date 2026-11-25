@@ -39,13 +39,9 @@ interface StartCallInput {
 async function resolveParticipant(chatId: string, userId: string): Promise<CallParticipant> {
   const { data: chatRow } = await supabase
     .from("chats")
-    .select("type, name, direct_pair_key")
+    .select("direct_pair_key")
     .eq("id", chatId)
     .single();
-  // Groups/communities have no single peer: the ringing UI shows the chat name.
-  if (chatRow && chatRow.type !== "direct") {
-    return { id: chatId, display_name: chatRow.name };
-  }
   // Direct chats carry an "id1::id2" pair key; a self chat has no peer.
   const otherId = chatRow?.direct_pair_key?.split("::").find((id) => id !== userId) ?? userId;
   const { data: other } = await supabase

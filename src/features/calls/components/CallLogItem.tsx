@@ -10,10 +10,12 @@ export function CallLogItem({
   entry,
   locale,
   onCall,
+  callPending = false,
 }: {
   entry: CallLogEntry;
   locale: string;
   onCall: (entry: CallLogEntry) => void;
+  callPending?: boolean;
 }) {
   const say = useCallText();
   const { user } = useAuth();
@@ -42,9 +44,9 @@ export function CallLogItem({
         presentation="full"
         chatContext="direct"
         locale={locale}
-        participants={[entry.other]}
         subjectName={name}
-        onCallBack={() => onCall(entry)}
+        onCallBack={entry.canCallBack !== false ? () => onCall(entry) : undefined}
+        callBackDisabled={callPending}
       />
     </li>
   );

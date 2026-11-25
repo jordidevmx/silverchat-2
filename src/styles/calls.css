@@ -400,13 +400,18 @@ dialog.call-modal > h2 {
     scale var(--duration-fast) var(--ease-out);
 }
 
-.call-event-callback:hover {
+.call-event-callback:hover:not(:disabled) {
   background: color-mix(in oklab, var(--neon) 14%, transparent);
   scale: 1.06;
 }
 
-.call-event-callback:active {
+.call-event-callback:active:not(:disabled) {
   scale: 0.94;
+}
+
+.call-event-callback:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .call-event-callback:focus-visible,

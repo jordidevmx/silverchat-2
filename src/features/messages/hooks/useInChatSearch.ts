@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/lib/auth-provider";
+import { useMessageText } from "../i18n";
+import { filterSearchableMessages } from "../lib/messageSearch";
 import type { Message } from "../types";
 export function useInChatSearch(messages: Message[]) {
+  const { language } = useMessageText();
+  const { user } = useAuth();
   const [text, setText] = useState("");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
@@ -12,13 +17,8 @@ export function useInChatSearch(messages: Message[]) {
     return () => clearTimeout(timer);
   }, [text]);
   const results = useMemo(
-    () =>
-      query
-        ? messages.filter(
-            (m) => !m.deleted_for_everyone && m.content?.toLocaleLowerCase().includes(query),
-          )
-        : [],
-    [messages, query],
+    () => filterSearchableMessages(messages, query, language, user?.id ?? ""),
+    [messages, query, language, user?.id],
   );
   const index = Math.max(
     0,

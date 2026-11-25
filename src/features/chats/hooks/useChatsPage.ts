@@ -54,7 +54,9 @@ export function useChatsPage() {
   }
   const outboxByChat = groupOutboxByChat(readOutbox(undefined, auth.user?.id ?? ""));
   const chats = query.data ?? [];
-  const visible = orderChats(applySearch(applyFilter(chats, filters.filter), filters.q));
+  const visible = orderChats(
+    applySearch(applyFilter(chats, filters.filter), filters.q, language, auth.user?.id ?? ""),
+  );
   const selectedIds = new Set(filters.select ? filters.selectedIds.split(",") : []);
   const selected = chats.filter((c) => selectedIds.has(c.id));
   const allSelected = visible.length > 0 && visible.every((c) => selectedIds.has(c.id));

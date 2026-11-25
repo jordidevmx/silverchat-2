@@ -200,6 +200,7 @@ export interface CallLogEntry {
   declineReason: string | null;
   endedReason: string | null;
   isOutgoing: boolean;
+  canCallBack?: boolean;
   other: CallParticipant;
 }
 

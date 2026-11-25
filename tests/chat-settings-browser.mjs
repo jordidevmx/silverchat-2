@@ -507,7 +507,7 @@ try {
   assert.ok(await page.getByRole("heading", { name: "Sofia Reyes", exact: true }).isVisible());
   assert.equal(
     await page.getByRole("button", { name: "Call", exact: true }).getAttribute("title"),
-    "Calls coming soon",
+    "Start voice call",
   );
   await page.getByRole("button", { name: "Block", exact: true }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true }).click();

@@ -19,7 +19,7 @@ export function CallsPage() {
   const say = useCallText();
   const { language } = useI18n();
   const calls = useCalls();
-  const { start: startCall } = useVoiceCallStart();
+  const { start: startCall, isPending: callPending } = useVoiceCallStart();
   const [filter, setFilter] = useState<CallsFilter>("all");
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
@@ -115,6 +115,7 @@ export function CallsPage() {
                     entry={entry}
                     locale={language === "es" ? "es" : "en"}
                     onCall={onCall}
+                    callPending={callPending}
                   />
                 ))}
               </ul>

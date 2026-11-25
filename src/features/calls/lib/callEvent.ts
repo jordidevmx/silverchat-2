@@ -2,11 +2,27 @@
 // writes one row per terminal call; every surface parses the same model so the
 // timeline, chat-list preview and call history cannot drift apart.
 
+import type { Language } from "../../../lib/language.ts";
 import type { CallStatus, CallType } from "../types.ts";
 import { formatDuration } from "./callFormatter.ts";
 import type { CallLogEntry } from "./callState.ts";
 
 export const CALL_EVENT_PREFIX = "call:v1:";
+
+export function isCallEventContent(content: string | null | undefined): boolean {
+  return typeof content === "string" && content.startsWith(CALL_EVENT_PREFIX);
+}
+
+/** Direct conversations already identify the single peer; only group contexts
+ * need a participant-avatar strip on a call event card. */
+export function shouldRenderCallParticipants(
+  chatContext: string,
+  visibleParticipantCount: number,
+): boolean {
+  return (
+    (chatContext === "group" || chatContext === "community_chat") && visibleParticipantCount > 0
+  );
+}
 
 /** Shape serialized into messages.content by the call-end trigger. */
 export interface CallEventPayload {
@@ -167,4 +183,109 @@ export function formatCallEventDuration(totalSeconds: number, locale: string): s
     }
   }
   return formatDuration(seconds);
+}
+
+const OUTCOME_LABELS: Record<
+  Language,
+  {
+    voice: string;
+    video: string;
+    busy: string;
+    missedVoice: string;
+    missedVideo: string;
+    declined: string;
+    canceled: string;
+    failed: string;
+    fallback: string;
+    outgoing: string;
+    incoming: string;
+  }
+> = {
+  en: {
+    voice: "Voice call",
+    video: "Video call",
+    busy: "Busy",
+    missedVoice: "Missed voice call",
+    missedVideo: "Missed video call",
+    declined: "Declined call",
+    canceled: "Canceled call",
+    failed: "Call failed",
+    fallback: "Call",
+    outgoing: "Outgoing",
+    incoming: "Incoming",
+  },
+  es: {
+    voice: "Llamada de voz",
+    video: "Videollamada",
+    busy: "Ocupado",
+    missedVoice: "Llamada de voz perdida",
+    missedVideo: "Videollamada perdida",
+    declined: "Llamada rechazada",
+    canceled: "Llamada cancelada",
+    failed: "La llamada falló",
+    fallback: "Llamada",
+    outgoing: "Saliente",
+    incoming: "Entrante",
+  },
+};
+
+export function getCallEventOutcomeLabel(
+  outcome: CallOutcome,
+  type: CallType,
+  language: Language,
+): string {
+  const labels = OUTCOME_LABELS[language] ?? OUTCOME_LABELS.en;
+  switch (outcome) {
+    case "completed":
+      return type === "video" ? labels.video : labels.voice;
+    case "busy":
+      return labels.busy;
+    case "missed":
+      return type === "video" ? labels.missedVideo : labels.missedVoice;
+    case "declined":
+      return labels.declined;
+    case "canceled":
+      return labels.canceled;
+    case "failed":
+      return labels.failed;
+  }
+}
+
+/** Human-readable localized preview for a `call:v1:` payload. Returns null for
+ * ordinary messages, and a safe generic label when a `call:v1:` payload is
+ * malformed so raw JSON is never surfaced to the user. */
+export function formatCallEventPreviewText(
+  content: string | null | undefined,
+  language: Language,
+  viewerId = "",
+): string | null {
+  if (!isCallEventContent(content)) return null;
+  const labels = OUTCOME_LABELS[language] ?? OUTCOME_LABELS.en;
+  const event = parseCallEvent(content, viewerId);
+  if (!event) return labels.fallback;
+  const outcomeLabel = getCallEventOutcomeLabel(event.outcome, event.type, language);
+  if (event.outcome === "completed" && event.durationSeconds != null) {
+    return `${outcomeLabel} · ${formatCallEventDuration(event.durationSeconds, language)}`;
+  }
+  return outcomeLabel;
+}
+
+/** Searchable text for a `call:v1:` payload. Includes only visible localized
+ * labels (never internal JSON keys), and returns `""` for malformed payloads. */
+export function getCallEventSearchText(
+  content: string | null | undefined,
+  language: Language,
+  viewerId = "",
+): string | null {
+  if (!isCallEventContent(content)) return null;
+  const event = parseCallEvent(content, viewerId);
+  if (!event) return "";
+  const labels = OUTCOME_LABELS[language] ?? OUTCOME_LABELS.en;
+  const outcomeLabel = getCallEventOutcomeLabel(event.outcome, event.type, language);
+  const directionLabel = event.direction === "outgoing" ? labels.outgoing : labels.incoming;
+  const duration =
+    event.outcome === "completed" && event.durationSeconds != null
+      ? formatCallEventDuration(event.durationSeconds, language)
+      : null;
+  return [outcomeLabel, directionLabel, duration, event.initiatorName].filter(Boolean).join(" ");
 }

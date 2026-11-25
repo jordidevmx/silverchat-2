@@ -2,6 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { ChevronLeft, MoreVertical, Phone, Pin, Search, Users } from "lucide-react";
 import { ConversationHeaderSurface } from "@/components/ui/conversation-surface";
 import { useVoiceCallStart } from "@/features/calls/hooks/useVoiceCallStart";
+import { getCallEligibility } from "@/features/calls/lib/callEligibility";
 import { useChatUIStore } from "@/features/chat-settings/stores/uiStore";
 import { Avatar } from "@/features/settings/components/shared";
 import { useChatPresence } from "../hooks/useChatPresence";
@@ -38,7 +39,13 @@ export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: ()
               ? `${say("Last seen", "Última conexión")} ${relative}`
               : say("Offline", "Desconectado");
   const name = chat.type === "self" ? say("You", "Tú") : chat.name;
-  const callLabel = say("Start voice call", "Iniciar llamada de voz");
+  const callEligibility = getCallEligibility(chat);
+  const showCallTrigger = chat.type === "direct" && !chat.channelMode;
+  const callLabel = callEligibility.eligible
+    ? say("Start voice call", "Iniciar llamada de voz")
+    : callEligibility.reason === "blocked"
+      ? say("Unblock this contact to call", "Desbloquea a este contacto para llamar")
+      : say("Accept the chat request first", "Acepta la solicitud del chat primero");
   const identity = (
     <>
       {(chat.type === "group" || chat.type === "community_chat") && !chat.avatar ? (
@@ -118,16 +125,18 @@ export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: ()
         >
           <Search size={20} />
         </button>
-        {chat.type !== "self" && (
+        {showCallTrigger && (
           <button
             type="button"
             className="message-icon conversation-call-trigger"
             aria-label={callLabel}
             title={callLabel}
-            disabled={callPending}
-            onClick={() => startVoiceCall(chat.id)}
+            disabled={!callEligibility.eligible || callPending}
+            onClick={() => {
+              if (callEligibility.eligible) startVoiceCall(chat.id);
+            }}
           >
-            <Phone size={20} />
+            <Phone size={20} aria-hidden="true" />
           </button>
         )}
         <button
