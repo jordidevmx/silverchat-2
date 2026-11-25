@@ -46,7 +46,13 @@ export default async function handler() {
               .order("id")
               .range(offset, offset + 499);
             if (uploads.error) throw uploads.error;
-            for (const bucket of ["avatars", "chat-media", "story-media", "channel-media"]) {
+            for (const bucket of [
+              "avatars",
+              "chat-media",
+              "story-media",
+              "channel-media",
+              "chat-backgrounds",
+            ]) {
               const paths = uploads.data
                 .filter((file) => file.bucket === bucket)
                 .map((file) => file.path);

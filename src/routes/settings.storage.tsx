@@ -31,6 +31,7 @@ export function StoragePage() {
           <div className="settings-card">
             {[
               ["avatars", "Avatars"],
+              ["chat-backgrounds", "Chat backgrounds"],
               ["chat-media", "Chat media"],
               ["story-media", "Stories"],
               ["channel-media", "Channel media"],

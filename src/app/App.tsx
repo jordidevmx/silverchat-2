@@ -9,9 +9,10 @@ import { useAuthText } from "@/features/auth/i18n";
 import { useOutboxSync } from "@/features/messages/hooks/useOutboxSync";
 import { PreferencesProvider } from "@/features/settings/preferences-provider";
 import { AuthProvider, useAuth } from "@/lib/auth-provider";
-import { isServerError, useSupabaseHealth } from "@/lib/supabase-health";
 import { ClipboardPasteProvider } from "@/lib/clipboard-paste";
+import { isServerError, useSupabaseHealth } from "@/lib/supabase-health";
 import { ConnectionBanner } from "./connection-banner";
+import { ChatBackgroundProvider } from "./providers/chat-background-provider";
 import { I18nProvider } from "./providers/i18n-provider";
 import { ThemeProvider } from "./providers/theme-provider";
 import { router } from "./router";
@@ -64,7 +65,9 @@ export default function App() {
             <ConnectionBanner />
             <AuthProvider>
               <PreferencesProvider>
-                <AuthenticatedRouter />
+                <ChatBackgroundProvider>
+                  <AuthenticatedRouter />
+                </ChatBackgroundProvider>
               </PreferencesProvider>
             </AuthProvider>
           </ClipboardPasteProvider>

@@ -130,6 +130,34 @@ export function AccentChoice({
     </button>
   );
 }
+export function BackgroundChoice({
+  label,
+  selected,
+  onSelect,
+  className,
+  children,
+}: {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      className={cn("background-choice", className)}
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+    >
+      <span className="background-choice-preview" aria-hidden="true">
+        {children}
+      </span>
+      <span className="background-choice-label">{label}</span>
+      {selected && <Check size={13} aria-hidden="true" className="background-choice-check" />}
+    </button>
+  );
+}
 export function SettingsDialog({ className, ...props }: ComponentProps<typeof MotionOverlay>) {
   return <MotionOverlay {...props} className={cn("settings-dialog", className)} />;
 }

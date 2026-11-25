@@ -162,6 +162,84 @@
     color: color-mix(in oklab, var(--foreground) 65%, var(--neon) 35%);
     opacity: 0.075;
   }
+  .chat-background {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .chat-background-image {
+    position: absolute;
+    inset: -2px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .chat-background-mercury {
+    background-image: url("/backgrounds/mercury-1x.webp");
+    /* biome-ignore lint/suspicious/noDuplicateProperties: fallback for browsers without image-set() */
+    background-image: image-set(
+      url("/backgrounds/mercury-1x.avif") type("image/avif") 1x,
+      url("/backgrounds/mercury-2x.avif") type("image/avif") 2x,
+      url("/backgrounds/mercury-1x.webp") type("image/webp") 1x,
+      url("/backgrounds/mercury-2x.webp") type("image/webp") 2x
+    );
+  }
+  .chat-background-obsidian {
+    background-image: url("/backgrounds/obsidian-1x.webp");
+    /* biome-ignore lint/suspicious/noDuplicateProperties: fallback for browsers without image-set() */
+    background-image: image-set(
+      url("/backgrounds/obsidian-1x.avif") type("image/avif") 1x,
+      url("/backgrounds/obsidian-2x.avif") type("image/avif") 2x,
+      url("/backgrounds/obsidian-1x.webp") type("image/webp") 1x,
+      url("/backgrounds/obsidian-2x.webp") type("image/webp") 2x
+    );
+  }
+  .chat-background-prism {
+    background-image: url("/backgrounds/prism-1x.webp");
+    /* biome-ignore lint/suspicious/noDuplicateProperties: fallback for browsers without image-set() */
+    background-image: image-set(
+      url("/backgrounds/prism-1x.avif") type("image/avif") 1x,
+      url("/backgrounds/prism-2x.avif") type("image/avif") 2x,
+      url("/backgrounds/prism-1x.webp") type("image/webp") 1x,
+      url("/backgrounds/prism-2x.webp") type("image/webp") 2x
+    );
+  }
+  .chat-background-horizon {
+    background-image: url("/backgrounds/horizon-1x.webp");
+    /* biome-ignore lint/suspicious/noDuplicateProperties: fallback for browsers without image-set() */
+    background-image: image-set(
+      url("/backgrounds/horizon-1x.avif") type("image/avif") 1x,
+      url("/backgrounds/horizon-2x.avif") type("image/avif") 2x,
+      url("/backgrounds/horizon-1x.webp") type("image/webp") 1x,
+      url("/backgrounds/horizon-2x.webp") type("image/webp") 2x
+    );
+  }
+  .chat-background-scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--background);
+    transition: opacity var(--duration-base) var(--ease-out);
+  }
+  :root[data-theme="dark"] .chat-background-scrim {
+    background: color-mix(in oklab, var(--background) 86%, black);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .chat-background-image {
+      animation: chat-background-enter var(--duration-slower) var(--ease-out) both;
+    }
+    @keyframes chat-background-enter {
+      from {
+        opacity: 0;
+        transform: scale(1.03);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
   .conversation-canvas-content {
     position: relative;
     z-index: 1;
@@ -480,7 +558,8 @@
     box-shadow: none;
   }
   @media (forced-colors: active) {
-    .conversation-doodle-pattern {
+    .conversation-doodle-pattern,
+    .chat-background {
       display: none;
     }
     .system-pill {
@@ -2228,4 +2307,52 @@
     width: 28px;
     height: 28px;
   }
+}
+
+/* Unlayered so elevation cleanly overrides @layer utilities (shadow-silver, bg-bubble-other, bubble-self)
+   whenever a non-default chat background image is active. */
+.conversation-canvas:has(.chat-background) [data-slot="bubble-surface"][data-own="false"] {
+  border-color: color-mix(in oklab, var(--foreground) 14%, transparent);
+  box-shadow:
+    0 1px 3px oklch(0.14 0.02 255 / 0.16),
+    0 8px 20px -8px oklch(0.14 0.02 255 / 0.26);
+}
+:root[data-theme="dark"]
+  .conversation-canvas:has(.chat-background)
+  [data-slot="bubble-surface"][data-own="false"] {
+  background-color: color-mix(in oklab, var(--bubble-other) 88%, var(--foreground) 12%);
+  border-color: color-mix(in oklab, var(--foreground) 18%, transparent);
+  box-shadow:
+    0 2px 6px oklch(0 0 0 / 0.48),
+    0 10px 26px -8px oklch(0 0 0 / 0.62);
+}
+.conversation-canvas:has(.chat-background) [data-slot="bubble-surface"][data-own="true"] {
+  box-shadow:
+    var(--shadow-bubble-self),
+    0 2px 6px oklch(0.14 0.02 255 / 0.16),
+    0 8px 20px -8px oklch(0.14 0.02 255 / 0.24);
+}
+:root[data-theme="dark"]
+  .conversation-canvas:has(.chat-background)
+  [data-slot="bubble-surface"][data-own="true"] {
+  box-shadow:
+    var(--shadow-bubble-self),
+    0 6px 22px -6px oklch(0 0 0 / 0.56);
+}
+.conversation-canvas:has(.chat-background) .message-date span {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  color: var(--foreground);
+  border-color: color-mix(in oklab, var(--foreground) 14%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px -2px oklch(0 0 0 / 0.22);
+}
+.conversation-canvas:has(.chat-background) .conversation-start {
+  display: inline-block;
+  align-self: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--card) 84%, transparent);
+  color: var(--foreground);
+  border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+  backdrop-filter: blur(8px);
 }

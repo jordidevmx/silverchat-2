@@ -2137,6 +2137,9 @@ export type Database = {
       user_settings: {
         Row: {
           accent: Database["public"]["Enums"]["accent_theme"];
+          chat_background: string;
+          chat_background_dim: number;
+          chat_background_path: string | null;
           language: Database["public"]["Enums"]["language_preference"];
           notification_previews_enabled: boolean;
           notification_sound_enabled: boolean;
@@ -2154,6 +2157,9 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           accent?: Database["public"]["Enums"]["accent_theme"];
+          chat_background?: string;
+          chat_background_dim?: number;
+          chat_background_path?: string | null;
           language?: Database["public"]["Enums"]["language_preference"];
           notification_previews_enabled?: boolean;
           notification_sound_enabled?: boolean;
@@ -2170,6 +2176,9 @@ export type Database = {
         };
         Update: {
           accent?: Database["public"]["Enums"]["accent_theme"];
+          chat_background?: string;
+          chat_background_dim?: number;
+          chat_background_path?: string | null;
           language?: Database["public"]["Enums"]["language_preference"];
           notification_previews_enabled?: boolean;
           notification_sound_enabled?: boolean;
