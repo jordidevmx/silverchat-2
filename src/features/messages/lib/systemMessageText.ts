@@ -1,4 +1,5 @@
 import type { Language } from "../../../lib/language.ts";
+import { formatCallEventPreviewText } from "../../calls/lib/callEvent.ts";
 
 const SYSTEM_PATTERNS: ReadonlyArray<{
   pattern: RegExp;
@@ -37,6 +38,8 @@ export function formatSystemMessageText(
   language: Language,
 ): string {
   if (!content) return "";
+  const callPreview = formatCallEventPreviewText(content, language);
+  if (callPreview !== null) return callPreview;
   for (const rule of SYSTEM_PATTERNS) {
     const match = rule.pattern.exec(content);
     if (match?.[1]) {

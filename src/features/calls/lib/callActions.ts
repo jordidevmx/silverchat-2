@@ -33,6 +33,18 @@ async function updateCall(id: string, patch: CallPatch): Promise<CallWriteResult
   return data && data.length > 0 ? "ok" : "lost-race";
 }
 
+/** Promote an answered voice call to video the first time the camera is
+ * enabled mid-call. Idempotent on the server; the terminal event then records
+ * the call as video, matching what the participants actually saw. */
+export async function markCallVideo(callId: string): Promise<boolean> {
+  const { error } = await supabase.rpc("mark_call_video", { p_call_id: callId });
+  if (error) {
+    console.error("[calls] mark_call_video failed", error);
+    return false;
+  }
+  return true;
+}
+
 export function isPermissionError(error: unknown): boolean {
   const name = (error as { name?: string } | null)?.name ?? "";
   return name === "NotAllowedError" || name === "PermissionDeniedError" || name === "SecurityError";

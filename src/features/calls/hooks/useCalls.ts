@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-provider";
 import { supabase } from "@/lib/supabase";
+import { isChatCallable } from "../lib/callEligibility";
 import type { CallLogEntry } from "../lib/callState";
 import type { CallParticipant, CallStatus, CallType } from "../types";
 
@@ -20,7 +21,7 @@ interface CallsQueryRow {
   decline_reason: string | null;
   ended_reason: string | null;
   initiator_id: string | null;
-  chat: { id: string; type: string; direct_pair_key: string | null };
+  chat: { id: string; type: string; status?: string | null; direct_pair_key: string | null };
 }
 
 interface MembershipRow {
@@ -51,7 +52,7 @@ async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
     .select(
       `id, chat_id, type, status, started_at, answered_at, ended_at,
        duration_seconds, decline_reason, ended_reason, initiator_id,
-       chat:chats!calls_chat_id_fkey(id, type, direct_pair_key)`,
+       chat:chats!calls_chat_id_fkey(id, type, status, direct_pair_key)`,
     )
     .in("chat_id", chatIds)
     .order("started_at", { ascending: false })
@@ -59,21 +60,27 @@ async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
   if (error) throw error;
 
   const calls = (rows ?? []) as unknown as CallsQueryRow[];
-  const selfCalls = calls.filter((call) => call.chat.type !== "self");
+  const directCalls = calls.filter((call) => call.chat.type === "direct");
   const otherIds = [
     ...new Set(
-      selfCalls.map(
+      directCalls.map(
         (call) =>
           call.chat.direct_pair_key?.split("::").find((id) => id !== userId) ?? call.initiator_id,
       ),
     ),
   ].filter((id): id is string => !!id);
-  const { data: profiles } = otherIds.length
-    ? await supabase
-        .from("profiles_visible")
-        .select("id, username, display_name, avatar_url, last_seen_at")
-        .in("id", otherIds)
-    : { data: [] as ProfileRow[] | null };
+  const [{ data: profiles }, blocksRes] = await Promise.all([
+    otherIds.length
+      ? supabase
+          .from("profiles_visible")
+          .select("id, username, display_name, avatar_url, last_seen_at")
+          .in("id", otherIds)
+      : Promise.resolve({ data: [] as ProfileRow[] | null }),
+    supabase.from("user_blocks").select("blocked_id").eq("blocker_id", userId),
+  ]);
+  const blockedIds = new Set(
+    !blocksRes.error ? (blocksRes.data ?? []).map((row) => row.blocked_id) : [],
+  );
 
   const toParticipant = (
     profile: ProfileRow | undefined,
@@ -94,10 +101,11 @@ async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
     };
   };
 
-  return selfCalls.map((call) => {
+  return directCalls.map((call) => {
     const otherId =
       call.chat.direct_pair_key?.split("::").find((id) => id !== userId) ?? call.initiator_id;
     const other = (profiles ?? []).find((profile) => profile.id === otherId);
+    const isBlocked = Boolean(otherId && blockedIds.has(otherId));
     return {
       id: call.id,
       chatId: call.chat_id,
@@ -110,6 +118,11 @@ async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
       declineReason: call.decline_reason,
       endedReason: call.ended_reason,
       isOutgoing: call.initiator_id === userId,
+      canCallBack: isChatCallable({
+        type: call.chat.type,
+        status: call.chat.status ?? "active",
+        isBlocked,
+      }),
       other: toParticipant(other, otherId),
     };
   });

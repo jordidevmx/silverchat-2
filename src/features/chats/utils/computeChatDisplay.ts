@@ -1,4 +1,5 @@
 import type { Language } from "../../../lib/language.ts";
+import { getCallEventSearchText } from "../../calls/lib/callEvent.ts";
 import type { OutboxEntry } from "../../messages/lib/outbox.ts";
 import { formatSystemMessageText } from "../../messages/lib/systemMessageText.ts";
 import type { Chat, Draft, FilterKey, MessageType } from "../types.ts";
@@ -61,18 +62,25 @@ export function applyFilter(chats: Chat[], filter: FilterKey) {
     }
   });
 }
-export function applySearch(chats: Chat[], query: string) {
+export function applySearch(
+  chats: Chat[],
+  query: string,
+  language: Language = "en",
+  viewerId = "",
+) {
   const q = query.trim().toLocaleLowerCase();
   return !q
     ? chats
-    : chats.filter((c) =>
-        [
+    : chats.filter((c) => {
+        const callSearch = getCallEventSearchText(c.lastMessagePreview, language, viewerId);
+        const searchablePreview = callSearch !== null ? callSearch : c.lastMessagePreview;
+        return [
           c.displayName,
-          c.lastMessagePreview,
+          searchablePreview,
           c.otherUsername,
           ...(c.type === "group" || c.type === "community_chat" ? c.memberNames : []),
-        ].some((text) => text?.toLocaleLowerCase().includes(q)),
-      );
+        ].some((text) => text?.toLocaleLowerCase().includes(q));
+      });
 }
 export function orderChats(chats: Chat[]) {
   return [...chats].sort((a, b) => {

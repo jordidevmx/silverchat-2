@@ -1,60 +1,34 @@
-// 6.4 — New call FAB sheet: search over active direct chats, then start a
-// voice (default) or video call. Group/community calls are Fase 2.
-import { Phone, Video } from "lucide-react";
+// New call FAB sheet: search over callable chats, then start a voice call.
+// The camera can be toggled from the in-call controls.
+import { Phone } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Modal } from "@/components/ui/modal";
 import { useChats } from "@/features/chats/hooks/useChats";
 import { QueryState } from "@/features/settings/components/shared";
 import { getInitials } from "@/lib/avatar";
-import { CallStartError, useStartCall } from "../hooks/useStartCall";
+import { useVoiceCallStart } from "../hooks/useVoiceCallStart";
 import { useCallText } from "../i18n";
-import { notifyCall } from "../stores/callStore";
+import { isChatCallable } from "../lib/callEligibility";
 
 export function NewCallModal({ onClose }: { onClose: () => void }) {
   const say = useCallText();
   const [search, setSearch] = useState("");
   const chats = useChats();
-  const startCall = useStartCall();
+  const { start: startCall, isPending } = useVoiceCallStart();
 
   const candidates = useMemo(() => {
-    const direct = (chats.data ?? []).filter((chat) => chat.type === "direct" && !chat.isBlocked);
+    const callable = (chats.data ?? []).filter((chat) =>
+      isChatCallable({ type: chat.type, status: "active", isBlocked: chat.isBlocked }),
+    );
     const query = search.trim().toLowerCase();
-    if (!query) return direct;
-    return direct.filter(
+    if (!query) return callable;
+    return callable.filter(
       (chat) =>
         chat.displayName.toLowerCase().includes(query) ||
         (chat.otherUsername ?? "").toLowerCase().includes(query),
     );
   }, [chats.data, search]);
-
-  const start = (chatId: string, type: "voice" | "video") => {
-    startCall.mutate(
-      { chatId, type },
-      {
-        onSuccess: onClose,
-        onError: (error) => {
-          if (error instanceof CallStartError) {
-            if (error.kind === "permission") {
-              notifyCall(
-                say("Camera/microphone access is required. Enable it in your browser settings."),
-              );
-              return;
-            }
-            notifyCall(
-              say(
-                error.kind === "busy"
-                  ? "You are already in a call"
-                  : "Failed to start call. Try again.",
-              ),
-            );
-            return;
-          }
-          notifyCall(say("Failed to start call. Try again."));
-        },
-      },
-    );
-  };
 
   return (
     <Modal title={say("New call")} onClose={onClose} className="max-w-sm">
@@ -101,20 +75,11 @@ export function NewCallModal({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   aria-label={`${say("Start voice call")} ${chat.displayName}`}
-                  disabled={startCall.isPending}
-                  onClick={() => start(chat.id, "voice")}
-                  className="grid size-9 cursor-pointer place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+                  disabled={isPending}
+                  onClick={() => startCall(chat.id, onClose)}
+                  className="grid size-9 cursor-pointer place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
                 >
                   <Phone size={16} />
-                </button>
-                <button
-                  type="button"
-                  aria-label={`${say("Start video call")} ${chat.displayName}`}
-                  disabled={startCall.isPending}
-                  onClick={() => start(chat.id, "video")}
-                  className="grid size-9 cursor-pointer place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
-                >
-                  <Video size={16} />
                 </button>
               </li>
             ))}

@@ -57,6 +57,28 @@ export function useChat(chatId: string) {
         )
       ).flat();
       const other = profiles.find((p) => p.id !== (user?.id ?? ""));
+      const otherUserId =
+        chat.data?.type === "direct"
+          ? (chat.data.direct_pair_key?.split("::").find((id) => id !== user?.id) ??
+            other?.id ??
+            undefined)
+          : request
+            ? pendingRecipient
+              ? request.sender_id
+              : request.recipient_id
+            : (other?.id ?? undefined);
+      let isBlocked = false;
+      if (chat.data?.type === "direct" && user?.id && otherUserId) {
+        const blockRes = await supabase
+          .from("user_blocks")
+          .select("blocked_id")
+          .eq("blocker_id", user.id)
+          .eq("blocked_id", otherUserId)
+          .maybeSingle();
+        if (!blockRes.error) {
+          isBlocked = Boolean(blockRes.data);
+        }
+      }
       let communityName: string | undefined;
       let communityOwnerId: string | null = null;
       let communityRole: ChatDetails["communityRole"];
@@ -123,16 +145,7 @@ export function useChat(chatId: string) {
         ownerId: chat.data?.owner_id ?? null,
         createdAt: chat.data?.created_at ?? "",
         description: chat.data?.description ?? null,
-        otherUserId:
-          chat.data?.type === "direct"
-            ? (chat.data.direct_pair_key?.split("::").find((id) => id !== user?.id) ??
-              other?.id ??
-              undefined)
-            : request
-              ? pendingRecipient
-                ? request.sender_id
-                : request.recipient_id
-              : (other?.id ?? undefined),
+        otherUserId,
         type: chat.data?.type ?? "direct",
         name: chat.data?.name ?? other?.display_name ?? "SilverChat",
         avatar:
@@ -157,6 +170,7 @@ export function useChat(chatId: string) {
         onlyAdminsCanSend: !!chat.data?.only_admins_can_send,
         onlyAdminsCanEditInfo: !!chat.data?.only_admins_can_edit_info,
         requireAdminApproval: !!chat.data?.require_admin_approval,
+        isBlocked,
         readOnly: pendingRecipient,
       };
     },

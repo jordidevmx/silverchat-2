@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 
 import { useLiveKitRoom } from "../hooks/useLiveKitRoom";
 import { useCallText } from "../i18n";
-import { hangupActiveCall } from "../lib/callActions";
+import { hangupActiveCall, markCallVideo } from "../lib/callActions";
 import { formatDuration } from "../lib/callFormatter";
+import { resolveCameraToggle } from "../lib/cameraPromotion";
 import { notifyCall, useCallStore } from "../stores/callStore";
 import { CallAvatar } from "./CallAvatar";
 import { CallControls } from "./CallControls";
@@ -125,18 +126,43 @@ export function ActiveCallModal() {
       .catch(() => notifyCall(say("Call failed. Try again.")));
   };
   const toggleCamera = () => {
-    if (!room) return;
+    if (!room || !call) return;
     const next = !isCameraEnabled;
-    void room.localParticipant
+    const expectedRoom = room;
+    const activeCallId = call.id;
+    void expectedRoom.localParticipant
       .setCameraEnabled(next)
       .then((publication) => {
-        if (useCallStore.getState().room !== room) return;
+        const latest = useCallStore.getState();
+        const publishedTrack = publication?.videoTrack ?? null;
+        const resolution = resolveCameraToggle({
+          next,
+          callId: activeCallId,
+          expectedRoom,
+          currentRoom: latest.room,
+          currentCallId: latest.call?.id,
+          currentPhase: latest.phase,
+          publishedVideoTrack: publishedTrack,
+        });
+        if (resolution.stale) return;
         // Toggling unpublishes/publishes a new track: the PiP must follow the
         // publication or it keeps the stopped one (a frozen last frame).
         useCallStore.setState({
-          isCameraEnabled: next,
-          localVideoTrack: next ? (publication?.videoTrack ?? null) : null,
+          isCameraEnabled: resolution.isCameraEnabled,
+          localVideoTrack: resolution.hasTrack ? publishedTrack : null,
         });
+        if (next && !resolution.hasTrack) {
+          notifyCall(say("Call failed. Try again."));
+          return;
+        }
+        // Only a camera that actually published marks the call as video.
+        // Never mutate store.call.type here: useLiveKitRoom keys its effect on
+        // that value and would reconnect the room mid-call.
+        if (resolution.shouldPromoteToVideo) {
+          void markCallVideo(activeCallId).then((ok) => {
+            if (!ok) notifyCall(say("Could not update call details"));
+          });
+        }
       })
       .catch(() => notifyCall(say("Call failed. Try again.")));
   };
@@ -160,7 +186,7 @@ export function ActiveCallModal() {
 
   return (
     <CallModalShell
-      title={`${say(call.type === "voice" ? "Voice call" : "Video call")} — ${name}`}
+      title={`${say(call.type === "video" || isCameraEnabled ? "Video call" : "Voice call")} — ${name}`}
       onClose={() => {}}
       className="call-modal-video"
     >

@@ -57,6 +57,7 @@ export interface ChatDetails {
   onlyAdminsCanSend?: boolean;
   onlyAdminsCanEditInfo?: boolean;
   requireAdminApproval?: boolean;
+  isBlocked?: boolean;
   readOnly: boolean;
 }
 export type SendInput = Pick<MessageRow, "type" | "content"> &
