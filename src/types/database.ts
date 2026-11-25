@@ -2582,6 +2582,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      extract_call_event_id: { Args: { p_content: string }; Returns: string };
       follow_channel: {
         Args: { p_channel_id: string; p_invitation_id?: string };
         Returns: undefined;
@@ -2706,6 +2707,7 @@ export type Database = {
         | { Args: { p_community_id: string; p_user_id: string }; Returns: undefined };
       join_group_via_invite: { Args: { p_token: string }; Returns: string };
       leave_community: { Args: { p_community_id: string }; Returns: undefined };
+      mark_call_video: { Args: { p_call_id: string }; Returns: undefined };
       mark_chat_as_read: { Args: { p_chat_id: string }; Returns: undefined };
       mark_chat_as_unread: { Args: { p_chat_id: string }; Returns: undefined };
       mark_story_viewed: { Args: { p_story_id: string }; Returns: undefined };

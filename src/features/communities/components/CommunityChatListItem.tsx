@@ -2,6 +2,7 @@ import { BellOff, Pin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CommunityChatRowContent } from "@/components/ui/community-surfaces";
 import { useMessageText } from "@/features/messages/i18n";
+import { formatSystemMessageText } from "@/features/messages/lib/systemMessageText";
 import { Avatar, NavLink } from "@/features/settings/components/shared";
 import { formatCommunityTimestamp } from "../lib/communityActions";
 import type { CommunityChat } from "../types";
@@ -39,7 +40,11 @@ export function CommunityChatListItem({
             {chat.membership.pinned_at && <Pin size={14} aria-label={say("Pinned", "Fijado")} />}
           </>
         }
-        preview={chat.last_message_preview ?? say("No messages yet", "Aún no hay mensajes")}
+        preview={
+          chat.last_message_preview
+            ? formatSystemMessageText(chat.last_message_preview, language)
+            : say("No messages yet", "Aún no hay mensajes")
+        }
         timestamp={formatCommunityTimestamp(chat.last_message_at, language)}
         status={
           muted ? (

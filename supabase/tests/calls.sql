@@ -220,6 +220,14 @@ SELECT pg_temp.assert_true(EXISTS (
   SELECT 1 FROM public.calls WHERE id=:'busy_call' AND status='missed'
     AND decline_reason='busy' AND ended_at IS NOT NULL
 ), 'Caller immediately sees the persisted busy result');
+SELECT pg_temp.assert_true((
+  SELECT count(*)=1 FROM public.messages
+  WHERE chat_id='a6666666-6666-4666-8666-666666666666'
+    AND type='system' AND content LIKE 'call:v1:%'
+    AND substring(content from 9)::jsonb->>'callId' = :'busy_call'
+    AND substring(content from 9)::jsonb->>'status' = 'missed'
+    AND substring(content from 9)::jsonb->>'declineReason' = 'busy'
+), 'Direct terminal busy INSERT writes exactly one busy call event');
 RESET ROLE;
 SELECT set_config('request.jwt.claims','{"sub":"e2222222-2222-4222-8222-222222222222","role":"authenticated","aal":"aal1"}',true);
 SET LOCAL ROLE authenticated;
@@ -232,10 +240,33 @@ SELECT pg_temp.assert_true(NOT EXISTS (
 RESET ROLE;
 
 -- ─── start_call validation (SECURITY DEFINER re-checks membership) ─────────
+SELECT id AS active_a111_call FROM public.calls
+ WHERE chat_id='a1111111-1111-4111-8111-111111111111' AND status='ringing' LIMIT 1 \gset
 SELECT set_config('request.jwt.claims','{"sub":"e3333333-3333-4333-8333-333333333333","role":"authenticated","aal":"aal1"}',true);
 SET LOCAL ROLE authenticated;
 SELECT pg_temp.rejects($q$SELECT public.start_call('a1111111-1111-4111-8111-111111111111','voice')$q$,'Not a member');
 SELECT pg_temp.rejects($q$SELECT public.start_call('a2222222-2222-4222-8222-222222222222','voice')$q$,'only supported in direct chats');
+-- Non-member cannot promote an active call to video using the real call id.
+SELECT pg_temp.rejects(format('SELECT public.mark_call_video(%L)', :'active_a111_call'), 'Not a member');
+RESET ROLE;
+SELECT pg_temp.assert_true(
+  has_function_privilege('authenticated','public.mark_call_video(uuid)','EXECUTE'),
+  'authenticated may execute mark_call_video');
+SELECT pg_temp.assert_true(
+  NOT has_function_privilege('anon','public.mark_call_video(uuid)','EXECUTE'),
+  'anon may not execute mark_call_video');
+-- MFA gate on mark_call_video: AAL1 with verified factor is refused.
+SELECT set_config('request.jwt.claims','{"sub":"e1111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.rejects(format('SELECT public.mark_call_video(%L)', :'active_a111_call'), 'MFA required');
+RESET ROLE;
+-- Calling mark_call_video while still ringing is a safe no-op (only answered calls promote).
+SELECT set_config('request.jwt.claims','{"sub":"e1111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal2"}',true);
+SET LOCAL ROLE authenticated;
+SELECT public.mark_call_video(:'active_a111_call');
+SELECT pg_temp.assert_true(
+  (SELECT type='voice' FROM public.calls WHERE id=:'active_a111_call'),
+  'mark_call_video does not promote a ringing call');
 RESET ROLE;
 
 -- ─── Callee permissions: read the ringing row (notification path) ──────────
@@ -259,6 +290,13 @@ SELECT public.start_call('a6666666-6666-4666-8666-666666666666','voice') AS answ
 SELECT pg_temp.assert_true(EXISTS (
   SELECT 1 FROM public.calls WHERE id=:'answered_busy' AND status='missed' AND decline_reason='busy'
 ), 'A connected recipient also gets a history entry without a second ring');
+SELECT pg_temp.assert_true((
+  SELECT count(*)=1 FROM public.messages
+  WHERE chat_id='a6666666-6666-4666-8666-666666666666'
+    AND type='system' AND content LIKE 'call:v1:%'
+    AND substring(content from 9)::jsonb->>'callId' = :'answered_busy'
+    AND substring(content from 9)::jsonb->>'declineReason' = 'busy'
+), 'Answered-recipient busy INSERT writes one busy call event');
 RESET ROLE;
 SELECT set_config('request.jwt.claims','{"sub":"e1111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal2"}',true);
 SET LOCAL ROLE authenticated;
@@ -275,6 +313,12 @@ SELECT pg_temp.assert_true(
           WHERE chat_id='a1111111-1111-4111-8111-111111111111'
             AND status='answered' AND answered_at IS NOT NULL),
   'Winner state is answered with an answered_at the losing client reconciles from');
+-- Promote the answered voice call to video (idempotent across repeated calls).
+SELECT public.mark_call_video(:'active_a111_call');
+SELECT public.mark_call_video(:'active_a111_call');
+SELECT pg_temp.assert_true(
+  (SELECT type='video' FROM public.calls WHERE id=:'active_a111_call'),
+  'mark_call_video promotes an answered voice call to video idempotently');
 WITH updated AS (
   UPDATE public.calls SET status='ended', ended_reason='hangup', ended_at=now(), duration_seconds=42
   WHERE chat_id='a1111111-1111-4111-8111-111111111111' AND status='answered'
@@ -282,6 +326,29 @@ WITH updated AS (
 ) SELECT count(*) AS ended_rows FROM updated \gset
 SELECT pg_temp.assert_true((:'ended_rows'::int)=1,'Ended reason and duration are writable by the caller');
 RESET ROLE;
+SELECT pg_temp.assert_true((
+  SELECT count(*)=1 FROM public.messages
+  WHERE chat_id='a1111111-1111-4111-8111-111111111111'
+    AND type='system' AND content LIKE 'call:v1:%'
+    AND CASE
+          WHEN public.extract_call_event_id(content) = :'active_a111_call'
+          THEN substring(content from 9)::jsonb->>'type' = 'video'
+            AND substring(content from 9)::jsonb->>'status' = 'ended'
+            AND (substring(content from 9)::jsonb->>'durationSeconds')::int = 42
+          ELSE false
+        END
+), 'Promoted answered call writes one video timeline event on end');
+-- Malformed call:v1: rows in the same chat must not break subsequent terminal events,
+-- and repeated terminal updates must never write a duplicate event.
+INSERT INTO public.messages(chat_id, sender_id, type, content)
+VALUES ('a1111111-1111-4111-8111-111111111111', NULL, 'system', 'call:v1:{broken');
+UPDATE public.calls SET ended_reason='hangup' WHERE id=:'active_a111_call';
+SELECT pg_temp.assert_true((
+  SELECT count(*)=1 FROM public.messages
+  WHERE chat_id='a1111111-1111-4111-8111-111111111111'
+    AND type='system' AND content LIKE 'call:v1:%'
+    AND public.extract_call_event_id(content) = :'active_a111_call'
+), 'Repeated terminal update does not duplicate call event and tolerates malformed rows');
 
 -- ─── AUD-003: cancel-then-accept (the previously missing order) ─────────────
 SELECT set_config('request.jwt.claims','{"sub":"e1111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal2"}',true);
@@ -294,6 +361,16 @@ WITH updated AS (
 ) SELECT count(*) AS cancel_first_rows FROM updated \gset
 SELECT pg_temp.assert_true((:'cancel_first_rows'::int)=1,'Caller cancel wins when it lands first (1 row)');
 RESET ROLE;
+SELECT pg_temp.assert_true((
+  SELECT count(*)=1 FROM public.messages
+  WHERE chat_id='a1111111-1111-4111-8111-111111111111'
+    AND type='system' AND content LIKE 'call:v1:%'
+    AND CASE
+          WHEN public.extract_call_event_id(content) = :'ca_call'
+          THEN substring(content from 9)::jsonb->>'status' = 'canceled'
+          ELSE false
+        END
+), 'Subsequent terminal call succeeds and emits one event even with malformed call:v1: row present');
 SELECT set_config('request.jwt.claims','{"sub":"e2222222-2222-4222-8222-222222222222","role":"authenticated","aal":"aal1"}',true);
 SET LOCAL ROLE authenticated;
 WITH updated AS (

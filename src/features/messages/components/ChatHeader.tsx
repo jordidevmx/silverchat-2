@@ -1,6 +1,8 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Ban, ChevronLeft, MoreVertical, Phone, Pin, Search, Users, Video } from "lucide-react";
+import { Ban, ChevronLeft, MoreVertical, Phone, Pin, Search, Users } from "lucide-react";
 import { ConversationHeaderSurface } from "@/components/ui/conversation-surface";
+import { useVoiceCallStart } from "@/features/calls/hooks/useVoiceCallStart";
+import { getCallEligibility } from "@/features/calls/lib/callEligibility";
 import { useChatUIStore } from "@/features/chat-settings/stores/uiStore";
 import { Avatar } from "@/features/settings/components/shared";
 import { useChatPresence } from "../hooks/useChatPresence";
@@ -20,6 +22,7 @@ export function ChatHeader({
   const router = useRouter();
   const { say, language } = useMessageText();
   const presence = useChatPresence(chat);
+  const { start: startVoiceCall, isPending: callPending } = useVoiceCallStart();
   const last = presence.data?.find((p) => p.id === chat.other?.id)?.last_seen_at;
   const elapsed = last ? Math.max(0, Date.now() - Date.parse(last)) : Infinity;
   const online = elapsed < 120000;
@@ -46,6 +49,16 @@ export function ChatHeader({
                 ? `${say("Last seen", "Última conexión")} ${relative}`
                 : say("Offline", "Desconectado");
   const name = chat.type === "self" ? say("You", "Tú") : chat.name;
+  const callEligibility = getCallEligibility({
+    ...chat,
+    isBlocked: Boolean(isBlocked || chat.isBlocked),
+  });
+  const showCallTrigger = chat.type === "direct" && !chat.channelMode;
+  const callLabel = callEligibility.eligible
+    ? say("Start voice call", "Iniciar llamada de voz")
+    : callEligibility.reason === "blocked"
+      ? say("Unblock this contact to call", "Desbloquea a este contacto para llamar")
+      : say("Accept the chat request first", "Acepta la solicitud del chat primero");
   const identity = (
     <>
       {(chat.type === "group" || chat.type === "community_chat") && !chat.avatar ? (
@@ -136,22 +149,20 @@ export function ChatHeader({
         >
           <Search size={20} />
         </button>
-        {chat.type !== "community_chat" &&
-          [
-            { Icon: Phone, label: say("Voice calls coming soon", "Llamadas próximamente") },
-            { Icon: Video, label: say("Video calls coming soon", "Videollamadas próximamente") },
-          ].map(({ Icon, label }) => (
-            <button
-              key={label}
-              className="message-icon"
-              type="button"
-              disabled
-              aria-label={label}
-              title={label}
-            >
-              <Icon size={20} />
-            </button>
-          ))}
+        {showCallTrigger && (
+          <button
+            type="button"
+            className="message-icon conversation-call-trigger"
+            aria-label={callLabel}
+            title={callLabel}
+            disabled={!callEligibility.eligible || callPending}
+            onClick={() => {
+              if (callEligibility.eligible) startVoiceCall(chat.id);
+            }}
+          >
+            <Phone size={20} aria-hidden="true" />
+          </button>
+        )}
         <button
           type="button"
           className="message-icon"

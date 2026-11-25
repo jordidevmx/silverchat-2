@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useRef } from "react";
+import { getCallEligibility } from "@/features/calls/lib/callEligibility";
 import { formatDirectChatError } from "@/features/chats/hooks/useCreateDirectChat";
 import { useMessageText } from "@/features/messages/i18n";
 import type { ChatDetails } from "@/features/messages/types";
@@ -32,10 +33,27 @@ export function useContactProfileActions(userId: string, chat: ChatDetails) {
     ...(social.custom ?? []),
   ];
   const last = p?.last_seen_at;
-  const active =
-    (chat.type === "direct" && chat.otherUserId === userId
-      ? chat.status
-      : query.data?.chat?.status) === "active";
+  const directChat =
+    chat.type === "direct" && chat.otherUserId === userId
+      ? {
+          id: chat.id,
+          type: chat.type,
+          status: chat.status,
+          readOnly: chat.readOnly,
+          isBlocked: Boolean(chat.isBlocked || query.data?.isBlocked),
+        }
+      : query.data?.chat
+        ? {
+            id: query.data.chat.id,
+            type: query.data.chat.type,
+            status: query.data.chat.status,
+            readOnly: false,
+            isBlocked: Boolean(query.data.isBlocked),
+          }
+        : null;
+  const callChatId = userId !== user?.id ? (directChat?.id ?? null) : null;
+  const callEligibility = getCallEligibility(userId === user?.id ? null : directChat);
+  const active = callEligibility.eligible;
 
   const inFlight = useRef<Promise<void> | null>(null);
   const sendMessage = () => {
@@ -96,6 +114,8 @@ export function useContactProfileActions(userId: string, chat: ChatDetails) {
     links,
     last,
     active,
+    callChatId,
+    callEligibility,
     sendMessage,
     viewFullProfile,
   };
