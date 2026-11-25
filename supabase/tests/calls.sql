@@ -330,10 +330,13 @@ SELECT pg_temp.assert_true((
   SELECT count(*)=1 FROM public.messages
   WHERE chat_id='a1111111-1111-4111-8111-111111111111'
     AND type='system' AND content LIKE 'call:v1:%'
-    AND public.extract_call_event_id(content) = :'active_a111_call'
-    AND substring(content from 9)::jsonb->>'type' = 'video'
-    AND substring(content from 9)::jsonb->>'status' = 'ended'
-    AND (substring(content from 9)::jsonb->>'durationSeconds')::int = 42
+    AND CASE
+          WHEN public.extract_call_event_id(content) = :'active_a111_call'
+          THEN substring(content from 9)::jsonb->>'type' = 'video'
+            AND substring(content from 9)::jsonb->>'status' = 'ended'
+            AND (substring(content from 9)::jsonb->>'durationSeconds')::int = 42
+          ELSE false
+        END
 ), 'Promoted answered call writes one video timeline event on end');
 -- Malformed call:v1: rows in the same chat must not break subsequent terminal events,
 -- and repeated terminal updates must never write a duplicate event.
@@ -362,8 +365,11 @@ SELECT pg_temp.assert_true((
   SELECT count(*)=1 FROM public.messages
   WHERE chat_id='a1111111-1111-4111-8111-111111111111'
     AND type='system' AND content LIKE 'call:v1:%'
-    AND public.extract_call_event_id(content) = :'ca_call'
-    AND substring(content from 9)::jsonb->>'status' = 'canceled'
+    AND CASE
+          WHEN public.extract_call_event_id(content) = :'ca_call'
+          THEN substring(content from 9)::jsonb->>'status' = 'canceled'
+          ELSE false
+        END
 ), 'Subsequent terminal call succeeds and emits one event even with malformed call:v1: row present');
 SELECT set_config('request.jwt.claims','{"sub":"e2222222-2222-4222-8222-222222222222","role":"authenticated","aal":"aal1"}',true);
 SET LOCAL ROLE authenticated;
