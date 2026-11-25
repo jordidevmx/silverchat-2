@@ -21,7 +21,7 @@ export function useChatSettingsLayer(
   const { say } = useMessageText();
   const cache = useQueryClient();
   const router = useRouter();
-  const blocked = useBlockedUsers();
+  const blocked = useBlockedUsers(Boolean(chat.otherUserId));
   const isBlocked = !!chat.otherUserId && !!blocked.data?.some((p) => p.id === chat.otherUserId);
   const [busy, setBusy] = useState(false);
   useRealtimeMessages(chat.id, context !== "community");

@@ -51,11 +51,11 @@ export function ChatContextMenu({
     [Archive, chat.archivedAt ? "Unarchive" : "Archive", () => action("archive")],
     [Check, "Mark as read", () => action("read")],
     [MailOpen, "Mark as unread", () => action("unread")],
-    ...(chat.otherUserId && !chat.isBlocked
+    ...(chat.otherUserId
       ? [
           [
-            Ban,
-            "Block",
+            chat.isBlocked ? Check : Ban,
+            chat.isBlocked ? "Unblock" : "Block",
             () => {
               onBlock();
               onClose();

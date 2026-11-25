@@ -163,6 +163,7 @@ export function ChatList({ activeChatId }: { activeChatId?: string }) {
       {block?.otherUserId && (
         <BlockUserModal
           target={{ id: block.otherUserId, display_name: block.displayName }}
+          mode={block.isBlocked ? "unblock" : "block"}
           onClose={() => setBlock(null)}
         />
       )}

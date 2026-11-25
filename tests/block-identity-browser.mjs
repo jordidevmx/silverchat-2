@@ -140,8 +140,16 @@ await context.route("https://supabase.test/**", async (route) => {
       read_receipts_enabled: true,
     });
   // Direction-aware visibility: a contact I blocked is still visible to me.
-  if (path.endsWith("/profiles_visible"))
+  if (path.endsWith("/profiles_visible")) {
+    const idParam = s.get("id");
+    if (idParam?.startsWith("eq.")) {
+      const targetId = idParam.slice(3);
+      const match =
+        [ownProfile, otherProfile, otherProfile2].find((p) => p.id === targetId) ?? null;
+      return fulfill(route, match);
+    }
     return fulfill(route, [ownProfile, otherProfile, otherProfile2]);
+  }
   if (path.endsWith("/profiles_blocked"))
     return fulfill(
       route,
@@ -166,7 +174,10 @@ await context.route("https://supabase.test/**", async (route) => {
     return fulfill(route, []);
   }
   if (path.endsWith("/chats")) {
-    if (s.has("id")) return fulfill(route, s.get("id")?.includes(chatId2) ? chatRow2 : chatRow);
+    if (s.has("id") || s.has("direct_pair_key")) {
+      const lookup = s.get("id") ?? s.get("direct_pair_key") ?? "";
+      return fulfill(route, lookup.includes(chatId2) || lookup.includes(otherId2) ? chatRow2 : chatRow);
+    }
     return fulfill(route, [chatRow, chatRow2]);
   }
   if (path.endsWith("/chat_members")) {
@@ -335,6 +346,47 @@ try {
   );
   assert.equal(writes.at(-1).method, "POST");
   assert.deepEqual(writes.at(-1).body, { blocker_id: me, blocked_id: otherId });
+
+  // Contact profile modal preserves identity and offers Unblock while blocked.
+  await menuItem("View profile").click();
+  const profileDialog = page.getByRole("dialog", { name: "Contact profile" });
+  await profileDialog.waitFor();
+  assert.match(await profileDialog.textContent(), /Test User B/);
+  assert.equal(await profileDialog.getByRole("button", { name: "Unblock", exact: true }).count(), 1);
+  assert.equal(await profileDialog.getByRole("button", { name: "Block", exact: true }).count(), 0);
+  await profileDialog.getByRole("button", { name: "Unblock", exact: true }).click();
+  await page.getByRole("dialog", { name: "Unblock Test User B?" }).waitFor();
+  await page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+
+  // Chat list context menu also offers Unblock on a blocked direct chat.
+  await page.goto(`${base}/chats`);
+  await row.waitFor();
+  assert.equal(await row.evaluate((el) => el.classList.contains("is-blocked")), true);
+  await row.locator(".chat-row-main").click({ button: "right" });
+  const listMenu = page.getByRole("menu", { name: "Chat actions" });
+  await listMenu.waitFor();
+  assert.equal(await listMenu.getByRole("menuitem", { name: "Unblock", exact: true }).count(), 1);
+  assert.equal(await listMenu.getByRole("menuitem", { name: "Block", exact: true }).count(), 0);
+  await listMenu.getByRole("menuitem", { name: "Unblock", exact: true }).click();
+  await page.getByRole("dialog", { name: "Unblock Test User B?" }).waitFor();
+  await page.getByRole("dialog").getByRole("button", { name: "Unblock", exact: true }).click();
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  await page.waitForFunction(
+    (id) => !document.querySelector(`[data-chat-id="${id}"]`)?.classList.contains("is-blocked"),
+    chatId,
+  );
+  // Re-block from chat list context menu to verify Settings sync next.
+  await row.locator(".chat-row-main").click({ button: "right" });
+  await listMenu.waitFor();
+  await listMenu.getByRole("menuitem", { name: "Block", exact: true }).click();
+  await page.getByRole("dialog", { name: "Block Test User B?" }).waitFor();
+  await page.getByRole("dialog").getByRole("button", { name: "Block", exact: true }).click();
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  await page.waitForFunction(
+    (id) => !!document.querySelector(`[data-chat-id="${id}"]`)?.classList.contains("is-blocked"),
+    chatId,
+  );
 
   // Settings side reflects the in-chat block with real identity and a circular avatar.
   await page.goto(`${base}/settings/privacy/blocked`);

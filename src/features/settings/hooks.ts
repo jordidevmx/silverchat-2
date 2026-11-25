@@ -63,11 +63,11 @@ export function useDeviceList() {
     },
   });
 }
-export function useBlockedUsers() {
+export function useBlockedUsers(enabled = true) {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["blocked", user?.id],
-    enabled: !!user,
+    enabled: !!user && enabled,
     queryFn: async () => {
       const r = await supabase.from("profiles_blocked").select("*").order("display_name");
       if (r.error) throw r.error;

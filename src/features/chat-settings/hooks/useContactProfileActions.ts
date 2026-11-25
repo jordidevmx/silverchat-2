@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { formatDirectChatError } from "@/features/chats/hooks/useCreateDirectChat";
 import { useMessageText } from "@/features/messages/i18n";
 import type { ChatDetails } from "@/features/messages/types";
+import { useBlockedUsers } from "@/features/settings/hooks";
 import { useAction } from "@/features/settings/hooks/useAction";
 import { useAvatarGradient } from "@/features/settings/hooks/useAvatar";
 import { useAuth } from "@/lib/auth-provider";
@@ -20,6 +21,8 @@ export function useContactProfileActions(userId: string, chat: ChatDetails) {
   const router = useRouter();
   const action = useAction();
   const { user } = useAuth();
+  const blocked = useBlockedUsers(userId !== user?.id);
+  const isBlocked = userId !== user?.id && !!blocked.data?.some((entry) => entry.id === userId);
   const gradient = useAvatarGradient(userId);
   const social = normalizeSocialLinks(p?.social_links);
   const links = [
@@ -88,6 +91,7 @@ export function useContactProfileActions(userId: string, chat: ChatDetails) {
     ui,
     action,
     user,
+    isBlocked,
     gradient,
     links,
     last,
