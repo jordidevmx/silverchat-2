@@ -194,7 +194,7 @@ async function attachMocks(targetPage) {
         ? fulfill(route, directChat)
         : fulfill(route, [directChat]);
     if (path.endsWith("/chat_members")) return fulfill(route, directChatMembers);
-    if (path.endsWith("/channels"))
+    if (path.endsWith("/channels") || path.endsWith("/channels_public"))
       return req.headers().accept?.includes("object")
         ? fulfill(route, channel)
         : fulfill(route, [channel]);
