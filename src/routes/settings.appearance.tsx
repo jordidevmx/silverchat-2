@@ -26,6 +26,7 @@ const ERROR_KEYS: Record<BackgroundImageErrorCode, string> = {
   "empty-file": "That file is empty. Try another image.",
   unreadable: "This image could not be read. Try another one.",
   "storage-unavailable": "This image could not be saved on this device.",
+  "sync-failed": "This image could not be synced to your account. Please try again.",
 };
 
 export function AppearancePage() {
@@ -38,7 +39,9 @@ export function AppearancePage() {
   const [notice, setNotice] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const isDefault = background.selection.kind === "default";
-  const hasCustom = Boolean(background.customUrl) || background.selection.kind === "custom";
+  const hasCustom = Boolean(
+    background.customUrl || background.customPath || background.selection.kind === "custom",
+  );
 
   async function onUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -64,8 +67,9 @@ export function AppearancePage() {
     try {
       await background.removeCustom();
       setNotice(t("Custom background removed."));
-    } catch {
-      setError(t(ERROR_KEYS["storage-unavailable"]));
+    } catch (cause) {
+      const code = cause instanceof BackgroundImageError ? cause.code : ("sync-failed" as const);
+      setError(t(ERROR_KEYS[code]));
     }
   }
 
@@ -134,104 +138,103 @@ export function AppearancePage() {
             <option value="es">Español</option>
           </select>
         </div>
-      </fieldset>
-      <p className="quiet-note">{t("These preferences follow you across devices.")}</p>
-      <div className="settings-card settings-card-body">
-        <h2>{t("Chat background")}</h2>
-        <p id="chat-background-help" className="background-help">
-          {t("Choose a background for your conversations.")}
-        </p>
-        <fieldset className="background-fieldset" aria-describedby="chat-background-help">
-          <legend className="sr-only">{t("Chat background")}</legend>
-          <div className="background-options">
-            <BackgroundChoice
-              label={t("Default")}
-              selected={isDefault}
-              onSelect={() => background.choose({ kind: "default" })}
+        <div className="settings-card settings-card-body">
+          <h2>{t("Chat background")}</h2>
+          <p id="chat-background-help" className="background-help">
+            {t("Choose a background for your conversations.")}
+          </p>
+          <fieldset className="background-fieldset" aria-describedby="chat-background-help">
+            <legend className="sr-only">{t("Chat background")}</legend>
+            <div className="background-options">
+              <BackgroundChoice
+                label={t("Default")}
+                selected={isDefault}
+                onSelect={() => background.choose({ kind: "default" })}
+              >
+                {preview("default")}
+              </BackgroundChoice>
+              {PRESET_BACKGROUNDS.map((preset) => (
+                <BackgroundChoice
+                  key={preset}
+                  label={t(PRESET_BACKGROUND_LABELS[preset])}
+                  selected={
+                    background.selection.kind === "preset" && background.selection.preset === preset
+                  }
+                  onSelect={() => background.choose({ kind: "preset", preset })}
+                >
+                  {preview(preset)}
+                </BackgroundChoice>
+              ))}
+              {hasCustom && (
+                <BackgroundChoice
+                  label={t("Custom image")}
+                  selected={background.selection.kind === "custom"}
+                  onSelect={() => background.choose({ kind: "custom" })}
+                >
+                  {preview("custom")}
+                </BackgroundChoice>
+              )}
+            </div>
+          </fieldset>
+          <div className="background-actions">
+            <input
+              id="chat-background-upload"
+              className="sr-only"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif"
+              aria-disabled={isUploading || undefined}
+              aria-busy={isUploading || undefined}
+              onClick={(event) => {
+                if (isUploading) event.preventDefault();
+              }}
+              onChange={(event) => void onUpload(event)}
+            />
+            <label
+              className="button secondary"
+              htmlFor="chat-background-upload"
+              aria-disabled={isUploading || undefined}
             >
-              {preview("default")}
-            </BackgroundChoice>
-            {PRESET_BACKGROUNDS.map((preset) => (
-              <BackgroundChoice
-                key={preset}
-                label={t(PRESET_BACKGROUND_LABELS[preset])}
-                selected={
-                  background.selection.kind === "preset" && background.selection.preset === preset
-                }
-                onSelect={() => background.choose({ kind: "preset", preset })}
-              >
-                {preview(preset)}
-              </BackgroundChoice>
-            ))}
+              {isUploading ? t("Applying…") : t("Upload image")}
+            </label>
             {hasCustom && (
-              <BackgroundChoice
-                label={t("Custom image")}
-                selected={background.selection.kind === "custom"}
-                onSelect={() => background.choose({ kind: "custom" })}
+              <button
+                className="button secondary"
+                type="button"
+                disabled={isUploading}
+                onClick={() => void onRemove()}
               >
-                {preview("custom")}
-              </BackgroundChoice>
+                {t("Remove custom image")}
+              </button>
             )}
           </div>
-        </fieldset>
-        <div className="background-actions">
-          <input
-            id="chat-background-upload"
-            className="sr-only"
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif"
-            aria-disabled={isUploading || undefined}
-            aria-busy={isUploading || undefined}
-            onClick={(event) => {
-              if (isUploading) event.preventDefault();
-            }}
-            onChange={(event) => void onUpload(event)}
-          />
-          <label
-            className="button secondary"
-            htmlFor="chat-background-upload"
-            aria-disabled={isUploading || undefined}
-          >
-            {isUploading ? t("Applying…") : t("Upload image")}
-          </label>
-          {hasCustom && (
-            <button
-              className="button secondary"
-              type="button"
-              disabled={isUploading}
-              onClick={() => void onRemove()}
-            >
-              {t("Remove custom image")}
-            </button>
+          {!isDefault && (
+            <div className="background-dim">
+              <label htmlFor="chat-background-dim">{t("Background dimming")}</label>
+              <input
+                id="chat-background-dim"
+                type="range"
+                min={0}
+                max={100}
+                step={10}
+                value={background.dim}
+                onChange={(event) => background.setDim(Number(event.target.value))}
+              />
+              <output htmlFor="chat-background-dim">{background.dim}%</output>
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="background-error">
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p role="status" className="quiet-note">
+              {notice}
+            </p>
           )}
         </div>
-        {!isDefault && (
-          <div className="background-dim">
-            <label htmlFor="chat-background-dim">{t("Background dimming")}</label>
-            <input
-              id="chat-background-dim"
-              type="range"
-              min={0}
-              max={100}
-              step={10}
-              value={background.dim}
-              onChange={(event) => background.setDim(Number(event.target.value))}
-            />
-            <output htmlFor="chat-background-dim">{background.dim}%</output>
-          </div>
-        )}
-        {error && (
-          <p role="alert" className="background-error">
-            {error}
-          </p>
-        )}
-        {notice && (
-          <p role="status" className="quiet-note">
-            {notice}
-          </p>
-        )}
-        <p className="quiet-note">{t("This background is stored on this device.")}</p>
-      </div>
+      </fieldset>
+      <p className="quiet-note">{t("These preferences follow you across devices.")}</p>
       {action.feedback}
     </SettingsPage>
   );

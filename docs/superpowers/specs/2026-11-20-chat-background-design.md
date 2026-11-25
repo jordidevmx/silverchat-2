@@ -9,11 +9,14 @@ stay legible in both themes.
 
 ## Decisions
 
-- **Persistence: device-local.** The selected background and dim level are stored in
-  `localStorage` via `src/lib/preferences.ts`; custom image bytes are stored as a
-  compressed WebP `Blob` in a small IndexedDB store modelled on `draftMedia.ts`. No
-  Supabase schema or storage changes. Tradeoff: unlike theme/accent/language, a
-  background does not follow the account across devices.
+- **Persistence: synced across devices.** `chat_background`, `chat_background_dim`, and
+  `chat_background_path` live on `public.user_settings` and save through
+  `PreferencesProvider` (debounced for preset/dim tweaks, immediate on custom upload or
+  removal). Custom compressed WebP images are stored in the private `chat-backgrounds`
+  Supabase Storage bucket (strictly owner-only RLS + tracked in `file_uploads` for
+  storage usage and account deletion cleanup). `localStorage` and IndexedDB act as
+  per-owner local caches for instant startup and offline resilience without re-fetching
+  unchanged paths.
 - **Rendering: `ConversationShell` owns the layer.** `ChatDoodlePattern` is replaced by
   a `ChatBackgroundHost` that renders either the doodle (default) or an absolutely
   positioned image + theme-aware scrim. `MessageList` is untouched, so its scroll

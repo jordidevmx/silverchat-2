@@ -102,7 +102,10 @@ test("cleanup removes tracked Storage objects before admin deletion and skips ca
       });
     }
     if (url.pathname.endsWith("/file_uploads"))
-      return response([{ bucket: "avatars", path: "due/avatar.webp" }]);
+      return response([
+        { bucket: "avatars", path: "due/avatar.webp" },
+        { bucket: "chat-backgrounds", path: "due/bg-1.webp" },
+      ]);
     if (url.pathname.includes("/storage/")) return response([]);
     if (url.pathname.includes("/admin/users/")) {
       deletes.push(url.pathname);
@@ -118,6 +121,11 @@ test("cleanup removes tracked Storage objects before admin deletion and skips ca
   assert.ok(
     calls.indexOf("DELETE /storage/v1/object/avatars") <
       calls.indexOf("DELETE /auth/v1/admin/users/eeeeeeee-1111-4111-8111-111111111111"),
+  );
+  assert.ok(
+    calls.indexOf("DELETE /storage/v1/object/chat-backgrounds") > -1 &&
+      calls.indexOf("DELETE /storage/v1/object/chat-backgrounds") <
+        calls.indexOf("DELETE /auth/v1/admin/users/eeeeeeee-1111-4111-8111-111111111111"),
   );
 });
 test("cleanup retains accounts for retry if Storage removal fails", async () => {

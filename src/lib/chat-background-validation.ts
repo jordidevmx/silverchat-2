@@ -50,12 +50,62 @@ export function resolveSelectionAfterCustomRemoval(
   return selection.kind === "custom" ? { kind: "default" } : selection;
 }
 
+export function serializeBackgroundSelection(
+  selection: ChatBackgroundSelection,
+): (typeof BACKGROUND_SELECTIONS)[number] {
+  return selection.kind === "preset" ? selection.preset : selection.kind;
+}
+
+const BACKGROUND_FILENAME_PATTERN = /^bg-[0-9a-f-]+\.webp$/;
+
+export function isOwnBackgroundPath(
+  ownerId: string,
+  path: string | null | undefined,
+): path is string {
+  if (!ownerId || !path) return false;
+  const parts = path.split("/");
+  return (
+    parts.length === 2 && parts[0] === ownerId && BACKGROUND_FILENAME_PATTERN.test(parts[1] ?? "")
+  );
+}
+
+export interface RemoteBackgroundSettings {
+  chat_background?: string | null;
+  chat_background_dim?: number | null;
+  chat_background_path?: string | null;
+}
+
+export interface ReconciledBackgroundState {
+  selection: ChatBackgroundSelection;
+  dim: number;
+  customPath: string | null;
+}
+
+export function reconcileRemoteBackground(
+  remote: RemoteBackgroundSettings,
+  ownerId: string,
+): ReconciledBackgroundState {
+  const customPath = isOwnBackgroundPath(ownerId, remote.chat_background_path)
+    ? remote.chat_background_path
+    : null;
+  const parsedSelection = parseBackgroundSelection(remote.chat_background ?? null);
+  const selection: ChatBackgroundSelection =
+    parsedSelection.kind === "custom" && !customPath ? { kind: "default" } : parsedSelection;
+  const dim = parseBackgroundDim(
+    remote.chat_background_dim === null || remote.chat_background_dim === undefined
+      ? null
+      : String(remote.chat_background_dim),
+  );
+  return { selection, dim, customPath };
+}
+
 export type BackgroundImageErrorCode =
   | "unsupported-format"
   | "too-large"
   | "empty-file"
   | "unreadable"
-  | "storage-unavailable";
+  | "storage-unavailable"
+  | "sync-failed";
 
 export class BackgroundImageError extends Error {
   readonly code: BackgroundImageErrorCode;

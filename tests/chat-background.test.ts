@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   deleteCustomBackground,
   loadCustomBackground,
+  loadCustomBackgroundRecord,
   saveCustomBackground,
 } from "../src/lib/chat-background-store.ts";
 import {
@@ -11,12 +12,15 @@ import {
   backgroundSelectionKey,
   checkBackgroundImage,
   DEFAULT_BACKGROUND_DIM,
+  isOwnBackgroundPath,
   MAX_BACKGROUND_IMAGE_BYTES,
   PRESET_BACKGROUND_LABELS,
   PRESET_BACKGROUNDS,
   parseBackgroundDim,
   parseBackgroundSelection,
+  reconcileRemoteBackground,
   resolveSelectionAfterCustomRemoval,
+  serializeBackgroundSelection,
 } from "../src/lib/chat-background-validation.ts";
 
 test("selection parsing only accepts known presets and falls back to default", () => {
@@ -61,6 +65,62 @@ test("removing a custom image resets custom selection to default but preserves a
     kind: "preset",
     preset: "mercury",
   });
+});
+
+test("selection serialization round-trips with selection parsing", () => {
+  assert.equal(serializeBackgroundSelection({ kind: "default" }), "default");
+  assert.equal(serializeBackgroundSelection({ kind: "custom" }), "custom");
+  assert.equal(serializeBackgroundSelection({ kind: "preset", preset: "prism" }), "prism");
+});
+
+test("custom background paths must belong to the active user and match bg-<uuid>.webp", () => {
+  const alice = "11111111-1111-4111-8111-111111111111";
+  const bob = "22222222-2222-4222-8222-222222222222";
+  const validPath = `${alice}/bg-33333333-3333-4333-8333-333333333333.webp`;
+  assert.equal(isOwnBackgroundPath(alice, validPath), true);
+  assert.equal(isOwnBackgroundPath(bob, validPath), false);
+  assert.equal(isOwnBackgroundPath(alice, null), false);
+  assert.equal(isOwnBackgroundPath(alice, `${alice}/nested/bg-33333333.webp`), false);
+  assert.equal(isOwnBackgroundPath(alice, `${alice}/avatar.png`), false);
+});
+
+test("reconcileRemoteBackground validates server settings and guards missing custom paths", () => {
+  const alice = "11111111-1111-4111-8111-111111111111";
+  const ownPath = `${alice}/bg-33333333-3333-4333-8333-333333333333.webp`;
+  const foreignPath =
+    "22222222-2222-4222-8222-222222222222/bg-33333333-3333-4333-8333-333333333333.webp";
+
+  assert.deepEqual(
+    reconcileRemoteBackground(
+      { chat_background: "obsidian", chat_background_dim: 60, chat_background_path: ownPath },
+      alice,
+    ),
+    { selection: { kind: "preset", preset: "obsidian" }, dim: 60, customPath: ownPath },
+  );
+
+  assert.deepEqual(
+    reconcileRemoteBackground(
+      { chat_background: "custom", chat_background_dim: 30, chat_background_path: ownPath },
+      alice,
+    ),
+    { selection: { kind: "custom" }, dim: 30, customPath: ownPath },
+  );
+
+  assert.deepEqual(
+    reconcileRemoteBackground(
+      { chat_background: "custom", chat_background_dim: 35, chat_background_path: null },
+      alice,
+    ),
+    { selection: { kind: "default" }, dim: 40, customPath: null },
+  );
+
+  assert.deepEqual(
+    reconcileRemoteBackground(
+      { chat_background: "custom", chat_background_dim: 50, chat_background_path: foreignPath },
+      alice,
+    ),
+    { selection: { kind: "default" }, dim: 50, customPath: null },
+  );
 });
 
 test("dim parsing rejects off-step values and keeps the default", () => {
@@ -209,9 +269,13 @@ test("background store isolates custom blobs per ownerId in IndexedDB", async ()
   try {
     const blobA = new Blob(["alice-bg"], { type: "image/webp" });
     const blobB = new Blob(["bob-bg"], { type: "image/webp" });
-    assert.equal(await saveCustomBackground("alice", blobA), true);
+    const pathA = "alice/bg-1111.webp";
+    assert.equal(await saveCustomBackground("alice", blobA, pathA), true);
     assert.equal(await saveCustomBackground("bob", blobB), true);
     assert.equal(await (await loadCustomBackground("alice"))?.text(), "alice-bg");
+    const recA = await loadCustomBackgroundRecord("alice");
+    assert.equal(recA?.path, pathA);
+    assert.equal(await recA?.blob.text(), "alice-bg");
     assert.equal(await (await loadCustomBackground("bob"))?.text(), "bob-bg");
     await deleteCustomBackground("alice");
     assert.equal(await loadCustomBackground("alice"), undefined);

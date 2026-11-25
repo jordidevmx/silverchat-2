@@ -8,7 +8,13 @@ interface BackgroundRecord {
   key: string;
   blob: Blob;
   mimeType: string;
+  path?: string;
   updatedAt: number;
+}
+
+export interface CachedBackgroundRecord {
+  blob: Blob;
+  path?: string;
 }
 
 function makeKey(ownerId: string): string {
@@ -33,7 +39,11 @@ function openBackgroundDb(): Promise<IDBDatabase | null> {
   });
 }
 
-export async function saveCustomBackground(ownerId: string, blob: Blob): Promise<boolean> {
+export async function saveCustomBackground(
+  ownerId: string,
+  blob: Blob,
+  path?: string,
+): Promise<boolean> {
   const db = await openBackgroundDb();
   if (!db) return false;
   try {
@@ -43,6 +53,7 @@ export async function saveCustomBackground(ownerId: string, blob: Blob): Promise
         key: makeKey(ownerId),
         blob,
         mimeType: blob.type,
+        path,
         updatedAt: Date.now(),
       } satisfies BackgroundRecord);
       transaction.oncomplete = () => resolve(true);
@@ -56,16 +67,21 @@ export async function saveCustomBackground(ownerId: string, blob: Blob): Promise
   }
 }
 
-export async function loadCustomBackground(ownerId: string): Promise<Blob | undefined> {
+export async function loadCustomBackgroundRecord(
+  ownerId: string,
+): Promise<CachedBackgroundRecord | undefined> {
   const db = await openBackgroundDb();
   if (!db) return undefined;
   try {
-    return await new Promise<Blob | undefined>((resolve) => {
+    return await new Promise<CachedBackgroundRecord | undefined>((resolve) => {
       const request = db
         .transaction(STORE_NAME, "readonly")
         .objectStore(STORE_NAME)
         .get(makeKey(ownerId));
-      request.onsuccess = () => resolve((request.result as BackgroundRecord | undefined)?.blob);
+      request.onsuccess = () => {
+        const record = request.result as BackgroundRecord | undefined;
+        resolve(record ? { blob: record.blob, path: record.path } : undefined);
+      };
       request.onerror = () => resolve(undefined);
     });
   } catch {
@@ -73,6 +89,10 @@ export async function loadCustomBackground(ownerId: string): Promise<Blob | unde
   } finally {
     db.close();
   }
+}
+
+export async function loadCustomBackground(ownerId: string): Promise<Blob | undefined> {
+  return (await loadCustomBackgroundRecord(ownerId))?.blob;
 }
 
 export async function deleteCustomBackground(ownerId: string): Promise<void> {

@@ -92,6 +92,8 @@ const spanish: Record<string, string> = {
     "No se pudo leer esta imagen. Prueba con otra.",
   "This image could not be saved on this device.":
     "No se pudo guardar esta imagen en este dispositivo.",
+  "This image could not be synced to your account. Please try again.":
+    "No se pudo sincronizar esta imagen con tu cuenta. Inténtalo de nuevo.",
   "Custom image applied.": "Imagen personalizada aplicada.",
   "Custom background removed.": "Fondo personalizado eliminado.",
   Sound: "Sonido",
@@ -158,6 +160,7 @@ const spanish: Record<string, string> = {
   "URL or text": "URL o texto",
   "Remove link": "Eliminar enlace",
   Avatars: "Avatares",
+  "Chat backgrounds": "Fondos de chat",
   "Chat media": "Archivos de chats",
   "Channel media": "Archivos de canales",
   "Storage usage": "Uso de almacenamiento",
