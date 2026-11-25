@@ -15,6 +15,7 @@ import { usePreferences } from "@/features/settings/preferences-provider";
 import {
   BackgroundImageError,
   type BackgroundImageErrorCode,
+  PRESET_BACKGROUND_LABELS,
   PRESET_BACKGROUNDS,
   type PresetBackground,
 } from "@/lib/chat-background-validation";
@@ -35,20 +36,25 @@ export function AppearancePage() {
   const background = useChatBackground();
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const isDefault = background.selection.kind === "default";
+  const hasCustom = Boolean(background.customUrl) || background.selection.kind === "custom";
 
   async function onUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file) return;
+    if (!file || isUploading) return;
     setError("");
     setNotice("");
+    setIsUploading(true);
     try {
       await background.upload(file);
       setNotice(t("Custom image applied."));
     } catch (cause) {
       const code = cause instanceof BackgroundImageError ? cause.code : ("unreadable" as const);
       setError(t(ERROR_KEYS[code]));
+    } finally {
+      setIsUploading(false);
     }
   }
 
@@ -129,10 +135,13 @@ export function AppearancePage() {
           </select>
         </div>
       </fieldset>
+      <p className="quiet-note">{t("These preferences follow you across devices.")}</p>
       <div className="settings-card settings-card-body">
         <h2>{t("Chat background")}</h2>
-        <p className="background-help">{t("Choose a background for your conversations.")}</p>
-        <fieldset className="background-fieldset">
+        <p id="chat-background-help" className="background-help">
+          {t("Choose a background for your conversations.")}
+        </p>
+        <fieldset className="background-fieldset" aria-describedby="chat-background-help">
           <legend className="visually-hidden">{t("Chat background")}</legend>
           <div className="background-options">
             <BackgroundChoice
@@ -145,7 +154,7 @@ export function AppearancePage() {
             {PRESET_BACKGROUNDS.map((preset) => (
               <BackgroundChoice
                 key={preset}
-                label={t(preset)}
+                label={t(PRESET_BACKGROUND_LABELS[preset])}
                 selected={
                   background.selection.kind === "preset" && background.selection.preset === preset
                 }
@@ -154,10 +163,10 @@ export function AppearancePage() {
                 {preview(preset)}
               </BackgroundChoice>
             ))}
-            {background.selection.kind === "custom" && (
+            {hasCustom && (
               <BackgroundChoice
                 label={t("Custom image")}
-                selected
+                selected={background.selection.kind === "custom"}
                 onSelect={() => background.choose({ kind: "custom" })}
               >
                 {preview("custom")}
@@ -171,13 +180,27 @@ export function AppearancePage() {
             className="visually-hidden"
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif"
+            aria-disabled={isUploading || undefined}
+            aria-busy={isUploading || undefined}
+            onClick={(event) => {
+              if (isUploading) event.preventDefault();
+            }}
             onChange={(event) => void onUpload(event)}
           />
-          <label className="button secondary" htmlFor="chat-background-upload">
-            {t("Upload image")}
+          <label
+            className="button secondary"
+            htmlFor="chat-background-upload"
+            aria-disabled={isUploading || undefined}
+          >
+            {isUploading ? t("Applying…") : t("Upload image")}
           </label>
-          {background.selection.kind === "custom" && (
-            <button className="button secondary" type="button" onClick={() => void onRemove()}>
+          {hasCustom && (
+            <button
+              className="button secondary"
+              type="button"
+              disabled={isUploading}
+              onClick={() => void onRemove()}
+            >
               {t("Remove custom image")}
             </button>
           )}
@@ -209,7 +232,6 @@ export function AppearancePage() {
         )}
         <p className="quiet-note">{t("This background is stored on this device.")}</p>
       </div>
-      <p className="quiet-note">{t("These preferences follow you across devices.")}</p>
       {action.feedback}
     </SettingsPage>
   );

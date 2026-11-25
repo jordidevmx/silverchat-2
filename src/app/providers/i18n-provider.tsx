@@ -72,11 +72,12 @@ const spanish: Record<string, string> = {
   "Choose a background for your conversations.":
     "Elige un fondo para tus conversaciones.",
   Default: "Predeterminado",
-  aurora: "Aurora",
-  dusk: "Crepúsculo",
-  nebula: "Nebulosa",
+  Aurora: "Aurora",
+  Dusk: "Crepúsculo",
+  Nebula: "Nebulosa",
   "Custom image": "Imagen personalizada",
   "Upload image": "Subir imagen",
+  "Applying…": "Aplicando…",
   "Remove custom image": "Quitar imagen personalizada",
   "Background dimming": "Atenuación del fondo",
   "This background is stored on this device.":

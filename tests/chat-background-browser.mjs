@@ -12,6 +12,8 @@ page.on("pageerror", (e) => errors.push(e.message));
 
 const baseUrl = process.env.UI_BASE_URL ?? "http://127.0.0.1:5175";
 const id = "11111111-1111-4111-8111-111111111111";
+const otherId = "22222222-2222-4222-8222-222222222222";
+const chatId = "00000065-4444-4444-8444-444444444444";
 const jwt = `${Buffer.from('{"alg":"HS256"}').toString("base64url")}.${Buffer.from(
   JSON.stringify({ sub: id, aal: "aal2", exp: Math.floor(Date.now() / 1000) + 3600 }),
 ).toString("base64url")}.signature`;
@@ -33,6 +35,39 @@ const profile = {
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
+const otherProfile = {
+  id: otherId,
+  username: "sofia",
+  display_name: "Sofia Reyes",
+  avatar_url: null,
+  last_seen_at: new Date().toISOString(),
+};
+const directChat = {
+  id: chatId,
+  type: "direct",
+  name: null,
+  direct_pair_key: `${id}::${otherId}`,
+  status: "active",
+  avatar_url: null,
+  only_admins_can_send: false,
+  community_id: null,
+};
+const directChatMembers = [
+  {
+    chat_id: chatId,
+    user_id: id,
+    role: "member",
+    joined_at: "2020-01-01T00:00:00Z",
+    manually_unread: false,
+  },
+  {
+    chat_id: chatId,
+    user_id: otherId,
+    role: "member",
+    joined_at: "2020-01-01T00:00:00Z",
+    manually_unread: false,
+  },
+];
 const settings = {
   user_id: id,
   theme: "light",
@@ -85,11 +120,17 @@ await page.route("https://supabase.test/**", async (route) => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith("/user")) return fulfill(route, user);
   if (path.endsWith("/profiles")) return fulfill(route, profile);
+  if (path.endsWith("/profiles_visible")) return fulfill(route, [profile, otherProfile]);
   if (path.endsWith("/user_settings")) {
     if (route.request().method() === "PATCH")
       Object.assign(settings, route.request().postDataJSON());
     return fulfill(route, settings);
   }
+  if (path.endsWith("/chats"))
+    return route.request().headers().accept?.includes("object")
+      ? fulfill(route, directChat)
+      : fulfill(route, [directChat]);
+  if (path.endsWith("/chat_members")) return fulfill(route, directChatMembers);
   if (path.endsWith("/channels"))
     return route.request().headers().accept?.includes("object")
       ? fulfill(route, channel)
@@ -101,8 +142,11 @@ await page.route("https://supabase.test/**", async (route) => {
   return fulfill(route, []);
 });
 
-const stored = (key) =>
-  page.evaluate((name) => localStorage.getItem(`silverchat_${name}`), key);
+const stored = (key, owner = id) =>
+  page.evaluate(({ name, scope }) => localStorage.getItem(`silverchat_${name}:${scope}`), {
+    name: key,
+    scope: owner,
+  });
 const settle = (locator) =>
   locator.evaluate((el) =>
     Promise.all(el.getAnimations().map((animation) => animation.finished.catch(() => undefined))),
@@ -113,19 +157,55 @@ const png = Buffer.from(
 );
 
 try {
+  // Seed another account's background preferences to verify per-user isolation on the same device.
+  await page.addInitScript((foreignId) => {
+    localStorage.setItem(`silverchat_chat_background:${foreignId}`, "nebula");
+    localStorage.setItem(`silverchat_chat_background_dim:${foreignId}`, "90");
+  }, otherId);
+
   await page.goto(`${baseUrl}/settings/appearance`);
   await page.getByRole("heading", { name: "Appearance", exact: true }).waitFor();
   await page.getByRole("heading", { name: "Chat background", exact: true }).waitFor();
 
-  assert.equal(await stored("chat_background"), null);
-  assert.equal(await page.getByRole("button", { name: "Default" }).getAttribute("aria-pressed"), "true");
+  // Synced preferences note appears before the device-local Chat background card.
+  const notesOrderOk = await page.evaluate(() => {
+    const synced = [...document.querySelectorAll("p")].find((el) =>
+      el.textContent?.includes("These preferences follow you across devices."),
+    );
+    const heading = [...document.querySelectorAll("h2")].find(
+      (el) => el.textContent?.trim() === "Chat background",
+    );
+    return Boolean(
+      synced &&
+        heading &&
+        synced.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+  assert.equal(notesOrderOk, true);
 
-  await page.getByRole("button", { name: "Dusk" }).click();
+  // Preset labels are properly capitalized in English and isolated from other accounts.
+  assert.equal(await stored("chat_background"), null);
+  assert.equal(await stored("chat_background", otherId), "nebula");
+  assert.equal(await stored("chat_background_dim", otherId), "90");
+  assert.equal(
+    await page.getByRole("button", { name: "Default", exact: true }).getAttribute("aria-pressed"),
+    "true",
+  );
+  await page.getByRole("button", { name: "Aurora", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Dusk", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Nebula", exact: true }).waitFor();
+
+  await page.getByRole("button", { name: "Dusk", exact: true }).click();
   assert.equal(await stored("chat_background"), "dusk");
-  assert.equal(await page.getByRole("button", { name: "Dusk" }).getAttribute("aria-pressed"), "true");
+  assert.equal(await stored("chat_background", otherId), "nebula");
+  assert.equal(
+    await page.getByRole("button", { name: "Dusk", exact: true }).getAttribute("aria-pressed"),
+    "true",
+  );
 
   await page.locator("#chat-background-dim").fill("70");
   assert.equal(await stored("chat_background_dim"), "70");
+  assert.equal(await stored("chat_background_dim", otherId), "90");
 
   await page.locator("#chat-background-upload").setInputFiles({
     name: "wallpaper.png",
@@ -136,16 +216,63 @@ try {
   assert.equal(await stored("chat_background"), "custom");
   await page.getByText("Custom image applied.").waitFor();
 
+  // Switching to a preset keeps the stored custom image selectable and removable.
+  await page.getByRole("button", { name: "Aurora", exact: true }).click();
+  assert.equal(
+    await page.getByRole("button", { name: "Aurora", exact: true }).getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Custom image", exact: true })
+      .getAttribute("aria-pressed"),
+    "false",
+  );
+  await page.getByRole("button", { name: "Remove custom image", exact: true }).waitFor();
+
+  // User can switch back to the stored custom image without re-uploading.
+  await page.getByRole("button", { name: "Custom image", exact: true }).click();
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Custom image", exact: true })
+      .getAttribute("aria-pressed"),
+    "true",
+  );
+
   await page.reload();
   await page.getByRole("heading", { name: "Chat background", exact: true }).waitFor();
   await page.getByRole("button", { name: "Custom image", exact: true }).waitFor();
   assert.equal(await stored("chat_background"), "custom");
   assert.equal(await page.locator("#chat-background-dim").inputValue(), "70");
 
-  await page.getByRole("button", { name: "Remove custom image" }).click();
-  await page.getByRole("button", { name: "Custom image", exact: true }).waitFor({ state: "detached" });
+  // Removing the stored custom image while on a preset preserves the active preset.
+  await page.getByRole("button", { name: "Dusk", exact: true }).click();
+  await page.getByRole("button", { name: "Remove custom image", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Custom image", exact: true })
+    .waitFor({ state: "detached" });
+  assert.equal(await stored("chat_background"), "dusk");
+  assert.equal(
+    await page.getByRole("button", { name: "Dusk", exact: true }).getAttribute("aria-pressed"),
+    "true",
+  );
+
+  // Removing the stored custom image while it is active resets back to Default.
+  await page.locator("#chat-background-upload").setInputFiles({
+    name: "wallpaper.png",
+    mimeType: "image/png",
+    buffer: png,
+  });
+  await page.getByRole("button", { name: "Custom image", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Remove custom image", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Custom image", exact: true })
+    .waitFor({ state: "detached" });
   assert.equal(await stored("chat_background"), "default");
-  assert.equal(await page.getByRole("button", { name: "Default" }).getAttribute("aria-pressed"), "true");
+  assert.equal(
+    await page.getByRole("button", { name: "Default", exact: true }).getAttribute("aria-pressed"),
+    "true",
+  );
 
   // Invalid input is rejected with a translated, announced error.
   await page.locator("#chat-background-upload").setInputFiles({
@@ -153,7 +280,10 @@ try {
     mimeType: "text/plain",
     buffer: Buffer.from("not an image"),
   });
-  await page.getByRole("alert").getByText(/Unsupported image format/).waitFor();
+  await page
+    .getByRole("alert")
+    .getByText(/Unsupported image format/)
+    .waitFor();
 
   // Chat canvas: default doodle, then an image preset with a theme-aware scrim.
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -164,8 +294,15 @@ try {
 
   await page.goto(`${baseUrl}/settings/appearance`);
   await page.getByRole("heading", { name: "Chat background", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Aurora" }).click();
+  await page.getByRole("button", { name: "Aurora", exact: true }).click();
   await page.locator("#chat-background-dim").fill("40");
+
+  // Regular direct chat route also renders the selected background through ConversationShell.
+  await page.goto(`${baseUrl}/chats/${chatId}`);
+  await page.locator('[data-slot="conversation-shell"]').waitFor();
+  await page.locator(".chat-background-image").waitFor();
+  assert.equal(await page.locator(".chat-background").getAttribute("data-background"), "aurora");
+
   await page.goto(`${baseUrl}/channels/${channelId}`);
   const layer = page.locator(".chat-background-image");
   await layer.waitFor();
@@ -233,7 +370,7 @@ try {
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     true,
   );
-  await page.getByRole("button", { name: "Nebula" }).waitFor();
+  await page.getByRole("button", { name: "Nebula", exact: true }).waitFor();
 
   // Spanish copy is fully localized, including validation errors.
   await page.locator("#language").selectOption("es");
@@ -244,7 +381,10 @@ try {
     mimeType: "text/plain",
     buffer: Buffer.from("not an image"),
   });
-  await page.getByRole("alert").getByText(/Formato de imagen no admitido/).waitFor();
+  await page
+    .getByRole("alert")
+    .getByText(/Formato de imagen no admitido/)
+    .waitFor();
   await page.locator("#language").selectOption("en");
   await page.getByRole("heading", { name: "Chat background", exact: true }).waitFor();
 
@@ -259,7 +399,9 @@ try {
   );
   await page.emulateMedia({ reducedMotion: "no-preference" });
 
-  console.log("PASS chat background settings flow, persistence, reset, validation and mobile layout");
+  console.log(
+    "PASS chat background settings flow, persistence, reset, validation and mobile layout",
+  );
   assert.deepEqual(errors, []);
 } finally {
   await browser.close();

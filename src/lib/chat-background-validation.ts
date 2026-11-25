@@ -1,5 +1,16 @@
+import {
+  SUPPORTED_CLIPBOARD_IMAGE_EXTENSIONS,
+  SUPPORTED_CLIPBOARD_IMAGE_MIMES,
+} from "./clipboard-images.ts";
+
 export const PRESET_BACKGROUNDS = ["aurora", "dusk", "nebula"] as const;
 export type PresetBackground = (typeof PRESET_BACKGROUNDS)[number];
+
+export const PRESET_BACKGROUND_LABELS: Readonly<Record<PresetBackground, string>> = {
+  aurora: "Aurora",
+  dusk: "Dusk",
+  nebula: "Nebula",
+};
 
 export type ChatBackgroundSelection =
   | { kind: "default" }
@@ -24,15 +35,19 @@ export const DEFAULT_BACKGROUND_DIM = "40";
 
 export const MAX_BACKGROUND_IMAGE_BYTES = 10 * 1024 * 1024;
 
-const ALLOWED_MIMES = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-  "image/bmp",
-  "image/avif",
-]);
-const ALLOWED_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "bmp", "avif"]);
+export function backgroundSelectionKey(ownerId: string): string {
+  return `chat_background:${ownerId}`;
+}
+
+export function backgroundDimKey(ownerId: string): string {
+  return `chat_background_dim:${ownerId}`;
+}
+
+export function resolveSelectionAfterCustomRemoval(
+  selection: ChatBackgroundSelection,
+): ChatBackgroundSelection {
+  return selection.kind === "custom" ? { kind: "default" } : selection;
+}
 
 export type BackgroundImageErrorCode =
   | "unsupported-format"
@@ -73,8 +88,8 @@ export function checkBackgroundImage(
   if (file.size === 0) return "empty-file";
   if (file.size > MAX_BACKGROUND_IMAGE_BYTES) return "too-large";
   const mime = (file.type.split(";")[0] ?? "").trim().toLowerCase();
-  if (ALLOWED_MIMES.has(mime)) return null;
+  if (SUPPORTED_CLIPBOARD_IMAGE_MIMES.has(mime)) return null;
   const extension = file.name.split(".").at(-1)?.toLowerCase() ?? "";
-  if (!mime && ALLOWED_EXTENSIONS.has(extension)) return null;
+  if (!mime && SUPPORTED_CLIPBOARD_IMAGE_EXTENSIONS.has(extension)) return null;
   return "unsupported-format";
 }
