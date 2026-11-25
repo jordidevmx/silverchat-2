@@ -3,13 +3,14 @@ import {
   SUPPORTED_CLIPBOARD_IMAGE_MIMES,
 } from "./clipboard-images.ts";
 
-export const PRESET_BACKGROUNDS = ["aurora", "dusk", "nebula"] as const;
+export const PRESET_BACKGROUNDS = ["mercury", "obsidian", "prism", "horizon"] as const;
 export type PresetBackground = (typeof PRESET_BACKGROUNDS)[number];
 
 export const PRESET_BACKGROUND_LABELS: Readonly<Record<PresetBackground, string>> = {
-  aurora: "Aurora",
-  dusk: "Dusk",
-  nebula: "Nebula",
+  mercury: "Mercury",
+  obsidian: "Obsidian",
+  prism: "Prism",
+  horizon: "Horizon",
 };
 
 export type ChatBackgroundSelection =

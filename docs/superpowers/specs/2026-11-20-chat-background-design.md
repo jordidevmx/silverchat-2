@@ -19,14 +19,16 @@ stay legible in both themes.
   positioned image + theme-aware scrim. `MessageList` is untouched, so its scroll
   restoration and resize observer are unaffected, and it never re-renders on a
   background change.
-- **Presets:** three abstract silver/neon wallpapers generated as AVIF and WebP at 1x/2x
-  under `public/backgrounds/`, referenced with CSS `image-set()` and a plain WebP
-  fallback.
+- **Presets:** four futuristic metallic/architectural SilverChat wallpapers (`Mercury`,
+  `Obsidian`, `Prism`, `Horizon`) generated as AVIF and WebP at 1x/2x under
+  `public/backgrounds/`, referenced with CSS `image-set()` and a plain WebP fallback.
 - **Uploads:** MIME allow-list reused from `clipboard-images.ts`, 10 MB input cap,
   decoded with `createImageBitmap`, compressed to WebP (`browser-image-compression`)
   and stored locally. Errors use translated messages with stable error codes.
-- **Readability:** a theme-aware scrim sits above the image; one compact "dim" slider is
-  shown only when an image is selected. No blur control, to avoid UI bloat.
+- **Readability:** a theme-aware scrim sits above the image, bubbles and timeline pills
+  receive subtle hairline borders and elevation shadows whenever a background image is
+  active, and one compact "dim" slider is shown only when an image is selected. No blur
+  control, to avoid UI bloat.
 
 ## Constraints
 

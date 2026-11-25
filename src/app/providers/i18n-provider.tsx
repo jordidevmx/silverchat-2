@@ -72,9 +72,10 @@ const spanish: Record<string, string> = {
   "Choose a background for your conversations.":
     "Elige un fondo para tus conversaciones.",
   Default: "Predeterminado",
-  Aurora: "Aurora",
-  Dusk: "Crepúsculo",
-  Nebula: "Nebulosa",
+  Mercury: "Mercurio",
+  Obsidian: "Obsidiana",
+  Prism: "Prisma",
+  Horizon: "Horizonte",
   "Custom image": "Imagen personalizada",
   "Upload image": "Subir imagen",
   "Applying…": "Aplicando…",

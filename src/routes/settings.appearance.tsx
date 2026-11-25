@@ -142,7 +142,7 @@ export function AppearancePage() {
           {t("Choose a background for your conversations.")}
         </p>
         <fieldset className="background-fieldset" aria-describedby="chat-background-help">
-          <legend className="visually-hidden">{t("Chat background")}</legend>
+          <legend className="sr-only">{t("Chat background")}</legend>
           <div className="background-options">
             <BackgroundChoice
               label={t("Default")}
@@ -177,7 +177,7 @@ export function AppearancePage() {
         <div className="background-actions">
           <input
             id="chat-background-upload"
-            className="visually-hidden"
+            className="sr-only"
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif"
             aria-disabled={isUploading || undefined}

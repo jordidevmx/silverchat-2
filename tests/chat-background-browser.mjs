@@ -159,7 +159,7 @@ const png = Buffer.from(
 try {
   // Seed another account's background preferences to verify per-user isolation on the same device.
   await page.addInitScript((foreignId) => {
-    localStorage.setItem(`silverchat_chat_background:${foreignId}`, "nebula");
+    localStorage.setItem(`silverchat_chat_background:${foreignId}`, "horizon");
     localStorage.setItem(`silverchat_chat_background_dim:${foreignId}`, "90");
   }, otherId);
 
@@ -185,21 +185,22 @@ try {
 
   // Preset labels are properly capitalized in English and isolated from other accounts.
   assert.equal(await stored("chat_background"), null);
-  assert.equal(await stored("chat_background", otherId), "nebula");
+  assert.equal(await stored("chat_background", otherId), "horizon");
   assert.equal(await stored("chat_background_dim", otherId), "90");
   assert.equal(
     await page.getByRole("button", { name: "Default", exact: true }).getAttribute("aria-pressed"),
     "true",
   );
-  await page.getByRole("button", { name: "Aurora", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Dusk", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Nebula", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Mercury", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Obsidian", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Prism", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Horizon", exact: true }).waitFor();
 
-  await page.getByRole("button", { name: "Dusk", exact: true }).click();
-  assert.equal(await stored("chat_background"), "dusk");
-  assert.equal(await stored("chat_background", otherId), "nebula");
+  await page.getByRole("button", { name: "Obsidian", exact: true }).click();
+  assert.equal(await stored("chat_background"), "obsidian");
+  assert.equal(await stored("chat_background", otherId), "horizon");
   assert.equal(
-    await page.getByRole("button", { name: "Dusk", exact: true }).getAttribute("aria-pressed"),
+    await page.getByRole("button", { name: "Obsidian", exact: true }).getAttribute("aria-pressed"),
     "true",
   );
 
@@ -217,9 +218,9 @@ try {
   await page.getByText("Custom image applied.").waitFor();
 
   // Switching to a preset keeps the stored custom image selectable and removable.
-  await page.getByRole("button", { name: "Aurora", exact: true }).click();
+  await page.getByRole("button", { name: "Mercury", exact: true }).click();
   assert.equal(
-    await page.getByRole("button", { name: "Aurora", exact: true }).getAttribute("aria-pressed"),
+    await page.getByRole("button", { name: "Mercury", exact: true }).getAttribute("aria-pressed"),
     "true",
   );
   assert.equal(
@@ -246,14 +247,14 @@ try {
   assert.equal(await page.locator("#chat-background-dim").inputValue(), "70");
 
   // Removing the stored custom image while on a preset preserves the active preset.
-  await page.getByRole("button", { name: "Dusk", exact: true }).click();
+  await page.getByRole("button", { name: "Obsidian", exact: true }).click();
   await page.getByRole("button", { name: "Remove custom image", exact: true }).click();
   await page
     .getByRole("button", { name: "Custom image", exact: true })
     .waitFor({ state: "detached" });
-  assert.equal(await stored("chat_background"), "dusk");
+  assert.equal(await stored("chat_background"), "obsidian");
   assert.equal(
-    await page.getByRole("button", { name: "Dusk", exact: true }).getAttribute("aria-pressed"),
+    await page.getByRole("button", { name: "Obsidian", exact: true }).getAttribute("aria-pressed"),
     "true",
   );
 
@@ -294,20 +295,20 @@ try {
 
   await page.goto(`${baseUrl}/settings/appearance`);
   await page.getByRole("heading", { name: "Chat background", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Aurora", exact: true }).click();
+  await page.getByRole("button", { name: "Mercury", exact: true }).click();
   await page.locator("#chat-background-dim").fill("40");
 
   // Regular direct chat route also renders the selected background through ConversationShell.
   await page.goto(`${baseUrl}/chats/${chatId}`);
   await page.locator('[data-slot="conversation-shell"]').waitFor();
   await page.locator(".chat-background-image").waitFor();
-  assert.equal(await page.locator(".chat-background").getAttribute("data-background"), "aurora");
+  assert.equal(await page.locator(".chat-background").getAttribute("data-background"), "mercury");
 
   await page.goto(`${baseUrl}/channels/${channelId}`);
   const layer = page.locator(".chat-background-image");
   await layer.waitFor();
-  assert.equal(await page.locator(".chat-background").getAttribute("data-background"), "aurora");
-  assert.match(await layer.evaluate((el) => getComputedStyle(el).backgroundImage), /aurora/);
+  assert.equal(await page.locator(".chat-background").getAttribute("data-background"), "mercury");
+  assert.match(await layer.evaluate((el) => getComputedStyle(el).backgroundImage), /mercury/);
   const scrim = page.locator(".chat-background-scrim");
   assert.equal(
     await scrim.evaluate((el) => Number(getComputedStyle(el).opacity).toFixed(2)),
@@ -370,12 +371,15 @@ try {
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     true,
   );
-  await page.getByRole("button", { name: "Nebula", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Horizon", exact: true }).waitFor();
 
   // Spanish copy is fully localized, including validation errors.
   await page.locator("#language").selectOption("es");
   await page.getByRole("heading", { name: "Fondo de chat", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Crepúsculo", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Mercurio", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Obsidiana", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Prisma", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Horizonte", exact: true }).waitFor();
   await page.locator("#chat-background-upload").setInputFiles({
     name: "notes.txt",
     mimeType: "text/plain",

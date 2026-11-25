@@ -22,18 +22,26 @@ import {
 test("selection parsing only accepts known presets and falls back to default", () => {
   assert.deepEqual(parseBackgroundSelection(null), { kind: "default" });
   assert.deepEqual(parseBackgroundSelection("bogus"), { kind: "default" });
+  assert.deepEqual(parseBackgroundSelection("aurora"), { kind: "default" });
   assert.deepEqual(parseBackgroundSelection("custom"), { kind: "custom" });
-  assert.deepEqual(parseBackgroundSelection("aurora"), {
+  assert.deepEqual(parseBackgroundSelection("mercury"), {
     kind: "preset",
-    preset: "aurora",
+    preset: "mercury",
   });
-  assert.deepEqual(BACKGROUND_SELECTIONS, ["default", "aurora", "dusk", "nebula", "custom"]);
+  assert.deepEqual(BACKGROUND_SELECTIONS, [
+    "default",
+    "mercury",
+    "obsidian",
+    "prism",
+    "horizon",
+    "custom",
+  ]);
 });
 
 test("preset background labels are capitalized English display names", () => {
   assert.deepEqual(
     PRESET_BACKGROUNDS.map((preset) => PRESET_BACKGROUND_LABELS[preset]),
-    ["Aurora", "Dusk", "Nebula"],
+    ["Mercury", "Obsidian", "Prism", "Horizon"],
   );
 });
 
@@ -49,9 +57,9 @@ test("preference keys are scoped per owner to isolate accounts on the same devic
 test("removing a custom image resets custom selection to default but preserves active presets", () => {
   assert.deepEqual(resolveSelectionAfterCustomRemoval({ kind: "custom" }), { kind: "default" });
   assert.deepEqual(resolveSelectionAfterCustomRemoval({ kind: "default" }), { kind: "default" });
-  assert.deepEqual(resolveSelectionAfterCustomRemoval({ kind: "preset", preset: "aurora" }), {
+  assert.deepEqual(resolveSelectionAfterCustomRemoval({ kind: "preset", preset: "mercury" }), {
     kind: "preset",
-    preset: "aurora",
+    preset: "mercury",
   });
 });
 
