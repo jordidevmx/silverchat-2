@@ -2581,6 +2581,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      extract_call_event_id: { Args: { p_content: string }; Returns: string };
       follow_channel: {
         Args: { p_channel_id: string; p_invitation_id?: string };
         Returns: undefined;
