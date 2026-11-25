@@ -36,9 +36,19 @@ INSERT INTO public.devices(user_id,device_name,user_agent,device_fingerprint) VA
 SELECT pg_temp.rejects($q$INSERT INTO public.devices(user_id,device_name,device_fingerprint) VALUES(auth.uid(),'Duplicate','fingerprint-one')$q$,'duplicate key');
 SELECT public.create_direct_chat_request('d2222222-2222-4222-8222-222222222222','') AS request_chat \gset
 SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.messages WHERE chat_id=:'request_chat'),'Opening profile does not send an empty message');
+RESET ROLE;
+UPDATE public.profiles SET avatar_url='d2222222-2222-4222-8222-222222222222/bob.webp' WHERE id='d2222222-2222-4222-8222-222222222222';
+UPDATE public.profiles SET avatar_url='d1111111-1111-4111-8111-111111111111/alice.webp' WHERE id='d1111111-1111-4111-8111-111111111111';
+SET LOCAL ROLE authenticated;
 INSERT INTO public.user_blocks(blocker_id,blocked_id) VALUES(auth.uid(),'d2222222-2222-4222-8222-222222222222');
-SELECT pg_temp.assert_true((SELECT count(*)=1 FROM public.profiles_blocked),'Own block management details available');
-SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.profiles_visible WHERE id='d2222222-2222-4222-8222-222222222222'),'General privacy view still hides blocked profile');
+SELECT pg_temp.assert_true((SELECT count(*)=1 AND bool_and(avatar_url='d2222222-2222-4222-8222-222222222222/bob.webp') FROM public.profiles_blocked),'Own block management details include real avatar when permitted');
+SELECT pg_temp.assert_true((SELECT count(*)=1 AND bool_and(avatar_url='d2222222-2222-4222-8222-222222222222/bob.webp') FROM public.profiles_visible WHERE id='d2222222-2222-4222-8222-222222222222'),'Blocker retains blocked profile and permitted avatar in profiles_visible');
+SELECT pg_temp.assert_true(public.can_view_avatar('d2222222-2222-4222-8222-222222222222',auth.uid()),'Blocker can still view blocked contact avatar when permitted');
+RESET ROLE;
+SELECT set_config('request.jwt.claims','{"sub":"d2222222-2222-4222-8222-222222222222","role":"authenticated","aal":"aal1"}',true);
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.profiles_visible WHERE id='d1111111-1111-4111-8111-111111111111'),'Blocked user cannot see blocker in profiles_visible');
+SELECT pg_temp.assert_true(NOT public.can_view_avatar('d1111111-1111-4111-8111-111111111111',auth.uid()),'Blocked user cannot view blocker avatar');
 RESET ROLE;
 -- Test as table owner as well: trigger must not depend on MFA-gated helper results.
 SELECT set_config('request.jwt.claims','{}',true);

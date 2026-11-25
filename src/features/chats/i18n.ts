@@ -34,6 +34,7 @@ const es: Record<string, string> = {
   "Mark as read": "Marcar como leído",
   "Mark as unread": "Marcar como no leído",
   Block: "Bloquear",
+  Unblock: "Desbloquear",
   "Delete chat": "Eliminar chat",
   Delete: "Eliminar",
   "Mute for…": "Silenciar durante…",

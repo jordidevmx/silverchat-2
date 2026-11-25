@@ -3,6 +3,7 @@ import { useI18n } from "@/app/providers/i18n-provider";
 import { useAuth } from "@/lib/auth-provider";
 import { supabase } from "@/lib/supabase";
 import { useBlockedUsers } from "../hooks";
+import { invalidateBlockState } from "./blockCache";
 import { useAction } from "./useAction";
 export function useBlockedContacts() {
   const blocked = useBlockedUsers();
@@ -27,11 +28,7 @@ export function useBlockedContacts() {
         cache.setQueryData(["blocked", user?.id], previous);
         throw r.error;
       }
-      await Promise.all(
-        ["blocked", "contacts", "public-profile", "chats"].map((key) =>
-          cache.invalidateQueries({ queryKey: [key] }),
-        ),
-      );
+      await invalidateBlockState(cache, user?.id ?? "");
     }, "Unblocked");
   return { blocked, action, t, unblock };
 }

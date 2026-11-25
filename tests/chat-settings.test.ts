@@ -88,6 +88,25 @@ test("chat menus distinguish direct, self, groups, communities, admins and pendi
     ["view_profile", "search_in_chat", "block"],
   );
 });
+test("blocked direct chats offer Unblock instead of Block", () => {
+  assert.deepEqual(getAvailableChatActions(chat(), { isBlocked: true }), [
+    "view_profile",
+    "search_in_chat",
+    "mute",
+    "mark_unread",
+    "pin",
+    "clear_chat",
+    "unblock",
+  ]);
+  assert.deepEqual(getAvailableChatActions({ ...chat(), readOnly: true }, { isBlocked: true }), [
+    "view_profile",
+    "search_in_chat",
+    "unblock",
+  ]);
+  const actions = getAvailableChatActions(chat());
+  assert.ok(actions.includes("block"));
+  assert.ok(!actions.includes("unblock"));
+});
 test("channel menus enforce OC-02 staff unfollow lock and OC-04 admin reporting", () => {
   assert.deepEqual(
     getAvailableChannelActions({ following: true, canSearch: true, hasLink: true, isOwner: false }),

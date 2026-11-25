@@ -1,5 +1,5 @@
 import { LoaderCircle, Lock } from "lucide-react";
-import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "zustand";
 import { SystemPill } from "@/components/ui/conversation-surface";
 import { Modal } from "@/features/auth/components";
@@ -7,6 +7,7 @@ import {
   isReactionUnread,
   reactionNotificationStore,
 } from "@/features/chats/utils/reactionNotifications";
+import { useBlockedUsers } from "@/features/settings/hooks";
 import { useAuth } from "@/lib/auth-provider";
 import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import type { useMessages } from "../hooks/useMessages";
@@ -61,6 +62,18 @@ export function MessageList({
 }) {
   const { user } = useAuth();
   const { say, t } = useMessageText();
+  const isGroupOrCommunity =
+    !channelMode && (chat.type === "group" || chat.type === "community_chat");
+  const blockedUsers = useBlockedUsers(isGroupOrCommunity);
+  const blockedSenderIds = useMemo(
+    () =>
+      new Set(
+        (blockedUsers.data ?? [])
+          .map((profile) => profile.id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    [blockedUsers.data],
+  );
   const { highlightedId, highlight, clear } = useSearchHighlight();
   const navigated = useRef<number | null>(null);
   const { messages } = query;
@@ -304,6 +317,12 @@ export function MessageList({
                   !channelMode &&
                   !groupedBefore &&
                   (chat.type === "group" || chat.type === "community_chat")
+                }
+                senderBlocked={
+                  isGroupOrCommunity &&
+                  Boolean(message.sender_id) &&
+                  message.sender_id !== (user?.id ?? "") &&
+                  blockedSenderIds.has(message.sender_id ?? "")
                 }
                 onMedia={setMedia}
                 onRetry={(m) => {

@@ -1,4 +1,12 @@
-import { AlertCircle, Check, CheckCheck, LoaderCircle, MoreHorizontal, Reply } from "lucide-react";
+import {
+  AlertCircle,
+  Ban,
+  Check,
+  CheckCheck,
+  LoaderCircle,
+  MoreHorizontal,
+  Reply,
+} from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { MessageSurface } from "@/components/ui/conversation-surface";
 import { CallEventCard } from "@/features/calls/components/CallEventCard";
@@ -24,6 +32,7 @@ export function MessageBubble({
   own,
   grouped,
   showAvatar,
+  senderBlocked = false,
   onMedia,
   onRetry,
 }: {
@@ -32,6 +41,7 @@ export function MessageBubble({
   own: boolean;
   grouped: boolean;
   showAvatar: boolean;
+  senderBlocked?: boolean;
   onMedia: (message: Message) => void;
   onRetry: (message: Message) => void;
 }) {
@@ -112,7 +122,8 @@ export function MessageBubble({
       ref={swipe.rowRef}
       data-message-id={message.id}
       data-swipe-enabled={canSwipeReply ? "true" : undefined}
-      className={`message-row ${own ? "own" : "incoming"} ${grouped ? "grouped" : ""} ${chat.type === "group" || chat.type === "community_chat" ? "group-chat" : ""}`}
+      data-blocked-sender={senderBlocked ? "true" : undefined}
+      className={`message-row ${own ? "own" : "incoming"} ${grouped ? "grouped" : ""} ${chat.type === "group" || chat.type === "community_chat" ? "group-chat" : ""} ${senderBlocked ? "is-blocked-sender" : ""}`}
       {...(canSwipeReply ? swipe.rowHandlers : undefined)}
     >
       {canSwipeReply && (
@@ -195,7 +206,13 @@ export function MessageBubble({
                 )}
                 {showAvatar && (
                   <strong className="message-author">
-                    {message.sender?.display_name ?? say("Member", "Miembro")}
+                    <span>{message.sender?.display_name ?? say("Member", "Miembro")}</span>
+                    {senderBlocked && (
+                      <span className="blocked-sender-pill" data-slot="blocked-sender-badge">
+                        <Ban size={10} aria-hidden="true" />
+                        <span>{say("Blocked", "Bloqueado")}</span>
+                      </span>
+                    )}
                   </strong>
                 )}
                 {message.reply_to_story_id && (

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { refreshNovedades } from "@/features/novedades/lib/cache";
 import { blockUser } from "@/features/settings/hooks";
+import { invalidateBlockState } from "@/features/settings/hooks/blockCache";
 import { useAuth } from "@/lib/auth-provider";
 import { supabase } from "@/lib/supabase";
 import {
@@ -65,11 +66,7 @@ export function useSubmitReport() {
       ) {
         try {
           await blockUser(target.blockUserId, user.id);
-          await Promise.all(
-            ["blocked", "contacts", "public-profile", "avatar-url", "chats"].map((key) =>
-              cache.invalidateQueries({ queryKey: [key] }),
-            ),
-          );
+          await invalidateBlockState(cache, user.id);
           blocked = true;
         } catch {
           blockFailed = true;

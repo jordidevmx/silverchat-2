@@ -10,6 +10,7 @@ import { ChatSettingsLayer } from "@/features/chat-settings/components/ChatSetti
 import { useCommunity } from "@/features/communities/hooks/useCommunity";
 import { useCommunityMembers } from "@/features/communities/hooks/useCommunityMembers";
 import { communityDetails } from "@/features/communities/lib/communityDetails";
+import { BlockedComposerBar } from "@/features/messages/components/BlockedComposerBar";
 import { ChatHeader } from "@/features/messages/components/ChatHeader";
 import { Composer } from "@/features/messages/components/Composer";
 import { InChatSearch } from "@/features/messages/components/InChatSearch";
@@ -20,6 +21,7 @@ import { RestrictedComposerNotice } from "@/features/messages/components/Restric
 import { useChat } from "@/features/messages/hooks/useChat";
 import { useConversationController } from "@/features/messages/hooks/useConversationController";
 import { isWriteRestricted } from "@/features/messages/lib/writePermissions";
+import { useBlockedUsers } from "@/features/settings/hooks";
 import { useAuth } from "@/lib/auth-provider";
 import "@/styles/messages.css";
 export function ChatPage() {
@@ -65,6 +67,9 @@ export function Conversation({ chatId, scrollTo }: { chatId: string; scrollTo?: 
   } = useConversationController(chatId);
   const communityIdForGrowth =
     chat.data?.type === "community_chat" && chat.data.communityId ? chat.data.communityId : "";
+  const blockedUsers = useBlockedUsers(
+    chat.data?.type === "direct" && Boolean(chat.data.otherUserId),
+  );
   const community = useCommunity(communityIdForGrowth);
   const communityMembers = useCommunityMembers(communityIdForGrowth);
   const growthModel = chat.data
@@ -94,6 +99,10 @@ export function Conversation({ chatId, scrollTo }: { chatId: string; scrollTo?: 
     );
   if (!chat.data) return null;
   const details = chat.data;
+  const isBlocked =
+    details.type === "direct" &&
+    Boolean(details.otherUserId) &&
+    Boolean(blockedUsers.data?.some((profile) => profile.id === details.otherUserId));
   const addMembersChat =
     details.type === "group" && details.own?.role === "admin"
       ? details
@@ -119,7 +128,7 @@ export function Conversation({ chatId, scrollTo }: { chatId: string; scrollTo?: 
               }}
             />
           ) : (
-            <ChatHeader chat={details} onSearch={() => setSearchOpen(true)} />
+            <ChatHeader chat={details} isBlocked={isBlocked} onSearch={() => setSearchOpen(true)} />
           )
         }
         banners={
@@ -169,7 +178,9 @@ export function Conversation({ chatId, scrollTo }: { chatId: string; scrollTo?: 
           </>
         }
         footer={
-          details.readOnly ? null : isWriteRestricted(details) ? (
+          isBlocked ? (
+            <BlockedComposerBar chat={details} />
+          ) : details.readOnly ? null : isWriteRestricted(details) ? (
             <RestrictedComposerNotice silencedUntil={details.communitySilencedUntil} />
           ) : (
             <Composer

@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { ChevronLeft, MoreVertical, Phone, Pin, Search, Users } from "lucide-react";
+import { Ban, ChevronLeft, MoreVertical, Phone, Pin, Search, Users } from "lucide-react";
 import { ConversationHeaderSurface } from "@/components/ui/conversation-surface";
 import { useVoiceCallStart } from "@/features/calls/hooks/useVoiceCallStart";
 import { getCallEligibility } from "@/features/calls/lib/callEligibility";
@@ -8,7 +8,15 @@ import { Avatar } from "@/features/settings/components/shared";
 import { useChatPresence } from "../hooks/useChatPresence";
 import { useMessageText } from "../i18n";
 import type { ChatDetails } from "../types";
-export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: () => void }) {
+export function ChatHeader({
+  chat,
+  isBlocked = false,
+  onSearch,
+}: {
+  chat: ChatDetails;
+  isBlocked?: boolean;
+  onSearch: () => void;
+}) {
   const ui = useChatUIStore();
   const menuOpen = ui.chatId === chat.id && ui.modal?.kind === "menu";
   const router = useRouter();
@@ -33,13 +41,18 @@ export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: ()
         ? chat.communityName
         : chat.type === "group"
           ? `${chat.members.length} ${say("members", "miembros")}`
-          : online
-            ? say("Online", "En línea")
-            : last
-              ? `${say("Last seen", "Última conexión")} ${relative}`
-              : say("Offline", "Desconectado");
+          : isBlocked
+            ? say("Messaging disabled", "Mensajes desactivados")
+            : online
+              ? say("Online", "En línea")
+              : last
+                ? `${say("Last seen", "Última conexión")} ${relative}`
+                : say("Offline", "Desconectado");
   const name = chat.type === "self" ? say("You", "Tú") : chat.name;
-  const callEligibility = getCallEligibility(chat);
+  const callEligibility = getCallEligibility({
+    ...chat,
+    isBlocked: Boolean(isBlocked || chat.isBlocked),
+  });
   const showCallTrigger = chat.type === "direct" && !chat.channelMode;
   const callLabel = callEligibility.eligible
     ? say("Start voice call", "Iniciar llamada de voz")
@@ -63,19 +76,30 @@ export function ChatHeader({ chat, onSearch }: { chat: ChatDetails; onSearch: ()
         />
       )}
       <span>
-        <strong className="chat-title">
-          <span>{name}</span>
-          {chat.own?.pinned_at && <Pin size={14} aria-label={say("Pinned", "Fijado")} />}
-        </strong>
+        <span className="chat-title-row">
+          <strong className="chat-title">
+            <span>{name}</span>
+            {chat.own?.pinned_at && <Pin size={14} aria-label={say("Pinned", "Fijado")} />}
+          </strong>
+          {isBlocked && (
+            <span className="blocked-status-pill" data-slot="blocked-header-badge">
+              <Ban size={11} aria-hidden="true" />
+              <span>{say("Blocked", "Bloqueado")}</span>
+            </span>
+          )}
+        </span>
         <small>
-          {online && chat.type === "direct" && <i className="presence-dot" />}
+          {online && chat.type === "direct" && !isBlocked && <i className="presence-dot" />}
           {subtitle}
         </small>
       </span>
     </>
   );
   return (
-    <ConversationHeaderSurface>
+    <ConversationHeaderSurface
+      className={isBlocked ? "is-blocked" : undefined}
+      data-blocked={isBlocked ? "true" : undefined}
+    >
       {chat.type === "community_chat" && chat.communityId ? (
         <Link
           to="/communities/$communityId"

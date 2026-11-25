@@ -161,7 +161,10 @@ UPDATE public.file_uploads SET status='completed',completed_at=now() WHERE uploa
 SELECT pg_temp.assert_true(public.get_my_storage_usage()=1234,'storage usage sums completed own files');
 INSERT INTO public.user_blocks(blocker_id,blocked_id) VALUES (auth.uid(),'44444444-4444-4444-8444-444444444444');
 SELECT pg_temp.expect_error($q$SELECT public.create_direct_chat_request('44444444-4444-4444-8444-444444444444','Blocked')$q$,'P0001','blocked','blocked direct request denied');
-SELECT pg_temp.assert_true(NOT EXISTS(SELECT 1 FROM public.profiles_visible WHERE id='44444444-4444-4444-8444-444444444444'),'blocked profile hidden');
+SELECT pg_temp.assert_true(EXISTS(SELECT 1 FROM public.profiles_visible WHERE id='44444444-4444-4444-8444-444444444444'),'blocker retains blocked profile visibility');
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+SELECT pg_temp.assert_true(NOT EXISTS(SELECT 1 FROM public.profiles_visible WHERE id='22222222-2222-4222-8222-222222222222'),'blocked user cannot see blocker profile');
+SELECT pg_temp.assert_true(NOT public.can_view_avatar('22222222-2222-4222-8222-222222222222',auth.uid()),'blocked user cannot view blocker avatar');
 RESET ROLE;
 
 -- Storage policies are exercised as database RLS (no object API is mocked).

@@ -15,6 +15,7 @@ export function ContactProfileModal({ userId, chat }: { userId: string; chat: Ch
     ui,
     action,
     user,
+    isBlocked,
     gradient,
     links,
     last,
@@ -125,10 +126,15 @@ export function ContactProfileModal({ userId, chat }: { userId: string; chat: Ch
                     type="button"
                     variant="outline"
                     onClick={() =>
-                      ui.open(chat.id, { kind: "block", userId, name: p.display_name ?? "" })
+                      ui.open(chat.id, {
+                        kind: "block",
+                        userId,
+                        name: p.display_name ?? "",
+                        mode: isBlocked ? "unblock" : "block",
+                      })
                     }
                   >
-                    {say("Block", "Bloquear")}
+                    {isBlocked ? say("Unblock", "Desbloquear") : say("Block", "Bloquear")}
                   </Button>
                 </div>
               )}

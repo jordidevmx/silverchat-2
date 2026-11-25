@@ -3,6 +3,7 @@ import {
   Bell,
   BellOff,
   Camera,
+  Check,
   ChevronRight,
   Flag,
   Info,
@@ -38,6 +39,7 @@ type MenuProps = {
   | {
       contextType?: "chat" | "community_chat";
       chat: ChatDetails;
+      isBlocked?: boolean;
       onChoose: (action: ChatAction) => void;
     }
   | {
@@ -54,7 +56,7 @@ export function ChatOptionsMenu(props: MenuProps) {
           action,
           choose: () => props.onChoose(action),
         }))
-      : getAvailableChatActions(props.chat).map((action) => ({
+      : getAvailableChatActions(props.chat, { isBlocked: props.isBlocked }).map((action) => ({
           action,
           choose: () => props.onChoose(action),
         }));
@@ -76,6 +78,7 @@ export function ChatOptionsMenu(props: MenuProps) {
     unpin: say("Unpin", "Desfijar"),
     clear_chat: say("Clear chat", "Vaciar chat"),
     block: say("Block", "Bloquear"),
+    unblock: say("Unblock", "Desbloquear"),
     report: say("Report channel", "Reportar canal"),
     view_members: say("View members", "Ver miembros"),
     add_members: say("Add members", "Añadir miembros"),
@@ -98,6 +101,7 @@ export function ChatOptionsMenu(props: MenuProps) {
     unpin: PinOff,
     clear_chat: Trash2,
     block: Ban,
+    unblock: Check,
     report: Flag,
     view_members: Users,
     add_members: UserPlus,
@@ -122,7 +126,7 @@ export function ChatOptionsMenu(props: MenuProps) {
           destructive: ["block", "leave_group", "clear_chat", "report"].includes(action),
           disabled: busy,
           separator:
-            ["block", "view_members", "leave_group", "report"].includes(action) ||
+            ["block", "unblock", "view_members", "leave_group", "report"].includes(action) ||
             (props.contextType !== "channel" &&
               props.chat.type === "self" &&
               action === "clear_chat"),
