@@ -98,10 +98,11 @@ test("blocked direct chats offer Unblock instead of Block", () => {
     "clear_chat",
     "unblock",
   ]);
-  assert.deepEqual(
-    getAvailableChatActions({ ...chat(), readOnly: true }, { isBlocked: true }),
-    ["view_profile", "search_in_chat", "unblock"],
-  );
+  assert.deepEqual(getAvailableChatActions({ ...chat(), readOnly: true }, { isBlocked: true }), [
+    "view_profile",
+    "search_in_chat",
+    "unblock",
+  ]);
   const actions = getAvailableChatActions(chat());
   assert.ok(actions.includes("block"));
   assert.ok(!actions.includes("unblock"));

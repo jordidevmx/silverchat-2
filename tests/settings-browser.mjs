@@ -276,10 +276,16 @@ try {
     await page.locator('.settings-sidebar a[aria-current="page"]').textContent(),
     "Account",
   );
-  await page.locator(".settings-main .profile-card").getByRole("heading", { name: "Alice Rivera" }).waitFor();
+  await page
+    .locator(".settings-main .profile-card")
+    .getByRole("heading", { name: "Alice Rivera" })
+    .waitFor();
   await page.locator(".settings-main .profile-card").getByText("@alice", { exact: true }).waitFor();
   assert.equal(
-    await page.locator(".settings-main .profile-card").getByRole("link", { name: "Edit profile", exact: true }).getAttribute("href"),
+    await page
+      .locator(".settings-main .profile-card")
+      .getByRole("link", { name: "Edit profile", exact: true })
+      .getAttribute("href"),
     "/settings/profile",
   );
   assert.equal(
@@ -300,7 +306,9 @@ try {
   assert.equal(await page.locator(".settings-main .profile-card").count(), 0);
   await page.goBack();
   await page.getByRole("heading", { name: "Account", exact: true }).waitFor();
-  console.log("PASS settings default Account route, profile card placement, no duplication, URL navigation/history and desktop layout");
+  console.log(
+    "PASS settings default Account route, profile card placement, no duplication, URL navigation/history and desktop layout",
+  );
   await visit("/settings/profile", "Edit profile");
   await page.getByLabel("Display name", { exact: true }).fill("Alice Updated");
   await page.getByLabel("Bio", { exact: true }).fill("Updated bio");
@@ -750,7 +758,10 @@ try {
   await visit("/settings", "Account");
   await page.waitForURL("**/settings/account");
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-  await page.locator(".settings-sidebar").getByRole("link", { name: "Storage", exact: true }).click();
+  await page
+    .locator(".settings-sidebar")
+    .getByRole("link", { name: "Storage", exact: true })
+    .click();
   await page.getByRole("heading", { name: "Storage", exact: true }).waitFor();
   await page.getByText(/MB used/).waitFor();
   await page.locator(".settings-sidebar").getByRole("link", { name: "About", exact: true }).click();

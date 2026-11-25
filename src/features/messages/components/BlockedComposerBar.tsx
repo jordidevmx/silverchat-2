@@ -84,9 +84,7 @@ export function BlockedComposerBar({ chat }: { chat: ChatDetails }) {
               <Ban size={15} />
             </span>
             <span className="blocked-composer-text">
-              <strong>
-                {say(`You blocked ${contactName}`, `Bloqueaste a ${contactName}`)}
-              </strong>
+              <strong>{say(`You blocked ${contactName}`, `Bloqueaste a ${contactName}`)}</strong>
               <small>
                 {say(
                   "Unblock to send messages again.",

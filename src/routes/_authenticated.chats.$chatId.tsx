@@ -128,11 +128,7 @@ export function Conversation({ chatId, scrollTo }: { chatId: string; scrollTo?: 
               }}
             />
           ) : (
-            <ChatHeader
-              chat={details}
-              isBlocked={isBlocked}
-              onSearch={() => setSearchOpen(true)}
-            />
+            <ChatHeader chat={details} isBlocked={isBlocked} onSearch={() => setSearchOpen(true)} />
           )
         }
         banners={

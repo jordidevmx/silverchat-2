@@ -191,7 +191,10 @@ await context.route("https://supabase.test/**", async (route) => {
     if (s.has("id") || s.has("direct_pair_key")) {
       const lookup = s.get("id") ?? s.get("direct_pair_key") ?? "";
       if (lookup.includes(groupChatId)) return fulfill(route, groupChatRow);
-      return fulfill(route, lookup.includes(chatId2) || lookup.includes(otherId2) ? chatRow2 : chatRow);
+      return fulfill(
+        route,
+        lookup.includes(chatId2) || lookup.includes(otherId2) ? chatRow2 : chatRow,
+      );
     }
     return fulfill(route, [chatRow, chatRow2, groupChatRow]);
   }
@@ -475,7 +478,10 @@ try {
   const profileDialog = page.getByRole("dialog", { name: "Contact profile" });
   await profileDialog.waitFor();
   assert.match(await profileDialog.textContent(), /Test User B/);
-  assert.equal(await profileDialog.getByRole("button", { name: "Unblock", exact: true }).count(), 1);
+  assert.equal(
+    await profileDialog.getByRole("button", { name: "Unblock", exact: true }).count(),
+    1,
+  );
   assert.equal(await profileDialog.getByRole("button", { name: "Block", exact: true }).count(), 0);
   await profileDialog.getByRole("button", { name: "Unblock", exact: true }).click();
   await page.getByRole("dialog", { name: "Unblock Test User B?" }).waitFor();
@@ -557,7 +563,10 @@ try {
 
   // Unblock from the blocked composer bar: dialog uses updated copy, header/composer restore.
   await page.keyboard.press("Escape");
-  await page.locator('[data-slot="blocked-composer-bar"]').getByRole("button", { name: "Unblock" }).click();
+  await page
+    .locator('[data-slot="blocked-composer-bar"]')
+    .getByRole("button", { name: "Unblock" })
+    .click();
   const unblockDialog = page.getByRole("dialog", { name: "Unblock Test User B?" });
   await unblockDialog.waitFor();
   assert.match(

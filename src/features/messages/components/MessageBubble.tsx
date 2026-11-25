@@ -1,4 +1,12 @@
-import { AlertCircle, Ban, Check, CheckCheck, LoaderCircle, MoreHorizontal, Reply } from "lucide-react";
+import {
+  AlertCircle,
+  Ban,
+  Check,
+  CheckCheck,
+  LoaderCircle,
+  MoreHorizontal,
+  Reply,
+} from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { MessageSurface } from "@/components/ui/conversation-surface";
 import { Avatar } from "@/features/settings/components/shared";
