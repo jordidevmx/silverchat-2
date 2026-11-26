@@ -35,6 +35,8 @@ export const BACKGROUND_DIM_STEPS = [
 export const DEFAULT_BACKGROUND_DIM = "40";
 
 export const MAX_BACKGROUND_IMAGE_BYTES = 10 * 1024 * 1024;
+export const MAX_COMPRESSED_BACKGROUND_WEBP_BYTES = 1024 * 1024;
+export const MAX_COMPRESSED_BACKGROUND_GIF_BYTES = 5 * 1024 * 1024;
 
 export function backgroundSelectionKey(ownerId: string): string {
   return `chat_background:${ownerId}`;
@@ -56,7 +58,7 @@ export function serializeBackgroundSelection(
   return selection.kind === "preset" ? selection.preset : selection.kind;
 }
 
-const BACKGROUND_FILENAME_PATTERN = /^bg-[0-9a-f-]+\.webp$/;
+const BACKGROUND_FILENAME_PATTERN = /^bg-[0-9a-f-]+\.(webp|gif)$/;
 
 export function isOwnBackgroundPath(
   ownerId: string,

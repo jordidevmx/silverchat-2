@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useMessageText } from "@/features/messages/i18n";
-import { cleanupUploads, prepareAndUpload } from "@/features/messages/lib/upload";
+import { cleanupUploads, formatGifError, prepareAndUpload } from "@/features/messages/lib/upload";
 import { videoThumbnail } from "@/features/messages/lib/videoThumbnail";
 import type { Upload } from "@/features/messages/types";
 import { useAuth } from "@/lib/auth-provider";
+import { isGifCandidate, MEDIA_GIF_POLICY } from "@/lib/gif-core";
 import { useCreateStory } from "./useCreateStory";
 import { useMyStories } from "./useMyStories";
 export function useStoryCreator(
@@ -48,7 +49,13 @@ export function useStoryCreator(
     const c = new AbortController();
     controller.current = c;
     try {
-      if (!/^(image|video)\//.test(next.type)) throw new Error("Choose an image or video");
+      const gifCandidate = isGifCandidate(next);
+      if (!/^(image|video)\//.test(next.type) && !gifCandidate) {
+        throw new Error(say("Choose an image or video", "Elige una imagen o un video"));
+      }
+      if (gifCandidate && next.size > MEDIA_GIF_POLICY.maxInputBytes) {
+        throw new Error(say("Choose a GIF smaller than 25 MB.", "Elige un GIF menor a 25 MB."));
+      }
       if (next.size > 50 * 1024 * 1024) throw new Error("Choose a file below 50 MB");
       if (next.type.startsWith("video/")) {
         const info = await videoThumbnail(next, c.signal);
@@ -90,7 +97,10 @@ export function useStoryCreator(
       tracked.current = [];
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to publish story. Retry when connected.");
+      setError(
+        formatGifError(e, say) ??
+          (e instanceof Error ? e.message : "Unable to publish story. Retry when connected."),
+      );
     } finally {
       setBusy(false);
     }

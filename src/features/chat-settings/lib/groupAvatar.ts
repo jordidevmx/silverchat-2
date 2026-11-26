@@ -1,4 +1,5 @@
 import { uploadToStorage } from "@/features/messages/lib/upload";
+import { readImageDimensions } from "@/lib/avatar-upload";
 import { supabase } from "@/lib/supabase";
 export async function saveGroupAvatar(
   chatId: string,
@@ -11,7 +12,11 @@ export async function saveGroupAvatar(
   let path: string | null = null;
   let id: string | null = null;
   if (file) {
-    path = `${kind === "community" ? "community" : "chat"}-${chatId}/${kind}-${Date.now()}-${crypto.randomUUID()}.webp`;
+    const isGif = file.type === "image/gif";
+    const ext = isGif ? "gif" : "webp";
+    const mimeType = isGif ? "image/gif" : "image/webp";
+    const { width, height } = await readImageDimensions(file);
+    path = `${kind === "community" ? "community" : "chat"}-${chatId}/${kind}-${Date.now()}-${crypto.randomUUID()}.${ext}`;
     id = crypto.randomUUID();
     const meta = await supabase.from("file_uploads").insert({
       id,
@@ -19,10 +24,10 @@ export async function saveGroupAvatar(
       bucket: "avatars",
       path,
       original_filename: file.name,
-      mime_type: "image/webp",
+      mime_type: mimeType,
       size_bytes: file.size,
-      width: 512,
-      height: 512,
+      width,
+      height,
     });
     if (meta.error) throw meta.error;
     try {

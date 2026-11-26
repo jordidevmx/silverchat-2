@@ -18,10 +18,13 @@ INSERT INTO auth.users(id, email, raw_user_meta_data) VALUES
   ('b1111111-1111-4111-8111-111111111111', 'bg-alice@example.test', '{}'),
   ('b2222222-2222-4222-8222-222222222222', 'bg-bob@example.test', '{}');
 
--- Bucket exists and is private.
+-- Bucket exists and is private with 5 MB limit supporting WebP and GIF.
 SELECT pg_temp.assert_true(
-  (SELECT NOT public AND file_size_limit = 1048576 FROM storage.buckets WHERE id = 'chat-backgrounds'),
-  'chat-backgrounds bucket is private with 1 MB limit'
+  (SELECT NOT public
+     AND file_size_limit = 5242880
+     AND allowed_mime_types @> ARRAY['image/webp', 'image/gif']::text[]
+   FROM storage.buckets WHERE id = 'chat-backgrounds'),
+  'chat-backgrounds bucket is private with 5 MB limit and WebP/GIF allowlist'
 );
 
 SELECT set_config(

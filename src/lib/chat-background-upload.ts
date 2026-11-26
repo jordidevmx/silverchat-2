@@ -22,7 +22,10 @@ export async function uploadCustomBackgroundFile(
   blob: Blob,
   dimensions?: { width?: number; height?: number },
 ): Promise<{ path: string; uploadId: string }> {
-  const filename = `bg-${crypto.randomUUID()}.webp`;
+  const isGif = blob.type === "image/gif";
+  const ext = isGif ? "gif" : "webp";
+  const contentType = isGif ? "image/gif" : "image/webp";
+  const filename = `bg-${crypto.randomUUID()}.${ext}`;
   const path = `${userId}/${filename}`;
   const uploadId = crypto.randomUUID();
   let metadataInserted = false;
@@ -35,7 +38,7 @@ export async function uploadCustomBackgroundFile(
       bucket: CHAT_BACKGROUNDS_BUCKET,
       path,
       original_filename: filename,
-      mime_type: "image/webp",
+      mime_type: contentType,
       size_bytes: blob.size,
       width: dimensions?.width ?? null,
       height: dimensions?.height ?? null,
@@ -51,7 +54,7 @@ export async function uploadCustomBackgroundFile(
 
     const uploaded = await supabase.storage
       .from(CHAT_BACKGROUNDS_BUCKET)
-      .upload(path, blob, { contentType: "image/webp", upsert: false });
+      .upload(path, blob, { contentType, upsert: false });
     if (uploaded.error) throw uploaded.error;
     objectUploaded = true;
 

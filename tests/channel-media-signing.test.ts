@@ -105,3 +105,42 @@ test("resolveAvatarSigningTarget isolates channel avatars onto sign-channel-medi
   assert.equal(resolveAvatarSigningTarget(""), null);
   assert.equal(resolveAvatarSigningTarget(null), null);
 });
+
+test("resolveMediaSigningTarget and resolveAvatarSigningTarget support animated .gif paths", () => {
+  assert.deepEqual(
+    resolveMediaSigningTarget(
+      { id: UUID_UP, bucket: "channel-media", path: `${UUID_CH}/anim.gif` },
+      { channelId: UUID_CH },
+    ),
+    {
+      mode: "edge",
+      body: {
+        kind: "channel_post_media",
+        uploadId: UUID_UP,
+        channelId: UUID_CH,
+        download: false,
+      },
+    },
+  );
+
+  assert.deepEqual(resolveAvatarSigningTarget(`chat-${UUID_CH}/channel-123.gif`), {
+    mode: "edge",
+    body: {
+      kind: "channel_avatar",
+      channelId: UUID_CH,
+      path: `chat-${UUID_CH}/channel-123.gif`,
+    },
+  });
+
+  assert.deepEqual(resolveAvatarSigningTarget(`chat-${UUID_CH}/group-123.gif`), {
+    mode: "storage",
+    bucket: "avatars",
+    path: `chat-${UUID_CH}/group-123.gif`,
+  });
+
+  assert.deepEqual(resolveAvatarSigningTarget(`${UUID_USR}/avatar-123.gif`), {
+    mode: "storage",
+    bucket: "avatars",
+    path: `${UUID_USR}/avatar-123.gif`,
+  });
+});

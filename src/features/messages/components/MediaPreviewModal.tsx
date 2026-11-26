@@ -11,8 +11,9 @@ import {
 } from "@/lib/clipboard-images";
 import { useClipboardImageTarget } from "@/lib/clipboard-paste";
 import { resolveFileType } from "@/lib/file-type";
+import { classifyUploadMediaType } from "@/lib/gif-core";
 import { useMessageText } from "../i18n";
-import { cleanupUploads, prepareAndUpload } from "../lib/upload";
+import { cleanupUploads, formatGifError, prepareAndUpload } from "../lib/upload";
 import type { SendInput } from "../types";
 import { formatBytes } from "../utils/formatMessageTime";
 
@@ -192,7 +193,10 @@ export function MediaPreviewModal({
           syncItems((prev) =>
             prev.map((item) => (item.id === id ? { ...item, status: "failed" } : item)),
           );
-          setError(say("Upload failed. Please try again.", "La carga falló. Inténtalo de nuevo."));
+          setError(
+            formatGifError(err, say) ??
+              say("Upload failed. Please try again.", "La carga falló. Inténtalo de nuevo."),
+          );
           return;
         } finally {
           controllerRef.current = null;
@@ -209,9 +213,9 @@ export function MediaPreviewModal({
   if (!activeItem) return null;
 
   const activeFile = activeItem.file;
+  const activeKind = classifyUploadMediaType(activeFile);
   const fileType = resolveFileType({ filename: activeFile.name, mimeType: activeFile.type });
-  const media =
-    activeFile.type.startsWith("image/") || activeFile.type.startsWith("video/") || items.length > 1;
+  const media = activeKind === "image" || activeKind === "video" || items.length > 1;
 
   return (
     <Modal
@@ -230,9 +234,9 @@ export function MediaPreviewModal({
           <X />
         </button>
         <div className="media-preview-stage">
-          {activeFile.type.startsWith("image/") ? (
+          {activeKind === "image" ? (
             <img src={activeItem.url} alt={activeFile.name} />
-          ) : activeFile.type.startsWith("video/") ? (
+          ) : activeKind === "video" ? (
             <video src={activeItem.url} controls playsInline preload="metadata">
               <track kind="captions" />
             </video>
@@ -268,7 +272,7 @@ export function MediaPreviewModal({
                   aria-pressed={item.id === activeItem.id}
                   onClick={() => setActiveId(item.id)}
                 >
-                  {item.file.type.startsWith("image/") ? (
+                  {classifyUploadMediaType(item.file) === "image" ? (
                     <img src={item.url} alt="" />
                   ) : (
                     <span>{item.file.name}</span>
@@ -353,7 +357,12 @@ export function MediaPreviewModal({
           >
             {say("Cancel", "Cancelar")}
           </Button>
-          <Button type="button" className="rounded-xl" disabled={sending} onClick={() => void send()}>
+          <Button
+            type="button"
+            className="rounded-xl"
+            disabled={sending}
+            onClick={() => void send()}
+          >
             <ArrowUp size={18} />
             {items.length > 1
               ? say(`Send (${items.length})`, `Enviar (${items.length})`)

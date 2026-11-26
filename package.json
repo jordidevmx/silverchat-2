@@ -47,6 +47,7 @@
     "linkifyjs": "^4.3.3",
     "livekit-client": "^2.24.1",
     "lucide-react": "^1.60.0",
+    "modern-gif": "2.1.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-easy-crop": "^6.2.4",

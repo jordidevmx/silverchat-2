@@ -37,6 +37,7 @@ export function AboutPage() {
               "browser-image-compression",
               "https://github.com/Donaldcwl/browser-image-compression/blob/master/LICENSE",
             ],
+            ["modern-gif", "https://github.com/qq15725/modern-gif/blob/main/LICENSE"],
           ].map(([label, href]) => (
             <li key={label}>
               <a href={href} target="_blank" rel="noopener noreferrer">

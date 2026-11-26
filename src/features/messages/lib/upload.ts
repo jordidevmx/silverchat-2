@@ -1,8 +1,16 @@
 import imageCompression from "browser-image-compression";
 import { getAccessToken, refreshAccessToken } from "@/lib/auth";
+import {
+  classifyUploadMediaType,
+  ensureImageFileForCompression,
+  formatGifError,
+} from "@/lib/gif-core";
+import { inspectGifFile, processMediaGif } from "@/lib/gif-processing";
 import { supabase } from "@/lib/supabase";
 import type { Upload } from "../types";
 import { videoThumbnail } from "./videoThumbnail";
+
+export { formatGifError };
 export function safeFilename(name: string) {
   return (
     name
@@ -90,28 +98,36 @@ export async function prepareAndUpload(
         ? undefined
         : Math.max(1, Math.ceil(options.durationSeconds));
     let thumb: File | undefined;
-    const type = file.type.startsWith("image/")
-      ? "image"
-      : file.type.startsWith("video/")
-        ? "video"
-        : file.type.startsWith("audio/")
-          ? "audio"
-          : "file";
+    const type = classifyUploadMediaType(file);
     if (type === "image") {
-      main = await imageCompression(file, {
-        maxWidthOrHeight: 2048,
-        maxSizeMB: 0.19,
-        initialQuality: 0.82,
-        fileType: "image/webp",
-        useWebWorker: true,
-        signal,
-      });
-      if (main.size >= 200000) throw new Error("Image could not be compressed below 200 KB");
-      const bitmap = await createImageBitmap(main);
-      width = bitmap.width;
-      height = bitmap.height;
-      bitmap.close();
-      main = new File([main], `${file.name.replace(/\.[^.]+$/, "")}.webp`, { type: "image/webp" });
+      const gifInspection = await inspectGifFile(file);
+      signal.throwIfAborted();
+      if (gifInspection.kind === "animated-gif") {
+        const processed = await processMediaGif(file, {
+          signal,
+          inspection: gifInspection,
+        });
+        main = processed.file;
+        width = processed.width;
+        height = processed.height;
+      } else {
+        main = await imageCompression(ensureImageFileForCompression(file), {
+          maxWidthOrHeight: 2048,
+          maxSizeMB: 0.19,
+          initialQuality: 0.82,
+          fileType: "image/webp",
+          useWebWorker: true,
+          signal,
+        });
+        if (main.size >= 200000) throw new Error("Image could not be compressed below 200 KB");
+        const bitmap = await createImageBitmap(main);
+        width = bitmap.width;
+        height = bitmap.height;
+        bitmap.close();
+        main = new File([main], `${file.name.replace(/\.[^.]+$/, "")}.webp`, {
+          type: "image/webp",
+        });
+      }
     } else if (type === "video") {
       const preview = await videoThumbnail(file, signal);
       width = preview.width;
