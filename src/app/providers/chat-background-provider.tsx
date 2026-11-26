@@ -30,15 +30,17 @@ import {
   type ChatBackgroundSelection,
   checkBackgroundImage,
   DEFAULT_BACKGROUND_DIM,
+  MAX_COMPRESSED_BACKGROUND_GIF_BYTES,
+  MAX_COMPRESSED_BACKGROUND_WEBP_BYTES,
   parseBackgroundDim,
   parseBackgroundSelection,
   reconcileRemoteBackground,
   resolveSelectionAfterCustomRemoval,
   serializeBackgroundSelection,
 } from "@/lib/chat-background-validation";
+import { ensureImageFileForCompression, GifProcessingError } from "@/lib/gif-core";
+import { inspectGifFile, processBackgroundGif } from "@/lib/gif-processing";
 import { readPreference, writePreference } from "@/lib/preferences";
-
-const MAX_COMPRESSED_BYTES = 1024 * 1024;
 
 interface ChatBackgroundValue {
   selection: ChatBackgroundSelection;
@@ -250,22 +252,45 @@ export function ChatBackgroundProvider({ children }: PropsWithChildren) {
       let compressed: Blob;
       let width: number | undefined;
       let height: number | undefined;
+      let maxCompressedBytes = MAX_COMPRESSED_BACKGROUND_WEBP_BYTES;
       try {
-        const bitmap = await createImageBitmap(file);
-        width = bitmap.width;
-        height = bitmap.height;
-        bitmap.close();
-        compressed = await imageCompression(file, {
-          maxSizeMB: 0.75,
-          maxWidthOrHeight: 1920,
-          initialQuality: 0.82,
-          fileType: "image/webp",
-          useWebWorker: true,
-        });
+        const gifInspection = await inspectGifFile(file);
+        if (gifInspection.kind === "animated-gif") {
+          const processed = await processBackgroundGif(file, { inspection: gifInspection });
+          compressed = processed.file;
+          width = processed.width;
+          height = processed.height;
+          maxCompressedBytes = MAX_COMPRESSED_BACKGROUND_GIF_BYTES;
+        } else {
+          const bitmap = await createImageBitmap(file);
+          width = bitmap.width;
+          height = bitmap.height;
+          bitmap.close();
+          compressed = await imageCompression(ensureImageFileForCompression(file), {
+            maxSizeMB: 0.75,
+            maxWidthOrHeight: 1920,
+            initialQuality: 0.82,
+            fileType: "image/webp",
+            useWebWorker: true,
+          });
+        }
       } catch (cause) {
+        if (cause instanceof GifProcessingError) {
+          if (cause.code === "empty-file") {
+            throw new BackgroundImageError("empty-file", { cause });
+          }
+          if (
+            cause.code === "too-large" ||
+            cause.code === "compression-failed" ||
+            cause.code === "too-many-frames" ||
+            cause.code === "dimensions-too-large"
+          ) {
+            throw new BackgroundImageError("too-large", { cause });
+          }
+        }
         throw new BackgroundImageError("unreadable", { cause });
       }
-      if (compressed.size > MAX_COMPRESSED_BYTES) {
+      if (compressed.size > maxCompressedBytes) {
         throw new BackgroundImageError("too-large");
       }
 

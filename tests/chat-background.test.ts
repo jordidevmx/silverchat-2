@@ -73,22 +73,42 @@ test("selection serialization round-trips with selection parsing", () => {
   assert.equal(serializeBackgroundSelection({ kind: "preset", preset: "prism" }), "prism");
 });
 
-test("custom background paths must belong to the active user and match bg-<uuid>.webp", () => {
+test("custom background paths must belong to the active user and match bg-<uuid>.(webp|gif)", () => {
   const alice = "11111111-1111-4111-8111-111111111111";
   const bob = "22222222-2222-4222-8222-222222222222";
-  const validPath = `${alice}/bg-33333333-3333-4333-8333-333333333333.webp`;
-  assert.equal(isOwnBackgroundPath(alice, validPath), true);
-  assert.equal(isOwnBackgroundPath(bob, validPath), false);
+  const validWebpPath = `${alice}/bg-33333333-3333-4333-8333-333333333333.webp`;
+  const validGifPath = `${alice}/bg-33333333-3333-4333-8333-333333333333.gif`;
+  assert.equal(isOwnBackgroundPath(alice, validWebpPath), true);
+  assert.equal(isOwnBackgroundPath(alice, validGifPath), true);
+  assert.equal(isOwnBackgroundPath(bob, validWebpPath), false);
+  assert.equal(isOwnBackgroundPath(bob, validGifPath), false);
   assert.equal(isOwnBackgroundPath(alice, null), false);
   assert.equal(isOwnBackgroundPath(alice, `${alice}/nested/bg-33333333.webp`), false);
+  assert.equal(
+    isOwnBackgroundPath(alice, `${alice}/bg-33333333-3333-4333-8333-333333333333.png`),
+    false,
+  );
+  assert.equal(
+    isOwnBackgroundPath(alice, `${alice}/bg-33333333-3333-4333-8333-333333333333.svg`),
+    false,
+  );
   assert.equal(isOwnBackgroundPath(alice, `${alice}/avatar.png`), false);
 });
 
-test("reconcileRemoteBackground validates server settings and guards missing custom paths", () => {
+test("reconcileRemoteBackground validates server settings for both .webp and .gif custom paths", () => {
   const alice = "11111111-1111-4111-8111-111111111111";
   const ownPath = `${alice}/bg-33333333-3333-4333-8333-333333333333.webp`;
+  const ownGifPath = `${alice}/bg-44444444-4444-4444-8444-444444444444.gif`;
   const foreignPath =
     "22222222-2222-4222-8222-222222222222/bg-33333333-3333-4333-8333-333333333333.webp";
+
+  assert.deepEqual(
+    reconcileRemoteBackground(
+      { chat_background: "custom", chat_background_dim: 40, chat_background_path: ownGifPath },
+      alice,
+    ),
+    { selection: { kind: "custom" }, dim: 40, customPath: ownGifPath },
+  );
 
   assert.deepEqual(
     reconcileRemoteBackground(
@@ -132,6 +152,8 @@ test("dim parsing rejects off-step values and keeps the default", () => {
 
 test("image validation rejects empty, oversized and unsupported files and accepts shared image MIMEs", () => {
   assert.equal(checkBackgroundImage({ name: "x.png", type: "image/png", size: 1 }), null);
+  assert.equal(checkBackgroundImage({ name: "x.gif", type: "image/gif", size: 1024 }), null);
+  assert.equal(checkBackgroundImage({ name: "x.gif", type: "", size: 1024 }), null);
   assert.equal(checkBackgroundImage({ name: "x.jpg", type: "image/jpg", size: 1024 }), null);
   assert.equal(
     checkBackgroundImage({
@@ -276,6 +298,12 @@ test("background store isolates custom blobs per ownerId in IndexedDB", async ()
     const recA = await loadCustomBackgroundRecord("alice");
     assert.equal(recA?.path, pathA);
     assert.equal(await recA?.blob.text(), "alice-bg");
+    const gifBlob = new Blob(["GIF89a-anim"], { type: "image/gif" });
+    const gifPath = "alice/bg-2222.gif";
+    assert.equal(await saveCustomBackground("alice", gifBlob, gifPath), true);
+    const recGif = await loadCustomBackgroundRecord("alice");
+    assert.equal(recGif?.path, gifPath);
+    assert.equal(recGif?.blob.type, "image/gif");
     assert.equal(await (await loadCustomBackground("bob"))?.text(), "bob-bg");
     await deleteCustomBackground("alice");
     assert.equal(await loadCustomBackground("alice"), undefined);

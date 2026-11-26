@@ -5,6 +5,7 @@ import { useI18n } from "@/app/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { cropAvatar } from "@/lib/avatar-upload";
 import { useClipboardImageTarget } from "@/lib/clipboard-paste";
+import { isGifCandidate } from "@/lib/gif-core";
 
 export interface PhotoEditorPanelProps {
   existingUrl?: string | null;
@@ -34,6 +35,7 @@ export function PhotoEditorPanel({
   const { t } = useI18n();
   const zoomId = useId();
   const [source, setSource] = useState("");
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [viewExisting, setViewExisting] = useState(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -44,6 +46,14 @@ export function PhotoEditorPanel({
   const uploadRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const cropControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      cropControllerRef.current?.abort();
+    },
+    [],
+  );
 
   useEffect(
     () => () => {
@@ -65,7 +75,10 @@ export function PhotoEditorPanel({
   const selectFile = useCallback(
     (file?: File) => {
       if (!file) return;
-      if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
+      if (
+        (!file.type.startsWith("image/") && !isGifCandidate(file)) ||
+        file.size > 20 * 1024 * 1024
+      ) {
         const msg = "Choose an image smaller than 20 MB.";
         setLocalError(msg);
         onError?.(msg);
@@ -75,6 +88,7 @@ export function PhotoEditorPanel({
       setCrop({ x: 0, y: 0 });
       setZoom(1);
       setArea(undefined);
+      setSourceFile(file);
       setSource(URL.createObjectURL(file));
     },
     [onError],
@@ -99,15 +113,23 @@ export function PhotoEditorPanel({
     if (!source || !area || busy || cropping) return;
     setCropping(true);
     setLocalError("");
+    const controller = new AbortController();
+    cropControllerRef.current = controller;
     try {
-      const file = await cropAvatar(source, area);
+      const file = await cropAvatar(source, area, sourceFile ?? undefined, controller.signal);
+      if (controller.signal.aborted) return;
       await onSelectCropped(file);
       setSource("");
+      setSourceFile(null);
     } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       const msg = err instanceof Error ? err.message : "Could not process photo";
       setLocalError(msg);
       onError?.(msg);
     } finally {
+      if (cropControllerRef.current === controller) {
+        cropControllerRef.current = null;
+      }
       setCropping(false);
     }
   };
@@ -276,7 +298,10 @@ export function PhotoEditorPanel({
                 variant="outline"
                 type="button"
                 disabled={disabled}
-                onClick={() => setSource("")}
+                onClick={() => {
+                  setSource("");
+                  setSourceFile(null);
+                }}
               >
                 <X size={16} />
                 Discard crop

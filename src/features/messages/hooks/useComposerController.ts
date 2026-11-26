@@ -10,7 +10,7 @@ import {
 } from "@/lib/clipboard-images";
 import type { ComposerAttachmentItem } from "../components/ComposerAttachmentTray";
 import { useMessageText } from "../i18n";
-import { cleanupUploads, prepareAndUpload } from "../lib/upload";
+import { cleanupUploads, formatGifError, prepareAndUpload } from "../lib/upload";
 import type { ChatDetails, Member, SendInput } from "../types";
 import { mentionIds, useMentions } from "./useMentions";
 import { useVoiceRecorder } from "./useVoiceRecorder";
@@ -275,7 +275,9 @@ export function useComposerController({
     }
     setAttachmentsSynced(() => []);
     setError("");
-    setAttachmentAnnouncement(say("Cleared all pending images.", "Se quitaron todas las imágenes."));
+    setAttachmentAnnouncement(
+      say("Cleared all pending images.", "Se quitaron todas las imágenes."),
+    );
   }, [say, setAttachmentsSynced]);
 
   const position = (next: string, at: number) => {
@@ -334,7 +336,10 @@ export function useComposerController({
             );
 
             if (!attachmentsRef.current.some((item) => item.id === id)) {
-              await cleanupUploads([result.upload, ...(result.thumbnail ? [result.thumbnail] : [])]);
+              await cleanupUploads([
+                result.upload,
+                ...(result.thumbnail ? [result.thumbnail] : []),
+              ]);
               continue;
             }
 
@@ -395,9 +400,13 @@ export function useComposerController({
                     "Connection lost. Retry when online.",
                     "Se perdió la conexión. Reintenta al conectar.",
                   )
-                : uploadError instanceof Error && uploadError.message
-                  ? uploadError.message
-                  : say("Upload failed. Please try again.", "La carga falló. Inténtalo de nuevo.");
+                : (formatGifError(uploadError, say) ??
+                  (uploadError instanceof Error && uploadError.message
+                    ? uploadError.message
+                    : say(
+                        "Upload failed. Please try again.",
+                        "La carga falló. Inténtalo de nuevo.",
+                      )));
               updateAttachment(id, { status: "failed", progress: 0, error: message });
               setError(message);
               break;

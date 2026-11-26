@@ -1,6 +1,23 @@
 import imageCompression from "browser-image-compression";
 import type { Area } from "react-easy-crop";
+import { inspectGifFile, processAvatarGif } from "./gif-processing";
 import { supabase } from "./supabase";
+
+export async function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  try {
+    const inspected = await inspectGifFile(file);
+    if (inspected.kind === "animated-gif" || inspected.kind === "static-gif") {
+      return { width: inspected.width, height: inspected.height };
+    }
+    const bitmap = await createImageBitmap(file);
+    const dims = { width: bitmap.width, height: bitmap.height };
+    bitmap.close();
+    return dims;
+  } catch {
+    return { width: 512, height: 512 };
+  }
+}
+
 export async function optimizeAvatar(file: File): Promise<File> {
   const compressed = await imageCompression(file, {
     maxSizeMB: 0.095,
@@ -13,7 +30,24 @@ export async function optimizeAvatar(file: File): Promise<File> {
     throw new Error("Could not compress this photo below 100 KB. Try another image.");
   return new File([compressed], `avatar-${crypto.randomUUID()}.webp`, { type: "image/webp" });
 }
-export async function cropAvatar(url: string, area: Area): Promise<File> {
+export async function cropAvatar(
+  url: string,
+  area: Area,
+  sourceFile?: File,
+  signal?: AbortSignal,
+): Promise<File> {
+  const candidateBlob: Blob = sourceFile ?? (await (await fetch(url)).blob());
+  const gifInspection = await inspectGifFile(candidateBlob);
+  if (gifInspection.kind === "animated-gif") {
+    const fileForGif =
+      sourceFile ?? new File([gifInspection.buffer], "avatar.gif", { type: "image/gif" });
+    const processed = await processAvatarGif(fileForGif, area, {
+      signal,
+      inspection: gifInspection,
+      filename: `avatar-${crypto.randomUUID()}.gif`,
+    });
+    return processed.file;
+  }
   const img = new Image();
   img.src = url;
   await img.decode();
@@ -53,6 +87,8 @@ export async function saveAvatar(
   let uploadId: string | null = null;
   try {
     if (file) {
+      const contentType = file.type === "image/gif" ? "image/gif" : "image/webp";
+      const { width, height } = await readImageDimensions(file);
       path = `${userId}/${file.name}`;
       uploadId = crypto.randomUUID();
       const metadata = await supabase.from("file_uploads").insert({
@@ -61,10 +97,10 @@ export async function saveAvatar(
         bucket: "avatars",
         path,
         original_filename: file.name,
-        mime_type: file.type,
+        mime_type: contentType,
         size_bytes: file.size,
-        width: 512,
-        height: 512,
+        width,
+        height,
       });
       if (metadata.error) throw metadata.error;
       const uploading = await supabase
@@ -74,7 +110,7 @@ export async function saveAvatar(
       if (uploading.error) throw uploading.error;
       const uploaded = await supabase.storage
         .from("avatars")
-        .upload(path, file, { contentType: "image/webp", upsert: false });
+        .upload(path, file, { contentType, upsert: false });
       if (uploaded.error) throw uploaded.error;
       const completed = await supabase
         .from("file_uploads")

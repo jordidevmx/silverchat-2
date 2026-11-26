@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Area } from "react-easy-crop";
 import { useI18n } from "@/app/providers/i18n-provider";
 import { cropAvatar, saveAvatar } from "@/lib/avatar-upload";
+import { isGifCandidate } from "@/lib/gif-core";
 import { type Profile, useProfileRefresh } from "../hooks";
 import { useAction } from "./useAction";
 import { useAvatarUrl } from "./useAvatar";
@@ -17,6 +18,7 @@ export function useAvatarPicker({
   onSaved: (warning: boolean) => void;
 }) {
   const [source, setSource] = useState("");
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [view, setView] = useState(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -36,22 +38,27 @@ export function useAvatarPicker({
   const select = (file?: File) => {
     if (!file) return;
     void action.run(async () => {
-      if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024)
+      if (
+        (!file.type.startsWith("image/") && !isGifCandidate(file)) ||
+        file.size > 20 * 1024 * 1024
+      )
         throw new Error("Choose an image smaller than 20 MB.");
       setCrop({ x: 0, y: 0 });
       setZoom(1);
       setArea(undefined);
+      setSourceFile(file);
       setSource(URL.createObjectURL(file));
     });
   };
   const save = (remove = false) =>
     void action.run(async () => {
       if (!remove && !area) return;
-      const file = remove ? null : await cropAvatar(source, area as Area);
+      const file = remove ? null : await cropAvatar(source, area as Area, sourceFile ?? undefined);
       const result = onSave
         ? await onSave(file)
         : await saveAvatar(profile.id, file, profile.avatar_url);
       if (!onSave) await refresh();
+      setSourceFile(null);
       onSaved(result.cleanupPending);
       onClose();
     });
