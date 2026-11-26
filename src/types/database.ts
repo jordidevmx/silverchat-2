@@ -2221,10 +2221,10 @@ export type Database = {
     Views: {
       channel_invitations_received: {
         Row: {
-          channel_id: string | null;
-          created_at: string | null;
-          id: string | null;
-          status: string | null;
+          channel_id: string;
+          created_at: string;
+          id: string;
+          status: string;
         };
         ComputedFields: never;
         Insert: {
@@ -2259,10 +2259,10 @@ export type Database = {
       channel_invitations_sent: {
         Row: {
           accepted_at: string | null;
-          channel_id: string | null;
-          created_at: string | null;
-          id: string | null;
-          recipient_id: string | null;
+          channel_id: string;
+          created_at: string;
+          id: string;
+          recipient_id: string;
           status: string | null;
         };
         ComputedFields: never;
@@ -2323,17 +2323,17 @@ export type Database = {
       channels_public: {
         Row: {
           avatar_url: string | null;
-          created_at: string | null;
+          created_at: string;
           description: string | null;
-          follower_count: number | null;
-          id: string | null;
-          is_verified: boolean | null;
+          follower_count: number;
+          id: string;
+          is_verified: boolean;
           last_message_at: string | null;
           last_message_id: string | null;
           last_message_preview: string | null;
-          name: string | null;
-          slug: string | null;
-          updated_at: string | null;
+          name: string;
+          slug: string;
+          updated_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -2376,17 +2376,17 @@ export type Database = {
       };
       message_media_public: {
         Row: {
-          bucket: string | null;
+          bucket: string;
           completed_at: string | null;
-          created_at: string | null;
+          created_at: string;
           duration_seconds: number | null;
           height: number | null;
-          id: string | null;
-          mime_type: string | null;
-          original_filename: string | null;
-          path: string | null;
-          size_bytes: number | null;
-          status: Database["public"]["Enums"]["upload_status"] | null;
+          id: string;
+          mime_type: string;
+          original_filename: string;
+          path: string;
+          size_bytes: number;
+          status: Database["public"]["Enums"]["upload_status"];
           width: number | null;
         };
         ComputedFields: never;
@@ -2424,9 +2424,9 @@ export type Database = {
         Row: {
           avatar_initials: string | null;
           avatar_url: string | null;
-          display_name: string | null;
-          id: string | null;
-          username: string | null;
+          display_name: string;
+          id: string;
+          username: string;
         };
         ComputedFields: never;
         Relationships: [];
@@ -2436,13 +2436,13 @@ export type Database = {
           avatar_initials: string | null;
           avatar_url: string | null;
           bio: string | null;
-          created_at: string | null;
-          display_name: string | null;
-          id: string | null;
+          created_at: string;
+          display_name: string;
+          id: string;
           last_seen_at: string | null;
-          social_links: Json | null;
-          updated_at: string | null;
-          username: string | null;
+          social_links: NonNullable<Json>;
+          updated_at: string;
+          username: string;
         };
         ComputedFields: never;
         Relationships: [];
