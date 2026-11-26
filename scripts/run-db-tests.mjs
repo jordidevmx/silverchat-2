@@ -106,7 +106,7 @@ function resolvePsqlBinary() {
   return "psql";
 }
 
-function runViaStaging(files, root) {
+export function runViaStaging(files, root) {
   const guard = assertStagingGuard(root);
   if (!guard.ok) {
     console.error("SQL TEST BLOCKED (db-guard for Staging failed):");
@@ -131,14 +131,22 @@ function runViaStaging(files, root) {
     }
 
     console.log(`\n=== SQL TEST (Staging ${STAGING_REF}, rollback-only): ${file} ===`);
+    // Pin the guarded project even if SUPABASE_PROJECT_ID names another one.
+    // CLI v3 requires consent for db query; only validated suites reach here.
+    const cliArgs = [
+      "exec",
+      "supabase",
+      "db",
+      "query",
+      "-f",
+      file,
+      `--remote=${STAGING_REF}`,
+      "--yes",
+    ];
     const isWin = process.platform === "win32";
     const result = isWin
-      ? spawnSync(
-          "cmd.exe",
-          ["/d", "/c", "pnpm", "exec", "supabase", "db", "query", "--linked", "-f", file],
-          { cwd: root, stdio: "inherit" },
-        )
-      : spawnSync("pnpm", ["exec", "supabase", "db", "query", "--linked", "-f", file], {
+      ? spawnSync("cmd.exe", ["/d", "/c", "pnpm", ...cliArgs], { cwd: root, stdio: "inherit" })
+      : spawnSync("pnpm", cliArgs, {
           cwd: root,
           stdio: "inherit",
         });

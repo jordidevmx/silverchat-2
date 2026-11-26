@@ -7,18 +7,39 @@ locally.
 
 - Node.js 20+
 - pnpm 9+ (enforced by a `preinstall` hook)
-- Supabase CLI 2.x — installed as a dev dependency of this repo. Commands
-  below use `npx supabase …`, which resolves the local copy automatically.
+- Supabase CLI 3.4.0 — pinned exactly in `package.json` and `pnpm-lock.yaml`.
+  Development and CI both use `pnpm exec supabase` from this checkout.
 
 ## One-time setup (per machine)
 
-1. `npx supabase login` — opens a browser, authorizes, and stores the token
+1. `pnpm exec supabase login` — opens a browser, authorizes, and stores the token
    globally in `~/.supabase/access-token`. Do this ONCE per machine.
-2. `npx supabase link --project-ref <PROJECT_REF>` — links this checkout to
+2. `pnpm exec supabase link --project-ref <PROJECT_REF>` — links this checkout to
    the remote project. Creates `supabase/.temp/project-ref` (gitignored).
 3. If `supabase link` (or a later `db push`) asks for a password, set
    `SUPABASE_DB_PASSWORD` first:
    `export SUPABASE_DB_PASSWORD="<password>"`.
+
+## CLI v3 targeting and confirmation
+
+Database commands default to the local stack, even in a linked checkout.
+Use `--remote=<project-ref>` for hosted commands; the `=` is required.
+The examples below explicitly target Staging. `link --project-ref` is unchanged.
+The old `--linked`, `--local`, and `gen types --project-id` flags are deprecated.
+
+Hosted writes need `--yes` when running unattended. Use it only for an already
+authorized operation, after the matching guard succeeds. Do not set a global
+`SUPABASE_YES`. For read-only SQL, use `db query --read-only --remote=<project-ref>`.
+The SQL test runner supplies `--yes` only after its Staging guard and rollback
+suite checks pass, and pins the target even if `SUPABASE_PROJECT_ID` differs.
+
+`pnpm db:types` uses `--remote`: it selects `SUPABASE_PROJECT_ID` when set,
+otherwise the linked project. Check that target first; generated types replace
+`src/types/database.ts`. CI generates types from its complete local schema
+without `--remote`. Existing `config.toml` and `[local_smtp]` remain supported;
+no config conversion is needed for this upgrade.
+
+See the [official v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3).
 
 ## Where to find your ref
 
@@ -38,9 +59,9 @@ never be committed.
 ## Verify
 
 ```bash
-npx supabase projects list
-npx supabase migration list --linked
-npx supabase db lint --linked
+pnpm exec supabase projects list
+pnpm exec supabase migration list --remote=gffdrrtatxdiucigtwdn
+pnpm exec supabase db lint --remote=gffdrrtatxdiucigtwdn
 ```
 
 All three should succeed.
@@ -49,11 +70,11 @@ All three should succeed.
 
 | Command                                | Purpose                              |
 | -------------------------------------- | ------------------------------------ |
-| `npx supabase migration new <name>`    | Create a new migration file          |
-| `npx supabase db push`                 | Apply pending migrations to remote   |
-| `npx supabase migration list --linked` | Show applied migrations on remote    |
-| `npx supabase db lint --linked`        | Lint the remote schema               |
-| `npx supabase db reset`                | Reset LOCAL db (needs Docker)        |
+| `pnpm exec supabase migration new <name>`    | Create a new migration file          |
+| `pnpm exec supabase db push --remote=gffdrrtatxdiucigtwdn --yes`                 | Apply pending migrations to remote   |
+| `pnpm exec supabase migration list --remote=gffdrrtatxdiucigtwdn` | Show applied migrations on remote    |
+| `pnpm exec supabase db lint --remote=gffdrrtatxdiucigtwdn`        | Lint the remote schema               |
+| `pnpm exec supabase db reset`                | Reset LOCAL db (needs Docker)        |
 
 ## Guard before any write to a remote database
 
@@ -138,11 +159,11 @@ must show `w/lf`.
 
 ## Troubleshooting
 
-- **Access token not provided** → run `npx supabase login`.
+- **Access token not provided** → run `pnpm exec supabase login`.
 - **Cannot find project ref** → run
-  `npx supabase link --project-ref <PROJECT_REF>`.
+  `pnpm exec supabase link --project-ref <PROJECT_REF>`.
 - **Invalid access token format** → token is malformed; run
-  `npx supabase login` again.
+  `pnpm exec supabase login` again.
 - **`supabase db push` hangs** → check that the DB password is correct.
 - **`unexpected login role status 400: duplicate key cli_login_postgres`**
   → two Supabase commands connected at the same time and raced to create the
@@ -174,14 +195,14 @@ node scripts/db-guard.mjs --expect lmzbaxlojgsdwgcxkmzx --allow-production  # pr
 ```
 
 - **Applying a task migration on shared Staging (`gffdrrtatxdiucigtwdn`):**
-  1. Run `node scripts/db-guard.mjs --expect gffdrrtatxdiucigtwdn` and `pnpm exec supabase migration list --linked`.
-  2. If the remote ledger has no foreign unmerged versions, run `pnpm exec supabase db push --dry-run` followed by `pnpm exec supabase db push`.
+  1. Run `node scripts/db-guard.mjs --expect gffdrrtatxdiucigtwdn` and `pnpm exec supabase migration list --remote=gffdrrtatxdiucigtwdn`.
+  2. If the remote ledger has no foreign unmerged versions, run `pnpm exec supabase db push --dry-run --remote=gffdrrtatxdiucigtwdn` followed by `pnpm exec supabase db push --remote=gffdrrtatxdiucigtwdn --yes`.
   3. If Staging already contains an unmerged migration from another active branch (`DbPushMissingLocalError`), **never revert that foreign version**. Apply strictly the current task's migration file atomically and record its version:
      ```bash
-     pnpm exec supabase db query --linked -f supabase/migrations/<YYYYMMDDHHMMSS_name>.sql
-     pnpm exec supabase migration repair --status applied <YYYYMMDDHHMMSS> --linked
+     pnpm exec supabase db query --remote=gffdrrtatxdiucigtwdn --yes -f supabase/migrations/<YYYYMMDDHHMMSS_name>.sql
+     pnpm exec supabase migration repair --status applied <YYYYMMDDHHMMSS> --remote=gffdrrtatxdiucigtwdn --yes
      ```
-  4. Verify schema health with `pnpm exec supabase db lint --linked` and read-only checks.
+  4. Verify schema health with `pnpm exec supabase db lint --remote=gffdrrtatxdiucigtwdn` and read-only checks.
 
 - **Running SQL test suites:**
   - Against **Staging** without Docker/`psql` (rollback-safe pure-SQL suites containing `BEGIN; ... ROLLBACK;` and no `psql` meta-commands such as `\gset`):

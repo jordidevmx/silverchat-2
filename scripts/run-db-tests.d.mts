@@ -26,4 +26,6 @@ export declare function validateStagingSuiteSql(
 
 export declare function assertStagingGuard(root?: string): { ok: boolean; errors: string[] };
 
+export declare function runViaStaging(files: string[], root: string): number;
+
 export declare function isEntryPoint(entryPath: string | undefined): boolean;

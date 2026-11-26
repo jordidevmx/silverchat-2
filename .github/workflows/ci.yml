@@ -66,14 +66,12 @@ jobs:
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: 2.121.0
+      - name: Verify locked Supabase CLI
+        run: pnpm exec supabase --version
 
       - name: Start local Supabase (applies every migration)
         run: >-
-          supabase start
+          pnpm exec supabase start
           -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit
 
       - name: Run SQL suites
@@ -84,7 +82,7 @@ jobs:
       # the local database, then formatted exactly like the committed file.
       - name: Generate types from the complete local schema
         run: |
-          supabase gen types typescript --local --schema public > /tmp/database.types.raw.ts
+          pnpm exec supabase gen types typescript --schema public > /tmp/database.types.raw.ts
           pnpm exec biome format --stdin-file-path=database.ts < /tmp/database.types.raw.ts > /tmp/database.types.ts
 
       - name: Verify committed database types match the schema
@@ -100,4 +98,4 @@ jobs:
 
       - name: Stop local Supabase
         if: always()
-        run: command -v supabase >/dev/null 2>&1 && supabase stop --no-backup || true
+        run: pnpm exec supabase stop --no-backup || true

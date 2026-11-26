@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import childProcess from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -9,6 +11,7 @@ import {
   listAllSuites,
   parseArgs,
   resolveTargetFiles,
+  runViaStaging,
   validateStagingSuiteSql,
 } from "../scripts/run-db-tests.mjs";
 
@@ -31,6 +34,45 @@ test("parseArgs reads --all, --staging, --help, and explicit SQL suite paths", (
     files: ["supabase/tests/chat_background.sql"],
   });
   assert.deepEqual(parseArgs(["--help"]), { all: false, staging: false, help: true, files: [] });
+});
+
+test("Staging execution pins the guarded target and confirms only validated rollback suites", (t) => {
+  const root = makeTempRepo(t);
+  const suite = "supabase/tests/ok.sql";
+  writeFileSync(path.join(root, suite), "BEGIN;\nSELECT 1;\nROLLBACK;\n");
+  writeFileSync(path.join(root, "supabase", ".temp", "project-ref"), `${STAGING_REF}\n`);
+  const originalRef = process.env.SUPABASE_PROJECT_ID;
+  process.env.SUPABASE_PROJECT_ID = PRODUCTION_REF;
+  t.after(() => {
+    if (originalRef === undefined) delete process.env.SUPABASE_PROJECT_ID;
+    else process.env.SUPABASE_PROJECT_ID = originalRef;
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+  });
+  const calls: string[][] = [];
+  t.mock.method(childProcess, "spawnSync", (_command: string, args: string[]) => {
+    calls.push(args);
+    return { status: 0 };
+  });
+  syncBuiltinESMExports();
+
+  assert.equal(runViaStaging([suite], root), 0);
+  assert.equal(calls.length, 1);
+  const args = calls[0];
+  assert.ok(args);
+  assert.ok(args.includes("--remote=gffdrrtatxdiucigtwdn"));
+  assert.ok(args.includes("--yes"));
+  assert.ok(!args.includes("--linked"));
+  assert.ok(!args.includes("--remote"));
+
+  writeFileSync(path.join(root, suite), "BEGIN;\nCOMMIT;\nROLLBACK;\n");
+  assert.equal(runViaStaging([suite], root), 1);
+  assert.equal(calls.length, 1, "unsafe SQL must never invoke the CLI");
+
+  writeFileSync(path.join(root, suite), "BEGIN;\nSELECT 1;\nROLLBACK;\n");
+  writeFileSync(path.join(root, "supabase", ".temp", "project-ref"), `${PRODUCTION_REF}\n`);
+  assert.equal(runViaStaging([suite], root), 1);
+  assert.equal(calls.length, 1, "a Production link must never invoke the CLI");
 });
 
 test("listAllSuites discovers every SQL file in supabase/tests sorted deterministically", (t) => {
