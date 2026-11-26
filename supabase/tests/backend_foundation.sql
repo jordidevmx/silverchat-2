@@ -58,7 +58,8 @@ SELECT pg_temp.assert_true(public.create_direct_chat_request('22222222-2222-4222
 SELECT pg_temp.assert_true((SELECT count(*)=1 FROM public.messages WHERE chat_id=current_setting('test.direct')::uuid),'request creates one initial message');
 SELECT set_config('test.request',(SELECT id::text FROM public.chat_requests WHERE chat_id=current_setting('test.direct')::uuid AND status='pending'),true);
 SELECT set_config('test.initial_message',(SELECT id::text FROM public.messages WHERE chat_id=current_setting('test.direct')::uuid),true);
-SELECT pg_temp.expect_error(format('INSERT INTO public.calls(initiator_id,chat_id,livekit_room_name) VALUES (auth.uid(),%L,''pending-call'')',current_setting('test.direct')),'42501','row-level security','cannot call in pending chat');
+SELECT pg_temp.expect_error(format('INSERT INTO public.calls(initiator_id,chat_id,livekit_room_name) VALUES (auth.uid(),%L,''pending-call'')',current_setting('test.direct')),'42501','permission denied','direct call inserts prohibited');
+SELECT pg_temp.expect_error(format('SELECT public.start_call(%L,''voice'')',current_setting('test.direct')),'P0001','pending','cannot call in pending chat');
 INSERT INTO public.messages(chat_id,sender_id,content) VALUES (current_setting('test.direct')::uuid,auth.uid(),'Second pending message');
 SELECT pg_temp.assert_true((SELECT last_message_preview='Second pending message' FROM public.chats WHERE id=current_setting('test.direct')::uuid),'message updates chat preview');
 SELECT set_config('test.self',public.create_self_chat()::text,true);
@@ -135,10 +136,10 @@ SELECT pg_temp.assert_true((SELECT last_message_preview='This message was delete
 SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
 SELECT public.follow_channel(current_setting('test.channel')::uuid);
 SELECT public.follow_channel(current_setting('test.channel')::uuid);
-SELECT pg_temp.assert_true((SELECT follower_count=2 FROM public.channels WHERE id=current_setting('test.channel')::uuid),'follow is idempotent and counter accurate');
+SELECT pg_temp.assert_true((SELECT follower_count=2 FROM public.channels_public WHERE id=current_setting('test.channel')::uuid),'follow is idempotent and counter accurate');
 SELECT pg_temp.expect_error(format('INSERT INTO public.messages(channel_id,sender_id,content) VALUES (%L,auth.uid(),''follower post'')',current_setting('test.channel')),'42501','row-level security','follower cannot publish');
 DELETE FROM public.channel_followers WHERE channel_id=current_setting('test.channel')::uuid AND user_id=auth.uid();
-SELECT pg_temp.assert_true((SELECT follower_count=1 FROM public.channels WHERE id=current_setting('test.channel')::uuid),'unfollow decrements counter');
+SELECT pg_temp.assert_true((SELECT follower_count=1 FROM public.channels_public WHERE id=current_setting('test.channel')::uuid),'unfollow decrements counter');
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 SELECT set_config('test.community',public.create_community('Community','Test')::text,true);
 RESET ROLE;
@@ -150,7 +151,7 @@ SELECT public.join_community(current_setting('test.community')::uuid);
 SELECT public.join_community(current_setting('test.community')::uuid);
 SELECT pg_temp.assert_true(public.is_chat_member(current_setting('test.community_chat')::uuid,auth.uid()),'joining community auto-joins community chats');
 SELECT pg_temp.assert_true((SELECT member_count=2 FROM public.communities WHERE id=current_setting('test.community')::uuid),'community join idempotent and count accurate');
-DELETE FROM public.community_members WHERE community_id=current_setting('test.community')::uuid AND user_id=auth.uid();
+SELECT public.leave_community(current_setting('test.community')::uuid);
 SELECT pg_temp.assert_true(NOT public.is_chat_member(current_setting('test.community_chat')::uuid,auth.uid()),'leaving community removes chat membership');
 SELECT pg_temp.assert_true((SELECT member_count=1 FROM public.communities WHERE id=current_setting('test.community')::uuid),'community leave decrements count');
 
@@ -197,14 +198,14 @@ SELECT pg_temp.assert_true((SELECT count(*)=0 FROM changed),'late direct delete 
 -- Account deletion must not conflict with the calls initiator FK.
 SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
 SELECT set_config('test.dora_self',public.create_self_chat()::text,true);
-INSERT INTO public.calls(initiator_id,chat_id,livekit_room_name) VALUES (auth.uid(),current_setting('test.dora_self')::uuid,'backend-test-deleted-initiator');
+SELECT set_config('test.dora_call',public.start_call(current_setting('test.dora_self')::uuid,'voice')::text,true);
 RESET ROLE;
 DELETE FROM auth.users WHERE id='44444444-4444-4444-8444-444444444444';
-SELECT pg_temp.assert_true((SELECT initiator_id IS NULL FROM public.calls WHERE livekit_room_name='backend-test-deleted-initiator'),'account deletion nulls call initiator');
+SELECT pg_temp.assert_true((SELECT initiator_id IS NULL FROM public.calls WHERE id=current_setting('test.dora_call')::uuid),'account deletion nulls call initiator');
 
 -- Execute the actual scheduled commands against expired fixtures, inside
 -- this transaction. This tests the cleanup SQL without waiting for the clock.
-UPDATE public.calls SET started_at=now()-interval '2 minutes' WHERE livekit_room_name='backend-test-deleted-initiator';
+UPDATE public.calls SET started_at=now()-interval '2 minutes' WHERE id=current_setting('test.dora_call')::uuid;
 INSERT INTO public.stories(id,user_id,media_type,text_content,expires_at)
  VALUES ('55555555-5555-4555-8555-555555555555','11111111-1111-4111-8111-111111111111','text','Expired',now()-interval '2 hours');
 INSERT INTO public.file_uploads(uploader_id,bucket,path,original_filename,mime_type,size_bytes,created_at,status)
@@ -218,7 +219,7 @@ BEGIN
  LOOP EXECUTE job.command; END LOOP;
 END;
 $$;
-SELECT pg_temp.assert_true((SELECT status='missed' AND ended_at IS NOT NULL FROM public.calls WHERE livekit_room_name='backend-test-deleted-initiator'),'cron marks stale ringing calls missed');
+SELECT pg_temp.assert_true((SELECT status='missed' AND ended_at IS NOT NULL FROM public.calls WHERE id=current_setting('test.dora_call')::uuid),'cron marks stale ringing calls missed');
 SELECT pg_temp.assert_true(NOT EXISTS(SELECT 1 FROM public.stories WHERE id='55555555-5555-4555-8555-555555555555'),'cron removes expired stories');
 SELECT pg_temp.assert_true(NOT EXISTS(SELECT 1 FROM public.file_uploads WHERE path='backend-old-pending'),'cron removes pending uploads');
 SELECT pg_temp.assert_true(NOT EXISTS(SELECT 1 FROM public.file_uploads WHERE path='backend-old-orphan'),'cron removes orphan metadata');
