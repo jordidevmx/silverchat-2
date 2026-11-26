@@ -1,7 +1,7 @@
 // TASK-012 — migration equivalence verification tooling.
 //
 // Parses supabase/migrations/*.sql into an expected final-state inventory,
-// dumps the LINKED Supabase project via `npx supabase db query --linked`, and
+// dumps the LINKED Supabase project via `pnpm exec supabase db query --read-only`, and
 // diffs the two. Read-only: every remote statement executed is a SELECT.
 //
 //   node scripts/verify-migrations/verify-migrations.mjs           # parse + print inventory
@@ -1216,10 +1216,25 @@ if (inv.other.length) console.log(`OTHER:\n${inv.other.join("\n").slice(0, 3000)
 
 // run target dump (read-only SELECT against the linked project)
 if (process.argv[2] === "run") {
+  if (!/^[a-z]{20}$/.test(TARGET))
+    throw new Error("Link this worktree before querying migrations.");
   console.log(`querying target ${TARGET}...`);
   const stdout = execFileSync(
     "cmd",
-    ["/c", "npx", "supabase", "db", "query", "--linked", "--output-format", "json", "-f", DUMP_SQL],
+    [
+      "/c",
+      "pnpm",
+      "exec",
+      "supabase",
+      "db",
+      "query",
+      `--remote=${TARGET}`,
+      "--read-only",
+      "--output-format",
+      "json",
+      "-f",
+      DUMP_SQL,
+    ],
     { encoding: "utf8", maxBuffer: 512 * 1024 * 1024, cwd: ROOT },
   );
   const start = stdout.indexOf("{");
