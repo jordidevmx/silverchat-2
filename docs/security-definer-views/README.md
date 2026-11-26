@@ -1,7 +1,53 @@
 # Privacy view correction and verification
 
 Date: 2026-11-26. Implementation baseline: `618da6b879153ed67c7ac870fd3547bc64988804`.
-Branch/worktree: `fix-security-definer-views`. No permanent remote changes.
+Branch/worktree: `fix-security-definer-views`.
+
+## Authorized application progress
+
+The owner authorized both Staging and Production application. Staging has
+`20261126171911` installed and recorded. The 12 relevant authorization suites
+passed against the installed schema using rollback-only fixtures; all six
+Security Definer View alerts disappeared. Post-application inspection exposed
+four new `function_search_path_mutable` warnings on the public invoker RPCs.
+This temporarily paused Production application until the follow-up was verified.
+
+Follow-up migration `20261126190701_secure_privacy_rpc_search_path.sql` pins an
+empty search path on those four functions without changing their resolved SQL
+bodies, privileges or signatures. The strengthened catalog test fails on the
+installed Staging schema and passes with this follow-up. All 12 suites also pass
+with the follow-up in a transaction ending in ROLLBACK. A repeated synthetic
+performance probe measured profile ID 2.673 ms, search 21.273 ms, channel page
+0.631 ms, media ID 1.890 ms and sent invitation 0.601 ms. No material regression
+was observed in these bounded queries; the legacy compatibility-view cost remains.
+
+Both migrations are now installed and recorded in Staging and Production after
+explicit owner authorization. The owner executed the CLI commands because the
+agent cannot write the CLI telemetry file. Post-application checks confirmed:
+
+- Staging ledger: 34 versions; Production ledger: 32 versions. Only the two task
+  versions were added; unrelated migrations were not applied or reverted.
+- All six views have invoker/barrier options and authenticated SELECT-only ACLs.
+- Both targets have the four public invoker RPCs with an empty search path.
+  Compared function definitions/configuration/owners/ACLs agree between targets
+  after normalizing the pre-existing CRLF body of `add_chat_member`.
+- Four final authorization suites passed on installed Staging with ROLLBACK.
+  The strengthened read-only catalog/anonymous/identityless suite passed on
+  Production without fixtures or permanent data writes.
+- Neither target reports Security Definer View or Function Search Path Mutable
+  warnings for this work. The 104 existing authenticated definer-function warnings
+  and leaked-password-protection warning remain outside scope.
+- The worktree is linked back to Staging and its guard passes.
+- The owner reported that the deployed application works after testing was
+  requested for contact search, own blocked list, channels/invitations and media.
+  This is owner-reported verification, not an agent-controlled authenticated HTTP
+  suite. The agent did not merge the PR or deploy the adapted application bundle.
+
+The existing
+functional rollback removes these functions entirely, including their new
+configuration. Reverting only the follow-up would restore the four warnings
+and is not the intended rollback. Final follow-up commit/push and its CI run
+remain pending; CI already passed completely for `6f4baed`.
 
 The per-view inventory, contracts, dependencies and production drift are in
 [`2026-11-26-security-definer-views-design.md`](../superpowers/specs/2026-11-26-security-definer-views-design.md).
@@ -157,7 +203,7 @@ functions. Current application and SQL consumers were adapted; old browser bundl
 must be considered during rollout. Do not deploy only the view change and leave
 the old application running indefinitely.
 
-## Application procedure — not authorized or executed
+## Application procedure - executed with explicit owner authorization
 
 1. Obtain separate approval for permanent Staging application. Production requires
    its own later approval. Push and PR remain independently unapproved.
@@ -203,7 +249,8 @@ after message deletion. Metadata denial does not revoke that existing access,
 and issued signed URLs may remain usable until expiry. Strengthening this rule
 was not authorized.
 
-Still pending after local preparation: permanent application, live PostgREST/
-Storage HTTP verification of the deployed candidate, and a green CI rerun after
-the generated-type correction. No Docker/psql was installed locally, no dependencies were
-changed, and no claim is made that Production alerts have been resolved.
+Remaining validation limits: no agent-controlled authenticated PostgREST/Storage
+HTTP suite, and the unrelated novedades layout assertion still prevents later
+scenarios in that browser suite. The owner reported successful application use.
+The original Production view alerts are confirmed absent. No Docker/psql was
+installed locally and no dependencies were changed.

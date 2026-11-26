@@ -73,8 +73,8 @@ BEGIN
       OR has_function_privilege('service_role',fn.oid,'EXECUTE')
       OR fn.proowner <> 'postgres'::regrole OR fn.provolatile <> 's'
       OR (fn.nspname='public' AND fn.prosecdef)
-      OR (fn.nspname='private' AND (NOT fn.prosecdef
-        OR NOT coalesce(fn.proconfig,ARRAY[]::text[]) @> ARRAY['search_path=""'])) THEN
+      OR (fn.nspname='private' AND NOT fn.prosecdef)
+      OR NOT coalesce(fn.proconfig,ARRAY[]::text[]) @> ARRAY['search_path=""'] THEN
       issues := array_append(issues,'Unexpected function security: ' || fn.oid::regprocedure::text);
     END IF;
   END LOOP;

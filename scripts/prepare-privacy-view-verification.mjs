@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { validateStagingSuiteSql } from "./run-db-tests.mjs";
 
 const migrationPath = "supabase/migrations/20261126171911_secure_privacy_views.sql";
+const followupPath = "supabase/migrations/20261126190701_secure_privacy_rpc_search_path.sql";
 const files = process.argv.slice(2);
 const roundtrip = files[0] === "--roundtrip";
 if (roundtrip) files.shift();
@@ -23,8 +24,10 @@ function unwrap(sql, end, file) {
     .replace(new RegExp(`^${end};[ \\t]*$`, "m"), "")
     .replace(/^SET TRANSACTION READ ONLY;[ \t]*$/m, "");
 }
-if (process.env.PRIVACY_VIEWS_BASELINE !== "1")
+if (process.env.PRIVACY_VIEWS_BASELINE !== "1") {
   parts.push(unwrap(readFileSync(migrationPath, "utf8"), "COMMIT", migrationPath));
+  parts.push(unwrap(readFileSync(followupPath, "utf8"), "COMMIT", followupPath));
+}
 if (roundtrip) {
   const rollbackPath = "docs/security-definer-views/rollback.sql";
   parts.push(unwrap(readFileSync(rollbackPath, "utf8"), "COMMIT", rollbackPath));
@@ -40,6 +43,7 @@ if (roundtrip) {
     );
   }
   parts.push(unwrap(readFileSync(migrationPath, "utf8"), "COMMIT", migrationPath));
+  parts.push(unwrap(readFileSync(followupPath, "utf8"), "COMMIT", followupPath));
 }
 for (const file of files) {
   const sql = readFileSync(file, "utf8");

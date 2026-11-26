@@ -42,6 +42,7 @@ src/features/settings/hooks/usePublicProfile.ts
 src/lib/use-connection-health.ts
 src/types/database.ts
 supabase/migrations/20261126171911_secure_privacy_views.sql
+supabase/migrations/20261126190701_secure_privacy_rpc_search_path.sql
 supabase/tests/message_actions.sql
 supabase/tests/messages.sql
 supabase/tests/novedades.sql

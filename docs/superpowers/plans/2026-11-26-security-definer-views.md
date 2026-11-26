@@ -2,7 +2,8 @@
 
 Baseline: `618da6b`; linked worktree `fix-security-definer-views`.
 Production investigation is read-only. The owner approved rollback-only Staging experiments
-and the local block-helper/story-viewer scope extension. Permanent remote application is unapproved.
+and the local block-helper/story-viewer scope extension. The owner subsequently
+authorized permanent application to both Staging and Production.
 
 1. Preserve the catalog snapshots and per-view contracts in the design document.
 2. Establish RED catalog and role/JWT regression tests, including alternate access paths.
@@ -28,7 +29,11 @@ button layout assertion, independently reproduced on baseline and candidate.
 Later scenarios in that suite remain unverified. No unrelated UI fix was made.
 Delivered as commit `17e8f0f` and PR #76. Clean-database CI passed all migrations,
 17 SQL suites and 273 unit tests; only the generated-type comparison failed.
-Types now match the CI-generated output and pass local typecheck. Pending:
-commit/push and CI rerun of this correction, and separately approved live
-deployment checks.
+Types now match the CI-generated output; CI passed completely on `6f4baed`.
+Both task migrations are installed and recorded in Staging and Production.
+The search-path follow-up passed RED/GREEN catalog checks, 12 rollback-only SQL
+suites and a repeated performance probe. Final installed Staging authorization
+checks and Production read-only checks passed; targeted advisor warnings are absent.
+The owner reported successful deployed application use. Pending: follow-up
+commit/push and CI. No merge or application-bundle deployment was performed.
 Stronger Storage deletion semantics remain outside the authorized correction.

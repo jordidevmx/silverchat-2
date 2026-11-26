@@ -91,11 +91,29 @@
     "corrected_types_lf_sha256": "b4bb106b246d058f84d96880d998f3294f625ed5c71187f8ca414e0e50969e37",
     "corrected_types_exact_comparison": "passed",
     "corrected_types_typecheck": "passed",
-    "rerun": "pending commit and push of type correction"
+    "rerun": "passed on 6f4baed; https://github.com/jordidevmx/silverchat-2/actions/runs/45879450002"
+  },
+  "remote_application": {
+    "authorization": "Owner explicitly authorized Staging and Production",
+    "versions": ["20261126171911", "20261126190701"],
+    "staging_ledger_count": 34,
+    "production_ledger_count": 32,
+    "followup_sha256": "b67d5f70a96f8d58bb8107613669d8d1fc06ed400b0099413e8c439d3ed6eed2",
+    "followup_red_test": "Four public RPC search_path omissions detected",
+    "followup_green_tests": "12 SQL suites in ROLLBACK; four final suites on installed Staging",
+    "production_read_only_suite": "passed: effective privileges, function configuration, anonymous and identityless access",
+    "security_definer_view_alerts": 0,
+    "function_search_path_mutable_alerts": 0,
+    "remaining_existing_advisories": {
+      "authenticated_security_definer_function_executable": 104,
+      "auth_leaked_password_protection": 1
+    },
+    "owner_application_check": "Owner reported everything works after requested contact, blocked-list, channel/invitation and media checks",
+    "linked_target_after_application": "gffdrrtatxdiucigtwdn",
+    "followup_ci": "pending commit and push"
   },
   "not_run": [
-    "Live PostgREST/Storage HTTP on permanently deployed candidate",
-    "Permanent Staging or Production application"
+    "Agent-controlled authenticated PostgREST/Storage HTTP suite; owner reported successful deployed application use"
   ],
   "rollback_sha256": "40ecef8217ba89f4f7c9c689290c4bc25e941e7ca3a498aed9c00bd29bee00fe",
   "final_combined_sql": {
