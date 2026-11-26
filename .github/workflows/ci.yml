@@ -77,7 +77,7 @@ jobs:
           -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit
 
       - name: Run SQL suites
-        run: pnpm test:db
+        run: pnpm test:db --all
 
       # The committed types must describe the complete repo schema (including
       # migrations that are still pending on Staging). Generation is done from

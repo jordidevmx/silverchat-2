@@ -39,6 +39,7 @@ SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.messages WHERE chat_id
 RESET ROLE;
 UPDATE public.profiles SET avatar_url='d2222222-2222-4222-8222-222222222222/bob.webp' WHERE id='d2222222-2222-4222-8222-222222222222';
 UPDATE public.profiles SET avatar_url='d1111111-1111-4111-8111-111111111111/alice.webp' WHERE id='d1111111-1111-4111-8111-111111111111';
+UPDATE public.user_settings SET profile_photo_visibility='everyone' WHERE user_id IN ('d1111111-1111-4111-8111-111111111111','d2222222-2222-4222-8222-222222222222');
 SET LOCAL ROLE authenticated;
 INSERT INTO public.user_blocks(blocker_id,blocked_id) VALUES(auth.uid(),'d2222222-2222-4222-8222-222222222222');
 SELECT pg_temp.assert_true((SELECT count(*)=1 AND bool_and(avatar_url='d2222222-2222-4222-8222-222222222222/bob.webp') FROM public.profiles_blocked),'Own block management details include real avatar when permitted');

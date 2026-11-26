@@ -68,7 +68,7 @@ SELECT pg_temp.rejects(
 );
 
 -- Tracked file_uploads + Storage object + custom background selection work together.
-INSERT INTO public.file_uploads(id, uploader_id, bucket, path, original_filename, mime_type, size_bytes, status, completed_at)
+INSERT INTO public.file_uploads(id, uploader_id, bucket, path, original_filename, mime_type, size_bytes)
 VALUES (
   'b3333333-3333-4333-8333-333333333333',
   auth.uid(),
@@ -76,10 +76,12 @@ VALUES (
   'b1111111-1111-4111-8111-111111111111/bg-33333333-3333-4333-8333-333333333333.webp',
   'bg-33333333-3333-4333-8333-333333333333.webp',
   'image/webp',
-  12345,
-  'completed',
-  now()
+  12345
 );
+
+UPDATE public.file_uploads
+  SET status = 'completed', completed_at = now()
+  WHERE id = 'b3333333-3333-4333-8333-333333333333';
 
 INSERT INTO storage.objects(bucket_id, name, owner)
 VALUES (
@@ -135,14 +137,23 @@ UPDATE public.user_settings
   SET chat_background = 'obsidian', chat_background_path = NULL
   WHERE user_id = auth.uid();
 
-DELETE FROM storage.objects
-  WHERE bucket_id = 'chat-backgrounds'
-    AND name = 'b1111111-1111-4111-8111-111111111111/bg-33333333-3333-4333-8333-333333333333.webp';
 DELETE FROM public.file_uploads WHERE id = 'b3333333-3333-4333-8333-333333333333';
 
 SELECT pg_temp.assert_true(
   (SELECT count(*) = 0 FROM public.file_uploads WHERE id = 'b3333333-3333-4333-8333-333333333333'),
   'Unlinked background metadata can be deleted by owner'
+);
+
+-- Storage delete policy is installed (direct SQL DELETE on storage.objects is blocked by storage.protect_delete).
+SELECT pg_temp.assert_true(
+  EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename = 'objects'
+      AND policyname = 'chat_backgrounds_delete_own'
+      AND cmd = 'DELETE'
+  ),
+  'Owner-only delete policy exists for chat-backgrounds storage objects'
 );
 
 -- MFA enforcement: verified factor at AAL1 blocks writes.
