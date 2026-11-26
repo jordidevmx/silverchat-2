@@ -29,7 +29,7 @@ export function usePickUsername() {
     if (!auth.user) return;
     try {
       const available = await supabase
-        .from("profiles_visible")
+        .rpc("read_profiles_visible", { p_username: username }, { get: true })
         .select("id")
         .eq("username", username)
         .neq("id", auth.user.id)

@@ -1,3 +1,4 @@
+-- Session-local fixture IDs keep this suite compatible with psql and rollback-only Staging.
 -- Local integration checks only; every fixture and assertion rolls back.
 BEGIN;
 CREATE FUNCTION pg_temp.assert_true(value boolean, message text) RETURNS void LANGUAGE plpgsql AS $$
@@ -34,8 +35,8 @@ INSERT INTO public.devices(user_id,device_name,user_agent,device_fingerprint) VA
  (auth.uid(),'Browser one','same agent','fingerprint-one'),(auth.uid(),'Browser two','same agent','fingerprint-two'),
  (auth.uid(),'Private one','same agent',NULL),(auth.uid(),'Private two','same agent',NULL);
 SELECT pg_temp.rejects($q$INSERT INTO public.devices(user_id,device_name,device_fingerprint) VALUES(auth.uid(),'Duplicate','fingerprint-one')$q$,'duplicate key');
-SELECT public.create_direct_chat_request('d2222222-2222-4222-8222-222222222222','') AS request_chat \gset
-SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.messages WHERE chat_id=:'request_chat'),'Opening profile does not send an empty message');
+SELECT set_config('test.request_chat',(public.create_direct_chat_request('d2222222-2222-4222-8222-222222222222',''))::text,true);
+SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.messages WHERE chat_id=current_setting('test.request_chat')::uuid),'Opening profile does not send an empty message');
 RESET ROLE;
 UPDATE public.profiles SET avatar_url='d2222222-2222-4222-8222-222222222222/bob.webp' WHERE id='d2222222-2222-4222-8222-222222222222';
 UPDATE public.profiles SET avatar_url='d1111111-1111-4111-8111-111111111111/alice.webp' WHERE id='d1111111-1111-4111-8111-111111111111';
@@ -53,10 +54,10 @@ SELECT pg_temp.assert_true(NOT public.can_view_avatar('d1111111-1111-4111-8111-1
 RESET ROLE;
 -- Test as table owner as well: trigger must not depend on MFA-gated helper results.
 SELECT set_config('request.jwt.claims','{}',true);
-SELECT pg_temp.rejects(format('INSERT INTO public.messages(chat_id,sender_id,content) VALUES(%L,%L,%L)',:'request_chat','d1111111-1111-4111-8111-111111111111','blocked pending message'),'blocked');
-INSERT INTO public.chat_members(chat_id,user_id) VALUES(:'request_chat','d2222222-2222-4222-8222-222222222222');
-UPDATE public.chats SET status='active' WHERE id=:'request_chat';
-SELECT pg_temp.rejects(format('INSERT INTO public.messages(chat_id,sender_id,content) VALUES(%L,%L,%L)',:'request_chat','d2222222-2222-4222-8222-222222222222','blocked reverse message'),'blocked');
+SELECT pg_temp.rejects(format('INSERT INTO public.messages(chat_id,sender_id,content) VALUES(%L,%L,%L)',current_setting('test.request_chat')::uuid,'d1111111-1111-4111-8111-111111111111','blocked pending message'),'blocked');
+INSERT INTO public.chat_members(chat_id,user_id) VALUES(current_setting('test.request_chat')::uuid,'d2222222-2222-4222-8222-222222222222');
+UPDATE public.chats SET status='active' WHERE id=current_setting('test.request_chat')::uuid;
+SELECT pg_temp.rejects(format('INSERT INTO public.messages(chat_id,sender_id,content) VALUES(%L,%L,%L)',current_setting('test.request_chat')::uuid,'d2222222-2222-4222-8222-222222222222','blocked reverse message'),'blocked');
 SELECT set_config('request.jwt.claims','{"sub":"d3333333-3333-4333-8333-333333333333","role":"authenticated","aal":"aal1"}',true);
 SET LOCAL ROLE authenticated;
 SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.profiles_blocked),'A different user cannot enumerate someone else’s block list');
@@ -64,8 +65,8 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims','{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
 SET LOCAL ROLE authenticated;
 DELETE FROM public.user_blocks WHERE blocker_id=auth.uid();
-INSERT INTO public.messages(chat_id,sender_id,content) VALUES(:'request_chat',auth.uid(),'unblocked');
-SELECT pg_temp.assert_true((SELECT count(*)=1 FROM public.messages WHERE chat_id=:'request_chat'),'Messages resume after unblock');
+INSERT INTO public.messages(chat_id,sender_id,content) VALUES(current_setting('test.request_chat')::uuid,auth.uid(),'unblocked');
+SELECT pg_temp.assert_true((SELECT count(*)=1 FROM public.messages WHERE chat_id=current_setting('test.request_chat')::uuid),'Messages resume after unblock');
 RESET ROLE;
 UPDATE public.profiles SET username_changed_at=now()-interval '31 days' WHERE id='d1111111-1111-4111-8111-111111111111';
 SET LOCAL ROLE authenticated;

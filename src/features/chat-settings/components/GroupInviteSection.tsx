@@ -199,7 +199,7 @@ export function GroupJoinRequestsSection({ chat }: { chat: ChatDetails }) {
       if (!rows.length) return [];
       const userIds = [...new Set(rows.flatMap((r) => [r.target_user_id, r.requested_by]))];
       const profiles = await supabase
-        .from("profiles_visible")
+        .rpc("read_profiles_visible", { p_ids: userIds })
         .select("id, display_name, username, avatar_url")
         .in("id", userIds);
       const byId = new Map((profiles.data ?? []).map((p) => [p.id, p]));

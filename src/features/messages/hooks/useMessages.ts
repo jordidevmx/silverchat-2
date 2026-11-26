@@ -24,7 +24,7 @@ export async function enrichMessages(rows: MessageRow[], userId: string): Promis
     profileIds.length
       ? allRows((from, to) =>
           supabase
-            .from("profiles_visible")
+            .rpc("read_profiles_visible", { p_ids: profileIds })
             .select("*")
             .in("id", profileIds)
             .order("id")
@@ -47,7 +47,7 @@ export async function enrichMessages(rows: MessageRow[], userId: string): Promis
           if (!missingIds.length) return ownOrChat;
           const pubRows = await allRows((from, to) =>
             supabase
-              .from("message_media_public")
+              .rpc("read_message_media_public", { p_ids: missingIds })
               .select("*")
               .in("id", missingIds)
               .order("id")

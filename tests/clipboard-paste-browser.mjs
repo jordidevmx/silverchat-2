@@ -148,7 +148,7 @@ async function setup(context) {
         read_receipts_enabled: true,
       });
     }
-    if (p.endsWith("/profiles_visible")) {
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible")) {
       return result(profiles.filter((x) => !s.get("id") || s.get("id").includes(x.id)));
     }
     if (p.endsWith("/user_blocks") || p.endsWith("/profiles_blocked")) return result([]);
@@ -391,7 +391,10 @@ try {
   assert.equal(await page.locator('[data-slot="composer-attachment-item"]').count(), 1);
 
   await page.locator(".draft-pill").waitFor();
-  assert.match(await page.locator(".chat-list-item, [data-slot='chat-list-item']").first().textContent(), /Attachment/);
+  assert.match(
+    await page.locator(".chat-list-item, [data-slot='chat-list-item']").first().textContent(),
+    /Attachment/,
+  );
   await page.locator('nav a[href="/novedades"]').click();
   await page.waitForURL("**/novedades");
   await page.locator('nav a[href="/chats"]').click();
@@ -502,7 +505,9 @@ try {
   // Remove the 2nd image and verify focus management moves to remaining remove button.
   await page.getByRole("button", { name: /Remove multi-2\.png/ }).click();
   assert.equal(await page.locator('[data-slot="composer-attachment-item"]').count(), 2);
-  const focusedLabel = await page.evaluate(() => document.activeElement?.getAttribute("aria-label"));
+  const focusedLabel = await page.evaluate(() =>
+    document.activeElement?.getAttribute("aria-label"),
+  );
   assert.match(focusedLabel ?? "", /Remove repeat-3\.png/);
 
   // Inspect modal on click and close cleanly.
@@ -551,7 +556,9 @@ try {
   await page.waitForTimeout(600);
   assert.equal(await page.locator('[data-slot="composer-attachment-item"]').count(), 1);
   assert.match(
-    (await page.getByRole("button", { name: /Preview queued-mid-upload\.png/ }).getAttribute("aria-label")) ?? "",
+    (await page
+      .getByRole("button", { name: /Preview queued-mid-upload\.png/ })
+      .getAttribute("aria-label")) ?? "",
     /queued-mid-upload\.png/,
   );
   await page.getByRole("button", { name: /Remove queued-mid-upload\.png/ }).click();
@@ -608,7 +615,7 @@ try {
   await page.getByRole("menuitem", { name: "Edit" }).click();
   const editDialog = page.getByRole("dialog", { name: "Edit message" });
   await editDialog.waitFor();
-  await dispatchPaste(page, 'dialog[open] textarea', {
+  await dispatchPaste(page, "dialog[open] textarea", {
     files: [{ name: "edit-shot.png", type: "image/png", base64: pngBlue }],
   });
   assert.equal(await editDialog.locator("textarea").inputValue(), "Editable message");
@@ -630,7 +637,10 @@ try {
   assert.equal(await page.locator('[data-slot="composer-attachment-item"]').count(), 1);
 
   await page.goto(`${baseUrl}/novedades`);
-  await page.getByRole("button", { name: /Add story|Create story|My story/i }).first().click();
+  await page
+    .getByRole("button", { name: /Add story|Create story|My story/i })
+    .first()
+    .click();
   const storyDialog = page.getByRole("dialog", { name: "Create story" });
   await storyDialog.waitFor();
   await writePngToRealClipboard(page, "#10b981");
@@ -676,7 +686,10 @@ try {
   await writePngToRealClipboard(page, "#ef4444");
   await page.keyboard.press("Control+v");
   await page.locator('[data-slot="clipboard-paste-notice"]').waitFor();
-  assert.equal(await page.evaluate(() => document.getElementById("test-ce")?.textContent), "Keep me");
+  assert.equal(
+    await page.evaluate(() => document.getElementById("test-ce")?.textContent),
+    "Keep me",
+  );
   await page.evaluate(() => document.getElementById("test-ce")?.remove());
 
   // 12. Auth 2FA CodeInput preserves digits on image paste AND supports 6-digit paste.

@@ -153,7 +153,7 @@ await page.route("https://supabase.test/**", async (route) => {
     }
     return fulfill(route, settings);
   }
-  if (path.endsWith("/profiles_visible")) {
+  if (path.endsWith("/profiles_visible") || path.endsWith("/rpc/read_profiles_visible")) {
     if (url.searchParams.get("username") === "eq.hidden") return fulfill(route, []);
     if (url.searchParams.get("username") === "eq.retry_profile" && failPublicProfile)
       return fulfill(route, { code: "42501", message: "not available" }, 403);

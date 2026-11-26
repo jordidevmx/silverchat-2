@@ -17,7 +17,7 @@ export function useChatPresence(chat: ChatDetails) {
           chunks(ids).map((part) =>
             allRows((from, to) =>
               supabase
-                .from("profiles_visible")
+                .rpc("read_profiles_visible", { p_ids: part })
                 .select("id,last_seen_at")
                 .in("id", part)
                 .order("id")

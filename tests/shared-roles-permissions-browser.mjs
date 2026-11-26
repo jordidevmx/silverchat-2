@@ -145,7 +145,7 @@ try {
     const single = accept.includes("vnd.pgrst.object");
     const out = (rows) => json(route, single ? (rows[0] ?? null) : rows);
 
-    if (p.includes("/rpc/")) {
+    if (p.includes("/rpc/") && !p.includes("/rpc/read_")) {
       const fn = p.split("/rpc/").pop();
       rpcCalls.push({ fn, body });
       if (fn === "auth_mfa_satisfied") return json(route, true);
@@ -227,7 +227,8 @@ try {
         },
       ]);
     }
-    if (p.endsWith("/profiles_visible")) return out(allVisibleProfiles);
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible"))
+      return out(allVisibleProfiles);
     if (p.endsWith("/chats")) {
       const id = u.searchParams.get("id")?.slice(3);
       const rows = [
@@ -393,7 +394,7 @@ try {
         },
       ]);
     }
-    if (p.endsWith("/channels_public")) {
+    if (p.endsWith("/channels_public") || p.endsWith("/rpc/read_channels_public")) {
       return out([
         {
           id: chId,
@@ -419,7 +420,8 @@ try {
     if (p.endsWith("/channel_invitations_received")) {
       return out([{ id: invId, channel_id: chId, status: "pending", created_at: now }]);
     }
-    if (p.endsWith("/channel_invitations_sent")) return out([]);
+    if (p.endsWith("/channel_invitations_sent") || p.endsWith("/rpc/read_channel_invitations_sent"))
+      return out([]);
     if (p.endsWith("/communities")) {
       return out([
         {

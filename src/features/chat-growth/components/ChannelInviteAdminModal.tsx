@@ -46,7 +46,7 @@ export function ChannelInviteAdminModal({
     enabled: Boolean(user && isChannel && channelId),
     queryFn: async () => {
       const r = await supabase
-        .from("channel_invitations_sent")
+        .rpc("read_channel_invitations_sent", { p_channel_id: channelId }, { get: true })
         .select("*")
         .eq("channel_id", channelId);
       if (r.error) throw r.error;

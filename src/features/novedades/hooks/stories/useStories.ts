@@ -31,7 +31,7 @@ export function useStories() {
           chunks(owners).map((ids) =>
             allRows((from, to) =>
               supabase
-                .from("profiles_visible")
+                .rpc("read_profiles_visible", { p_ids: ids })
                 .select("*")
                 .in("id", ids)
                 .order("id")

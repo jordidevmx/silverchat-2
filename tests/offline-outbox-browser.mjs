@@ -88,7 +88,7 @@ async function setup(context) {
         read_receipts_enabled: true,
       });
     }
-    if (p.endsWith("/profiles_visible")) {
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible")) {
       return result(profiles.filter((x) => !s.get("id") || s.get("id").includes(x.id)));
     }
     if (p.endsWith("/user_blocks") || p.endsWith("/profiles_blocked")) return result([]);

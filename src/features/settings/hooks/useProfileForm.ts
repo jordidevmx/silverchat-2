@@ -52,7 +52,7 @@ export function useProfileForm(profile: Profile) {
     try {
       if (values.username !== profile.username) {
         const r = await supabase
-          .from("profiles_visible")
+          .rpc("read_profiles_visible", { p_username: values.username }, { get: true })
           .select("id")
           .eq("username", values.username)
           .neq("id", profile.id)

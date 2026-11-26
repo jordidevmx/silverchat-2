@@ -189,7 +189,7 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
       chunks(people).map((part) =>
         allRows((from, to) =>
           supabase
-            .from("profiles_visible")
+            .rpc("read_profiles_visible", { p_ids: part })
             .select("id,display_name,username,avatar_url,last_seen_at")
             .in("id", part)
             .order("id")
@@ -420,7 +420,7 @@ async function resolveReactionTarget(
     ?.display_name;
   if (!reactorName) {
     const profileRes = await supabase
-      .from("profiles_visible")
+      .rpc("read_profiles_visible", { p_ids: [reactorId] })
       .select("id,display_name")
       .eq("id", reactorId)
       .maybeSingle();

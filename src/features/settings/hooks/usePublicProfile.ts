@@ -16,7 +16,7 @@ export function usePublicProfile() {
     queryKey: ["public-profile", user?.id, username],
     queryFn: async () => {
       const r = await supabase
-        .from("profiles_visible")
+        .rpc("read_profiles_visible", { p_username: username ?? "" }, { get: true })
         .select("*")
         .eq("username", username ?? "")
         .maybeSingle();

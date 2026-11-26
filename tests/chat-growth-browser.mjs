@@ -402,7 +402,7 @@ async function setupRoutes(context) {
 
     if (p.endsWith("/user")) return respond(route, user);
     if (p.endsWith("/profiles")) return respond(route, profiles[0]);
-    if (p.endsWith("/profiles_visible")) {
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible")) {
       let rows = filterEq(profiles);
       if (s.has("id") && s.get("id").startsWith("neq.")) {
         rows = rows.filter((r) => r.id !== s.get("id").slice(4));
@@ -440,8 +440,12 @@ async function setupRoutes(context) {
       return route.fulfill({ status: 200, contentType: "image/svg+xml", body: avatarBytes });
     }
 
-    if (p.endsWith("/channels") || p.endsWith("/channels_public")) {
-      const stripOwner = p.endsWith("/channels_public");
+    if (
+      p.endsWith("/channels") ||
+      p.endsWith("/channels_public") ||
+      p.endsWith("/rpc/read_channels_public")
+    ) {
+      const stripOwner = p.endsWith("/channels_public") || p.endsWith("/rpc/read_channels_public");
       const list = filterEq(channels).map((c) => {
         if (!stripOwner) return c;
         const { owner_id: _o, ...rest } = c;
@@ -519,7 +523,8 @@ async function setupRoutes(context) {
       return respond(route, body.p_user_ids.length);
     }
     if (p.endsWith("/rpc/mark_chat_as_read")) return respond(route, null);
-    if (p.endsWith("/channel_invitations_sent")) return result([]);
+    if (p.endsWith("/channel_invitations_sent") || p.endsWith("/rpc/read_channel_invitations_sent"))
+      return result([]);
     if (p.endsWith("/rpc/send_channel_invitations")) {
       sentChannelInvites.push(body);
       return respond(

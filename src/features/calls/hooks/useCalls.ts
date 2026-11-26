@@ -72,7 +72,7 @@ async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
   const [{ data: profiles }, blocksRes] = await Promise.all([
     otherIds.length
       ? supabase
-          .from("profiles_visible")
+          .rpc("read_profiles_visible", { p_ids: otherIds })
           .select("id, username, display_name, avatar_url, last_seen_at")
           .in("id", otherIds)
       : Promise.resolve({ data: [] as ProfileRow[] | null }),

@@ -196,7 +196,8 @@ async function setup(ctx) {
       }
       return respond(r, userSettings);
     }
-    if (p.endsWith("/profiles_visible")) return result(filter(profiles));
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible"))
+      return result(filter(profiles));
     if (p.endsWith("/reports")) {
       reports.push(body);
       return respond(r, null, 201);
@@ -239,7 +240,11 @@ async function setup(ctx) {
       return respond(r, { Key: p });
     }
     if (p.includes("/storage/v1/object/")) return respond(r, { Key: "story-media/test" });
-    if (p.endsWith("/channels") || p.endsWith("/channels_public")) {
+    if (
+      p.endsWith("/channels") ||
+      p.endsWith("/channels_public") ||
+      p.endsWith("/rpc/read_channels_public")
+    ) {
       if (failChannelSlug && s.has("slug"))
         return respond(r, { message: "Availability unavailable" }, 500);
       if (method === "DELETE") {
@@ -249,7 +254,7 @@ async function setup(ctx) {
         posts = posts.filter((m) => m.channel_id !== removed.id);
         return result([removed]);
       }
-      const stripOwner = p.endsWith("/channels_public");
+      const stripOwner = p.endsWith("/channels_public") || p.endsWith("/rpc/read_channels_public");
       const sliced = filter(channels)
         .sort((a, b) => b.follower_count - a.follower_count)
         .slice(

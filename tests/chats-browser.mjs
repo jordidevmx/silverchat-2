@@ -148,7 +148,8 @@ async function mockContext(browserContext) {
         language: "en",
         read_receipts_enabled: true,
       });
-    if (path.endsWith("/profiles_visible")) return fulfill(route, profiles);
+    if (path.endsWith("/profiles_visible") || path.endsWith("/rpc/read_profiles_visible"))
+      return fulfill(route, profiles);
     if (path.endsWith("/profiles_blocked") || path.endsWith("/user_blocks"))
       return fulfill(route, []);
     if (path.endsWith("/chats"))

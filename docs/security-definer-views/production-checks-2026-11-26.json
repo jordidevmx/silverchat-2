@@ -1,0 +1,25 @@
+{
+  "project_ref": "lmzbaxlojgsdwgcxkmzx",
+  "baseline": "b7939ba",
+  "identityless_read_only_check": [
+    {
+      "tested_role": "authenticated",
+      "no_identity": true,
+      "mfa_satisfied": false,
+      "visible_profiles": 0,
+      "blocked_profiles": 0,
+      "channels": 0,
+      "sent_invitations": 0,
+      "received_invitations": 0,
+      "media": 0
+    }
+  ],
+  "channel_signing_function": {
+    "slug": "sign-channel-media",
+    "status": "ACTIVE",
+    "version": 1,
+    "verify_jwt": false,
+    "sha256": "c00ee910161f81c9863cec85014d6ad3dffd867f97ccd44c6132f821e54ca81f",
+    "authentication": "Function validates auth.getUser(), then MFA and authorization RPC with caller JWT before service-role signing."
+  }
+}

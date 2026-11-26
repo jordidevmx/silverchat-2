@@ -1,0 +1,388 @@
+{
+  "indexes": [
+    {
+      "name": "channel_invitations_pkey",
+      "table": "channel_invitations",
+      "definition": "CREATE UNIQUE INDEX channel_invitations_pkey ON public.channel_invitations USING btree (id)"
+    },
+    {
+      "name": "channel_invitations_channel_id_sender_id_recipient_id_key",
+      "table": "channel_invitations",
+      "definition": "CREATE UNIQUE INDEX channel_invitations_channel_id_sender_id_recipient_id_key ON public.channel_invitations USING btree (channel_id, sender_id, recipient_id)"
+    },
+    {
+      "name": "idx_channel_invitations_recipient",
+      "table": "channel_invitations",
+      "definition": "CREATE INDEX idx_channel_invitations_recipient ON public.channel_invitations USING btree (recipient_id, status) WHERE (status = 'pending'::text)"
+    },
+    {
+      "name": "channels_pkey",
+      "table": "channels",
+      "definition": "CREATE UNIQUE INDEX channels_pkey ON public.channels USING btree (id)"
+    },
+    {
+      "name": "channels_slug_key",
+      "table": "channels",
+      "definition": "CREATE UNIQUE INDEX channels_slug_key ON public.channels USING btree (slug)"
+    },
+    {
+      "name": "idx_channels_owner",
+      "table": "channels",
+      "definition": "CREATE INDEX idx_channels_owner ON public.channels USING btree (owner_id)"
+    },
+    {
+      "name": "idx_channels_last_message_at",
+      "table": "channels",
+      "definition": "CREATE INDEX idx_channels_last_message_at ON public.channels USING btree (last_message_at DESC NULLS LAST)"
+    },
+    {
+      "name": "idx_channels_last_message",
+      "table": "channels",
+      "definition": "CREATE INDEX idx_channels_last_message ON public.channels USING btree (last_message_id) WHERE (last_message_id IS NOT NULL)"
+    },
+    {
+      "name": "chat_members_pkey",
+      "table": "chat_members",
+      "definition": "CREATE UNIQUE INDEX chat_members_pkey ON public.chat_members USING btree (chat_id, user_id)"
+    },
+    {
+      "name": "idx_chat_members_user",
+      "table": "chat_members",
+      "definition": "CREATE INDEX idx_chat_members_user ON public.chat_members USING btree (user_id, last_read_at DESC)"
+    },
+    {
+      "name": "idx_chat_members_user_active",
+      "table": "chat_members",
+      "definition": "CREATE INDEX idx_chat_members_user_active ON public.chat_members USING btree (user_id, archived_at NULLS FIRST, last_read_at DESC)"
+    },
+    {
+      "name": "chat_requests_pkey",
+      "table": "chat_requests",
+      "definition": "CREATE UNIQUE INDEX chat_requests_pkey ON public.chat_requests USING btree (id)"
+    },
+    {
+      "name": "idx_chat_requests_chat",
+      "table": "chat_requests",
+      "definition": "CREATE INDEX idx_chat_requests_chat ON public.chat_requests USING btree (chat_id)"
+    },
+    {
+      "name": "idx_chat_requests_recipient_pending",
+      "table": "chat_requests",
+      "definition": "CREATE INDEX idx_chat_requests_recipient_pending ON public.chat_requests USING btree (recipient_id) WHERE (status = 'pending'::chat_request_status)"
+    },
+    {
+      "name": "idx_chat_requests_cooldown",
+      "table": "chat_requests",
+      "definition": "CREATE INDEX idx_chat_requests_cooldown ON public.chat_requests USING btree (sender_id, recipient_id, responded_at DESC)"
+    },
+    {
+      "name": "file_uploads_pkey",
+      "table": "file_uploads",
+      "definition": "CREATE UNIQUE INDEX file_uploads_pkey ON public.file_uploads USING btree (id)"
+    },
+    {
+      "name": "file_uploads_bucket_path_key",
+      "table": "file_uploads",
+      "definition": "CREATE UNIQUE INDEX file_uploads_bucket_path_key ON public.file_uploads USING btree (bucket, path)"
+    },
+    {
+      "name": "idx_file_uploads_uploader",
+      "table": "file_uploads",
+      "definition": "CREATE INDEX idx_file_uploads_uploader ON public.file_uploads USING btree (uploader_id, created_at DESC)"
+    },
+    {
+      "name": "idx_file_uploads_pending",
+      "table": "file_uploads",
+      "definition": "CREATE INDEX idx_file_uploads_pending ON public.file_uploads USING btree (status) WHERE (status = 'pending'::upload_status)"
+    },
+    {
+      "name": "idx_file_uploads_hash",
+      "table": "file_uploads",
+      "definition": "CREATE INDEX idx_file_uploads_hash ON public.file_uploads USING btree (hash_sha256) WHERE (hash_sha256 IS NOT NULL)"
+    },
+    {
+      "name": "messages_pkey",
+      "table": "messages",
+      "definition": "CREATE UNIQUE INDEX messages_pkey ON public.messages USING btree (id)"
+    },
+    {
+      "name": "idx_messages_channel",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_channel ON public.messages USING btree (channel_id, created_at DESC) WHERE (channel_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_sender",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_sender ON public.messages USING btree (sender_id) WHERE (sender_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_reply",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_reply ON public.messages USING btree (reply_to_message_id) WHERE (reply_to_message_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_pinned",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_pinned ON public.messages USING btree (chat_id) WHERE (is_pinned_in_chat = true)"
+    },
+    {
+      "name": "idx_messages_mentions",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_mentions ON public.messages USING gin (mentions) WHERE (mentions IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_thumbnail",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_thumbnail ON public.messages USING btree (media_thumbnail_upload_id) WHERE (media_thumbnail_upload_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_chat",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_chat ON public.messages USING btree (chat_id, created_at DESC, id DESC) WHERE (chat_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_forwarded_from",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_forwarded_from ON public.messages USING btree (forwarded_from_message_id) WHERE (forwarded_from_message_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_chat_media",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_chat_media ON public.messages USING btree (chat_id, created_at DESC, id DESC) WHERE ((type = ANY (ARRAY['image'::message_type, 'video'::message_type])) AND (deleted_at IS NULL))"
+    },
+    {
+      "name": "idx_messages_chat_files",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_chat_files ON public.messages USING btree (chat_id, created_at DESC, id DESC) WHERE ((type = 'file'::message_type) AND (deleted_at IS NULL))"
+    },
+    {
+      "name": "idx_messages_reply_to_story",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_reply_to_story ON public.messages USING btree (reply_to_story_id) WHERE (reply_to_story_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_channel_cursor",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_channel_cursor ON public.messages USING btree (channel_id, created_at DESC, id DESC) WHERE (channel_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_messages_file_upload",
+      "table": "messages",
+      "definition": "CREATE INDEX idx_messages_file_upload ON public.messages USING btree (file_upload_id) WHERE (file_upload_id IS NOT NULL)"
+    },
+    {
+      "name": "profiles_pkey",
+      "table": "profiles",
+      "definition": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)"
+    },
+    {
+      "name": "profiles_username_key",
+      "table": "profiles",
+      "definition": "CREATE UNIQUE INDEX profiles_username_key ON public.profiles USING btree (username)"
+    },
+    {
+      "name": "idx_profiles_created_at",
+      "table": "profiles",
+      "definition": "CREATE INDEX idx_profiles_created_at ON public.profiles USING btree (created_at DESC)"
+    },
+    {
+      "name": "idx_profiles_pending_deletion",
+      "table": "profiles",
+      "definition": "CREATE INDEX idx_profiles_pending_deletion ON public.profiles USING btree (scheduled_deletion_at) WHERE (scheduled_deletion_at IS NOT NULL)"
+    },
+    {
+      "name": "stories_pkey",
+      "table": "stories",
+      "definition": "CREATE UNIQUE INDEX stories_pkey ON public.stories USING btree (id)"
+    },
+    {
+      "name": "idx_stories_user_created",
+      "table": "stories",
+      "definition": "CREATE INDEX idx_stories_user_created ON public.stories USING btree (user_id, created_at DESC)"
+    },
+    {
+      "name": "idx_stories_expires",
+      "table": "stories",
+      "definition": "CREATE INDEX idx_stories_expires ON public.stories USING btree (expires_at)"
+    },
+    {
+      "name": "idx_stories_active",
+      "table": "stories",
+      "definition": "CREATE INDEX idx_stories_active ON public.stories USING btree (user_id, expires_at, created_at DESC)"
+    },
+    {
+      "name": "idx_stories_thumbnail",
+      "table": "stories",
+      "definition": "CREATE INDEX idx_stories_thumbnail ON public.stories USING btree (media_thumbnail_upload_id) WHERE (media_thumbnail_upload_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_stories_file_upload",
+      "table": "stories",
+      "definition": "CREATE INDEX idx_stories_file_upload ON public.stories USING btree (file_upload_id) WHERE (file_upload_id IS NOT NULL)"
+    },
+    {
+      "name": "user_blocks_pkey",
+      "table": "user_blocks",
+      "definition": "CREATE UNIQUE INDEX user_blocks_pkey ON public.user_blocks USING btree (blocker_id, blocked_id)"
+    },
+    {
+      "name": "idx_user_blocks_blocked",
+      "table": "user_blocks",
+      "definition": "CREATE INDEX idx_user_blocks_blocked ON public.user_blocks USING btree (blocked_id)"
+    },
+    {
+      "name": "user_settings_pkey",
+      "table": "user_settings",
+      "definition": "CREATE UNIQUE INDEX user_settings_pkey ON public.user_settings USING btree (user_id)"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "user_blocks_blocked_id_fkey",
+      "table": "user_blocks",
+      "definition": "FOREIGN KEY (blocked_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "user_blocks_blocker_id_fkey",
+      "table": "user_blocks",
+      "definition": "FOREIGN KEY (blocker_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "user_blocks_pkey",
+      "table": "user_blocks",
+      "definition": "PRIMARY KEY (blocker_id, blocked_id)"
+    },
+    {
+      "name": "channel_invitations_channel_id_fkey",
+      "table": "channel_invitations",
+      "definition": "FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "channel_invitations_channel_id_sender_id_recipient_id_key",
+      "table": "channel_invitations",
+      "definition": "UNIQUE (channel_id, sender_id, recipient_id)"
+    },
+    {
+      "name": "channel_invitations_pkey",
+      "table": "channel_invitations",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "channel_invitations_recipient_id_fkey",
+      "table": "channel_invitations",
+      "definition": "FOREIGN KEY (recipient_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "channel_invitations_sender_id_fkey",
+      "table": "channel_invitations",
+      "definition": "FOREIGN KEY (sender_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "channel_invitations_status_check",
+      "table": "channel_invitations",
+      "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text, 'dismissed'::text])))"
+    }
+  ],
+  "default_acls": [
+    {
+      "acl": [
+        "postgres=rwU/postgres",
+        "anon=rwU/postgres",
+        "authenticated=rwU/postgres",
+        "service_role=rwU/postgres"
+      ],
+      "type": "S",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "anon=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "type": "f",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "anon=arwdDxtm/postgres",
+        "authenticated=arwdDxtm/postgres",
+        "service_role=arwdDxtm/postgres"
+      ],
+      "type": "r",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": [
+        "postgres=rwU/postgres",
+        "anon=rwU/postgres",
+        "authenticated=rwU/postgres",
+        "service_role=rwU/postgres"
+      ],
+      "type": "S",
+      "owner": "postgres",
+      "schema": "storage"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "anon=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "type": "f",
+      "owner": "postgres",
+      "schema": "storage"
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "anon=arwdDxtm/postgres",
+        "authenticated=arwdDxtm/postgres",
+        "service_role=arwdDxtm/postgres"
+      ],
+      "type": "r",
+      "owner": "postgres",
+      "schema": "storage"
+    }
+  ],
+  "policy_dependencies": [
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": ["authenticated"],
+      "tablename": "reports",
+      "permissive": "PERMISSIVE",
+      "policyname": "reports_insert_own",
+      "schemaname": "public",
+      "with_check": "((reporter_id = ( SELECT auth.uid() AS uid)) AND (reported_chat_id IS NULL) AND (reported_message_id IS NULL) AND (reason = ANY (ARRAY['spam'::text, 'harassment'::text, 'inappropriate'::text, 'other'::text])) AND (char_length(COALESCE(description, ''::text)) <= 500) AND ((reason <> 'other'::text) OR (char_length(btrim(COALESCE(description, ''::text))) > 0)) AND (((reported_channel_id IS NOT NULL) AND (reported_user_id IS NULL) AND (EXISTS ( SELECT 1\n   FROM channels_public cp\n  WHERE (cp.id = reports.reported_channel_id))) AND (NOT is_channel_owner(reported_channel_id, ( SELECT auth.uid() AS uid)))) OR ((reported_user_id IS NOT NULL) AND (reported_channel_id IS NULL) AND (reported_user_id <> ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1\n   FROM profiles_visible p\n  WHERE (p.id = reports.reported_user_id))))))"
+    }
+  ],
+  "additional_functions": [
+    {
+      "acl": ["postgres=X/postgres", "authenticated=X/postgres"],
+      "name": "authorize_channel_avatar_read(uuid,text)",
+      "definition": "CREATE OR REPLACE FUNCTION public.authorize_channel_avatar_read(p_channel_id uuid, p_path text)\n RETURNS TABLE(bucket text, path text)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF auth.uid() IS NULL OR NOT public.auth_mfa_satisfied() THEN\n    RAISE EXCEPTION 'Authentication and MFA required' USING ERRCODE = '42501';\n  END IF;\n  IF p_path IS NULL OR p_path !~ ('^chat-' || p_channel_id::text || '/channel-[a-zA-Z0-9-]+\\.webp$') THEN\n    RAISE EXCEPTION 'Invalid channel avatar path' USING ERRCODE = '42501';\n  END IF;\n  RETURN QUERY\n  SELECT 'avatars'::text AS bucket, c.avatar_url AS path\n  FROM public.channels c\n  WHERE c.id = p_channel_id AND c.avatar_url = p_path\n  LIMIT 1;\n  IF NOT FOUND THEN\n    RAISE EXCEPTION 'Channel avatar unavailable' USING ERRCODE = '42501';\n  END IF;\nEND $function$\n"
+    },
+    {
+      "acl": ["postgres=X/postgres", "authenticated=X/postgres"],
+      "name": "get_channel_messages(uuid,timestamp with time zone,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_channel_messages(p_channel_id uuid, p_before_at timestamp with time zone DEFAULT NULL::timestamp with time zone, p_before_id uuid DEFAULT NULL::uuid)\n RETURNS SETOF messages\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  m public.messages;\n  v_staff boolean;\nBEGIN\n  IF auth.uid() IS NULL OR NOT public.auth_mfa_satisfied() THEN RETURN; END IF;\n  IF NOT EXISTS (SELECT 1 FROM public.channels WHERE id = p_channel_id) THEN RETURN; END IF;\n  v_staff := public.is_channel_staff(p_channel_id, auth.uid());\n\n  FOR m IN\n    SELECT * FROM public.messages\n    WHERE channel_id = p_channel_id\n      AND NOT public.is_message_deleted_for_user(id, auth.uid())\n      AND (p_before_at IS NULL OR (created_at, id) < (p_before_at, p_before_id))\n    ORDER BY created_at DESC, id DESC\n    LIMIT 50\n  LOOP\n    IF NOT v_staff THEN\n      m.sender_id := NULL;\n    END IF;\n    IF m.deleted_for_everyone THEN\n      m.content := NULL; m.contact_data := NULL; m.location_data := NULL;\n      m.file_upload_id := NULL; m.media_thumbnail_upload_id := NULL;\n      m.mentions := NULL; m.reply_to_message_id := NULL; m.type := 'text';\n      m.media_peaks := NULL; m.forwarded_from_message_id := NULL;\n    END IF;\n    RETURN NEXT m;\n  END LOOP;\nEND $function$\n"
+    },
+    {
+      "acl": ["postgres=X/postgres", "authenticated=X/postgres"],
+      "name": "get_story_viewers(uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_story_viewers(p_story_id uuid)\n RETURNS TABLE(viewer_id uuid, username text, display_name text, avatar_url text, viewed_at timestamp with time zone)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  SELECT\r\n    sv.viewer_id,\r\n    p.username,\r\n    p.display_name,\r\n    CASE\r\n      WHEN public.can_view_avatar(p.id, auth.uid()) THEN p.avatar_url\r\n      ELSE NULL\r\n    END AS avatar_url,\r\n    sv.viewed_at\r\n  FROM public.story_views sv\r\n  JOIN public.profiles p ON p.id = sv.viewer_id\r\n  LEFT JOIN public.user_settings us ON us.user_id = p.id\r\n  WHERE sv.story_id = p_story_id\r\n    AND EXISTS (\r\n      SELECT 1 FROM public.stories\r\n      WHERE id = p_story_id AND user_id = auth.uid()\r\n    )\r\n    AND NOT public.is_blocked_either_way(p.id, auth.uid())\r\n  ORDER BY sv.viewed_at DESC;\r\n$function$\n"
+    },
+    {
+      "acl": ["postgres=X/postgres", "authenticated=X/postgres"],
+      "name": "is_blocked_either_way(uuid,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.is_blocked_either_way(p_user_a uuid, p_user_b uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$SELECT public.auth_mfa_satisfied() AND (\r\n  SELECT EXISTS (SELECT 1 FROM public.user_blocks WHERE (blocker_id = p_user_a AND blocked_id = p_user_b) OR (blocker_id = p_user_b AND blocked_id = p_user_a)))$function$\n"
+    }
+  ]
+}

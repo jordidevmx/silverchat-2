@@ -35,7 +35,11 @@ export function useAddMembers(
     queryFn: async () => {
       const escaped = term.replace(/_/g, "\\_");
       const result = await supabase
-        .from("profiles_visible")
+        .rpc(
+          "read_profiles_visible",
+          { p_query: term, p_sort: "username", p_limit: 20 },
+          { get: true },
+        )
         .select("*")
         .or(`username.ilike.%${escaped}%,display_name.ilike.%${escaped}%`)
         .order("username")

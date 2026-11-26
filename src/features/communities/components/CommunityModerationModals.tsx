@@ -450,7 +450,7 @@ export function CommunityBansModal({
       const rows = r.data ?? [];
       if (!rows.length) return [];
       const profiles = await supabase
-        .from("profiles_visible")
+        .rpc("read_profiles_visible", { p_ids: rows.map((b) => b.user_id) })
         .select("id, display_name, username, avatar_url")
         .in(
           "id",

@@ -1,0 +1,91 @@
+{
+  "date": "2026-11-26",
+  "base_commit": "618da6b879153ed67c7ac870fd3547bc64988804",
+  "branch": "fix-security-definer-views",
+  "migration": "supabase/migrations/20261126171911_secure_privacy_views.sql",
+  "migration_sha256": "74a3f66837ddddd337a4319d63f11138a8b149764cf8f89d5cfe2045fcaff90f",
+  "database": {
+    "project": "silverchat-staging",
+    "ref": "gffdrrtatxdiucigtwdn",
+    "postgres": "17.11",
+    "execution": "Supabase execute_sql connector; guard checked before every write; outer BEGIN/ROLLBACK",
+    "permanent_task_migration": false,
+    "synthetic_users_remaining": 0
+  },
+  "baseline_reproduction": {
+    "own_block_rows": 1,
+    "broken_invoker_list_rows": 0,
+    "third_party_block_disclosed": true,
+    "mfa_satisfied": false,
+    "viewers_disclosed_before_mfa": 1
+  },
+  "sql_passed": [
+    "backend_foundation",
+    "authentication",
+    "profile_settings",
+    "messages",
+    "message_actions",
+    "novedades",
+    "novedades_storage",
+    "shared_roles_permissions",
+    "security_view_profiles",
+    "security_view_privileges",
+    "security_view_channels_media",
+    "security_view_helpers"
+  ],
+  "roundtrip": {
+    "migration": true,
+    "functional_rollback": true,
+    "rollback_shared_roles_smoke": true,
+    "reapply": true,
+    "new_authorization_suites": true,
+    "rollback_profile_settings_smoke": true
+  },
+  "local_checks": {
+    "typecheck": "passed",
+    "biome_changed_js_ts": "passed",
+    "production_bundle": "passed with chunk-size warning",
+    "focused_node_tests": {
+      "passed": 73,
+      "failed": 0
+    },
+    "browser_passed": ["block-identity", "shared-roles-permissions", "messages"],
+    "baseline_messages_browser": "passed on untouched618da6b export",
+    "browser_failures": [
+      {
+        "suite": "novedades-browser.mjs",
+        "execution": "owner-run full suite",
+        "assertion": "Send button must be a >=44px circle, got 48x36",
+        "classification": "pre-existing on baseline 618da6b",
+        "baseline_probe": "original text-story layout assertion fails with 48x36 on untouched baseline export",
+        "candidate_probe": "same original text-story layout assertion fails with 48x36",
+        "probe_scope": "text story only; unused video generation and later scenarios excluded",
+        "unchanged_sources": [
+          "src/components/ui/story-surfaces.tsx",
+          "src/components/ui/button.tsx",
+          "src/styles/novedades.css"
+        ]
+      }
+    ],
+    "browser_pending": ["novedades scenarios after the first story layout assertion"]
+  },
+  "review": {
+    "critical_findings": 0,
+    "resolved": [
+      "ID batches use POST to avoid duplicate UUID URL arrays",
+      "Helper negative tests validate SQLSTATE/message and positive admission"
+    ],
+    "remaining_blockers": []
+  },
+  "not_run": [
+    "Clean-database migration replay and pnpm test:db --all in CI",
+    "Live PostgREST/Storage HTTP on permanently deployed candidate",
+    "Permanent Staging or Production application"
+  ],
+  "rollback_sha256": "40ecef8217ba89f4f7c9c689290c4bc25e941e7ca3a498aed9c00bd29bee00fe",
+  "final_combined_sql": {
+    "result": "passed",
+    "suite_count": 12,
+    "command": "node scripts/prepare-privacy-view-verification.mjs supabase/tests/backend_foundation.sql supabase/tests/authentication.sql supabase/tests/profile_settings.sql supabase/tests/messages.sql supabase/tests/message_actions.sql supabase/tests/novedades.sql supabase/tests/novedades_storage.sql supabase/tests/shared_roles_permissions.sql supabase/tests/security_view_profiles.sql supabase/tests/security_view_privileges.sql supabase/tests/security_view_channels_media.sql supabase/tests/security_view_helpers.sql"
+  }
+}

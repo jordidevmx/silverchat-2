@@ -427,7 +427,7 @@ async function setupContext(context) {
       return reply(filtered);
     }
     if (p.endsWith("/profiles")) return response(route, profiles[0]);
-    if (p.endsWith("/profiles_visible")) {
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible")) {
       const idParam = url.searchParams.get("id");
       if (idParam?.startsWith("eq.")) {
         const target = idParam.slice(3);

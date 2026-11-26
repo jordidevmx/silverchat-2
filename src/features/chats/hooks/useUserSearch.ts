@@ -84,7 +84,11 @@ export function useUserSearch(rawQuery: string, debounceMs = 300) {
 
       const [profilesRes, blocksRes] = await Promise.all([
         supabase
-          .from("profiles_visible")
+          .rpc(
+            "read_profiles_visible",
+            { p_query: debouncedTerm, p_match_id_prefix: true, p_exclude_self: true, p_limit: 20 },
+            { get: true },
+          )
           .select("id, username, display_name, avatar_url, bio")
           .neq("id", currentUserId)
           .or(orFilter)
@@ -186,7 +190,7 @@ export function useDirectContacts() {
       if (!otherUserIds.length) return [];
 
       const profilesRes = await supabase
-        .from("profiles_visible")
+        .rpc("read_profiles_visible", { p_ids: otherUserIds })
         .select("id, username, display_name, avatar_url, bio")
         .in("id", otherUserIds);
 

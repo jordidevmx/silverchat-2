@@ -12,7 +12,11 @@ export function useChannelInfo(id: string) {
     ...CHAT_QUERY_OPTIONS,
     queryFn: async () => {
       const [channel, follow, viewerCtx] = await Promise.all([
-        supabase.from("channels_public").select("*").eq("id", id).maybeSingle(),
+        supabase
+          .rpc("read_channels_public", { p_ids: [id] })
+          .select("*")
+          .eq("id", id)
+          .maybeSingle(),
         supabase
           .from("channel_followers")
           .select("*")

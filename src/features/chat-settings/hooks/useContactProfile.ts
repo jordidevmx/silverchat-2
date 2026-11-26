@@ -10,7 +10,11 @@ export function useContactProfile(userId: string) {
     ...CHAT_QUERY_OPTIONS,
     queryFn: async () => {
       const [profile, chat, block] = await Promise.all([
-        supabase.from("profiles_visible").select("*").eq("id", userId).maybeSingle(),
+        supabase
+          .rpc("read_profiles_visible", { p_ids: [userId] })
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle(),
         supabase
           .from("chats")
           .select("id,status,type")

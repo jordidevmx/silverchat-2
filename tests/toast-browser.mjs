@@ -109,7 +109,7 @@ async function setupRoutes(context) {
 
     if (p.endsWith("/user")) return response(route, user);
     if (p.endsWith("/profiles")) return response(route, profiles[0]);
-    if (p.endsWith("/profiles_visible")) {
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible")) {
       return response(
         route,
         profiles.filter((pr) => pr.id !== me),
