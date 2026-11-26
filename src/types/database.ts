@@ -84,20 +84,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "calls_initiator_id_fkey";
-            columns: ["initiator_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "calls_initiator_id_fkey";
-            columns: ["initiator_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       channel_feed_events: {
@@ -129,13 +115,6 @@ export type Database = {
             columns: ["channel_id"];
             isOneToOne: false;
             referencedRelation: "channels";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_feed_events_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
             referencedColumns: ["id"];
           },
         ];
@@ -172,31 +151,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "channel_followers_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "channel_followers_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_followers_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_followers_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -239,13 +197,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "channel_invitations_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "channel_invitations_recipient_id_fkey";
             columns: ["recipient_id"];
             isOneToOne: false;
@@ -253,38 +204,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "channel_invitations_recipient_id_fkey";
-            columns: ["recipient_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_recipient_id_fkey";
-            columns: ["recipient_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "channel_invitations_sender_id_fkey";
             columns: ["sender_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_sender_id_fkey";
-            columns: ["sender_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_sender_id_fkey";
-            columns: ["sender_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -318,31 +241,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "channel_staff_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "channel_staff_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_staff_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_staff_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -409,20 +311,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "channels_owner_id_fkey";
-            columns: ["owner_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channels_owner_id_fkey";
-            columns: ["owner_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       chat_invite_links: {
@@ -467,20 +355,6 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chat_invite_links_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chat_invite_links_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -538,20 +412,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "chat_members_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chat_members_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       chat_requests: {
@@ -599,38 +459,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "chat_requests_recipient_id_fkey";
-            columns: ["recipient_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chat_requests_recipient_id_fkey";
-            columns: ["recipient_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "chat_requests_sender_id_fkey";
             columns: ["sender_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chat_requests_sender_id_fkey";
-            columns: ["sender_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chat_requests_sender_id_fkey";
-            columns: ["sender_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -728,20 +560,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "chats_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chats_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "chats_last_message_id_fkey";
             columns: ["last_message_id"];
             isOneToOne: false;
@@ -753,20 +571,6 @@ export type Database = {
             columns: ["owner_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chats_owner_id_fkey";
-            columns: ["owner_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "chats_owner_id_fkey";
-            columns: ["owner_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -811,20 +615,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "communities_owner_id_fkey";
-            columns: ["owner_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "communities_owner_id_fkey";
-            columns: ["owner_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       community_announcement_writers: {
@@ -863,38 +653,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "community_announcement_writers_granted_by_fkey";
-            columns: ["granted_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_announcement_writers_granted_by_fkey";
-            columns: ["granted_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "community_announcement_writers_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_announcement_writers_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_announcement_writers_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -943,20 +705,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "community_audit_logs_actor_id_fkey";
-            columns: ["actor_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_audit_logs_actor_id_fkey";
-            columns: ["actor_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "community_audit_logs_community_id_fkey";
             columns: ["community_id"];
             isOneToOne: false;
@@ -975,20 +723,6 @@ export type Database = {
             columns: ["target_user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_audit_logs_target_user_id_fkey";
-            columns: ["target_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_audit_logs_target_user_id_fkey";
-            columns: ["target_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1025,20 +759,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "community_bans_banned_by_fkey";
-            columns: ["banned_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_bans_banned_by_fkey";
-            columns: ["banned_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "community_bans_community_id_fkey";
             columns: ["community_id"];
             isOneToOne: false;
@@ -1050,20 +770,6 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_bans_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_bans_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1113,38 +819,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "community_members_silenced_by_fkey";
-            columns: ["silenced_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_members_silenced_by_fkey";
-            columns: ["silenced_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "community_members_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_members_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "community_members_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1190,20 +868,6 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "devices_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "devices_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1266,20 +930,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "file_uploads_uploader_id_fkey";
-            columns: ["uploader_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "file_uploads_uploader_id_fkey";
-            columns: ["uploader_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       group_join_requests: {
@@ -1330,20 +980,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "group_join_requests_requested_by_fkey";
-            columns: ["requested_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "group_join_requests_requested_by_fkey";
-            columns: ["requested_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "group_join_requests_reviewed_by_fkey";
             columns: ["reviewed_by"];
             isOneToOne: false;
@@ -1351,38 +987,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "group_join_requests_reviewed_by_fkey";
-            columns: ["reviewed_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "group_join_requests_reviewed_by_fkey";
-            columns: ["reviewed_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "group_join_requests_target_user_id_fkey";
             columns: ["target_user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "group_join_requests_target_user_id_fkey";
-            columns: ["target_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "group_join_requests_target_user_id_fkey";
-            columns: ["target_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1417,20 +1025,6 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "message_deletions_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "message_deletions_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1470,20 +1064,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "message_reactions_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "message_reactions_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       message_receipts: {
@@ -1519,20 +1099,6 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "message_receipts_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "message_receipts_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1615,13 +1181,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "messages_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "messages_chat_id_fkey";
             columns: ["chat_id"];
             isOneToOne: false;
@@ -1636,13 +1195,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "messages_file_upload_id_fkey";
-            columns: ["file_upload_id"];
-            isOneToOne: false;
-            referencedRelation: "message_media_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "messages_forwarded_from_message_id_fkey";
             columns: ["forwarded_from_message_id"];
             isOneToOne: false;
@@ -1654,13 +1206,6 @@ export type Database = {
             columns: ["media_thumbnail_upload_id"];
             isOneToOne: false;
             referencedRelation: "file_uploads";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "messages_media_thumbnail_upload_id_fkey";
-            columns: ["media_thumbnail_upload_id"];
-            isOneToOne: false;
-            referencedRelation: "message_media_public";
             referencedColumns: ["id"];
           },
           {
@@ -1682,20 +1227,6 @@ export type Database = {
             columns: ["sender_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey";
-            columns: ["sender_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey";
-            columns: ["sender_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1802,13 +1333,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "reports_reported_channel_id_fkey";
-            columns: ["reported_channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "reports_reported_chat_id_fkey";
             columns: ["reported_chat_id"];
             isOneToOne: false;
@@ -1830,20 +1354,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "reports_reported_user_id_fkey";
-            columns: ["reported_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "reports_reported_user_id_fkey";
-            columns: ["reported_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "reports_reporter_id_fkey";
             columns: ["reporter_id"];
             isOneToOne: false;
@@ -1851,38 +1361,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "reports_reporter_id_fkey";
-            columns: ["reporter_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "reports_reporter_id_fkey";
-            columns: ["reporter_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "reports_reviewed_by_fkey";
             columns: ["reviewed_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "reports_reviewed_by_fkey";
-            columns: ["reviewed_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "reports_reviewed_by_fkey";
-            columns: ["reviewed_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -1934,13 +1416,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "stories_file_upload_id_fkey";
-            columns: ["file_upload_id"];
-            isOneToOne: false;
-            referencedRelation: "message_media_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "stories_media_thumbnail_upload_id_fkey";
             columns: ["media_thumbnail_upload_id"];
             isOneToOne: false;
@@ -1948,31 +1423,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "stories_media_thumbnail_upload_id_fkey";
-            columns: ["media_thumbnail_upload_id"];
-            isOneToOne: false;
-            referencedRelation: "message_media_public";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "stories_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "stories_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "stories_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -2009,20 +1463,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "story_views_viewer_id_fkey";
-            columns: ["viewer_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "story_views_viewer_id_fkey";
-            columns: ["viewer_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       two_factor_backup_codes: {
@@ -2056,20 +1496,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "two_factor_backup_codes_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "two_factor_backup_codes_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
       user_blocks: {
@@ -2098,38 +1524,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "user_blocks_blocked_id_fkey";
-            columns: ["blocked_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "user_blocks_blocked_id_fkey";
-            columns: ["blocked_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "user_blocks_blocker_id_fkey";
             columns: ["blocker_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "user_blocks_blocker_id_fkey";
-            columns: ["blocker_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "user_blocks_blocker_id_fkey";
-            columns: ["blocker_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
             referencedColumns: ["id"];
           },
         ];
@@ -2201,20 +1599,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "user_settings_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: true;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "user_settings_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: true;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
         ];
       };
     };
@@ -2227,34 +1611,7 @@ export type Database = {
           status: string | null;
         };
         ComputedFields: never;
-        Insert: {
-          channel_id?: string | null;
-          created_at?: string | null;
-          id?: string | null;
-          status?: string | null;
-        };
-        Update: {
-          channel_id?: string | null;
-          created_at?: string | null;
-          id?: string | null;
-          status?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "channel_invitations_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       channel_invitations_sent: {
         Row: {
@@ -2266,59 +1623,7 @@ export type Database = {
           status: string | null;
         };
         ComputedFields: never;
-        Insert: {
-          accepted_at?: string | null;
-          channel_id?: string | null;
-          created_at?: string | null;
-          id?: string | null;
-          recipient_id?: string | null;
-          status?: never;
-        };
-        Update: {
-          accepted_at?: string | null;
-          channel_id?: string | null;
-          created_at?: string | null;
-          id?: string | null;
-          recipient_id?: string | null;
-          status?: never;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "channel_invitations_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_channel_id_fkey";
-            columns: ["channel_id"];
-            isOneToOne: false;
-            referencedRelation: "channels_public";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_recipient_id_fkey";
-            columns: ["recipient_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_recipient_id_fkey";
-            columns: ["recipient_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_blocked";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "channel_invitations_recipient_id_fkey";
-            columns: ["recipient_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles_visible";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       channels_public: {
         Row: {
@@ -2336,43 +1641,7 @@ export type Database = {
           updated_at: string | null;
         };
         ComputedFields: never;
-        Insert: {
-          avatar_url?: string | null;
-          created_at?: string | null;
-          description?: string | null;
-          follower_count?: number | null;
-          id?: string | null;
-          is_verified?: boolean | null;
-          last_message_at?: string | null;
-          last_message_id?: string | null;
-          last_message_preview?: string | null;
-          name?: string | null;
-          slug?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          avatar_url?: string | null;
-          created_at?: string | null;
-          description?: string | null;
-          follower_count?: number | null;
-          id?: string | null;
-          is_verified?: boolean | null;
-          last_message_at?: string | null;
-          last_message_id?: string | null;
-          last_message_preview?: string | null;
-          name?: string | null;
-          slug?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "channels_last_message_id_fkey";
-            columns: ["last_message_id"];
-            isOneToOne: false;
-            referencedRelation: "messages";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       message_media_public: {
         Row: {
@@ -2390,34 +1659,6 @@ export type Database = {
           width: number | null;
         };
         ComputedFields: never;
-        Insert: {
-          bucket?: string | null;
-          completed_at?: string | null;
-          created_at?: string | null;
-          duration_seconds?: number | null;
-          height?: number | null;
-          id?: string | null;
-          mime_type?: string | null;
-          original_filename?: string | null;
-          path?: string | null;
-          size_bytes?: number | null;
-          status?: Database["public"]["Enums"]["upload_status"] | null;
-          width?: number | null;
-        };
-        Update: {
-          bucket?: string | null;
-          completed_at?: string | null;
-          created_at?: string | null;
-          duration_seconds?: number | null;
-          height?: number | null;
-          id?: string | null;
-          mime_type?: string | null;
-          original_filename?: string | null;
-          path?: string | null;
-          size_bytes?: number | null;
-          status?: Database["public"]["Enums"]["upload_status"] | null;
-          width?: number | null;
-        };
         Relationships: [];
       };
       profiles_blocked: {
@@ -2730,6 +1971,98 @@ export type Database = {
       promote_community_admin: {
         Args: { p_community_id: string; p_user_id: string };
         Returns: undefined;
+      };
+      read_channel_invitations_sent: {
+        Args: { p_channel_id: string };
+        Returns: {
+          accepted_at: string | null;
+          channel_id: string | null;
+          created_at: string | null;
+          id: string | null;
+          recipient_id: string | null;
+          status: string | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "channel_invitations_sent";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      read_channels_public: {
+        Args: { p_ids?: string[]; p_limit?: number; p_offset?: number; p_slug?: string };
+        Returns: {
+          avatar_url: string | null;
+          created_at: string | null;
+          description: string | null;
+          follower_count: number | null;
+          id: string | null;
+          is_verified: boolean | null;
+          last_message_at: string | null;
+          last_message_id: string | null;
+          last_message_preview: string | null;
+          name: string | null;
+          slug: string | null;
+          updated_at: string | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "channels_public";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      read_message_media_public: {
+        Args: { p_ids: string[] };
+        Returns: {
+          bucket: string | null;
+          completed_at: string | null;
+          created_at: string | null;
+          duration_seconds: number | null;
+          height: number | null;
+          id: string | null;
+          mime_type: string | null;
+          original_filename: string | null;
+          path: string | null;
+          size_bytes: number | null;
+          status: Database["public"]["Enums"]["upload_status"] | null;
+          width: number | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "message_media_public";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      read_profiles_visible: {
+        Args: {
+          p_exclude_self?: boolean;
+          p_ids?: string[];
+          p_limit?: number;
+          p_match_id_prefix?: boolean;
+          p_query?: string;
+          p_sort?: string;
+          p_username?: string;
+        };
+        Returns: {
+          avatar_initials: string | null;
+          avatar_url: string | null;
+          bio: string | null;
+          created_at: string | null;
+          display_name: string | null;
+          id: string | null;
+          last_seen_at: string | null;
+          social_links: Json | null;
+          updated_at: string | null;
+          username: string | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "profiles_visible";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       reject_chat_request: { Args: { p_request_id: string }; Returns: undefined };
       remove_channel_admin: {

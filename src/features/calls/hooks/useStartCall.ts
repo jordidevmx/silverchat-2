@@ -45,7 +45,7 @@ async function resolveParticipant(chatId: string, userId: string): Promise<CallP
   // Direct chats carry an "id1::id2" pair key; a self chat has no peer.
   const otherId = chatRow?.direct_pair_key?.split("::").find((id) => id !== userId) ?? userId;
   const { data: other } = await supabase
-    .from("profiles_visible")
+    .rpc("read_profiles_visible", { p_ids: [otherId] })
     .select("id, username, display_name, avatar_url, last_seen_at")
     .eq("id", otherId)
     .maybeSingle();

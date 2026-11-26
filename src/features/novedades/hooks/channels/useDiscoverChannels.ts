@@ -24,11 +24,11 @@ export function useDiscoverChannels() {
       // Scan ordered pages to return exactly the top 20 not followed, without an oversized NOT IN URL.
       for (let offset = 0; result.length < 20; offset += 100) {
         const r = await supabase
-          .from("channels_public")
+          .rpc("read_channels_public", { p_offset: offset, p_limit: 100 }, { get: true })
           .select("*")
           .order("follower_count", { ascending: false })
           .order("id")
-          .range(offset, offset + 99);
+          .limit(100);
         if (r.error) throw r.error;
         const rows = (r.data ?? []).map(mapPublicChannelRow).filter((c) => c.id && !ids.has(c.id));
         result.push(...rows);

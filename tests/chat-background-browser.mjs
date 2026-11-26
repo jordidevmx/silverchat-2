@@ -130,7 +130,8 @@ async function attachMocks(targetPage) {
     const method = req.method();
     if (path.endsWith("/user")) return fulfill(route, user);
     if (path.endsWith("/profiles")) return fulfill(route, profile);
-    if (path.endsWith("/profiles_visible")) return fulfill(route, [profile, otherProfile]);
+    if (path.endsWith("/profiles_visible") || path.endsWith("/rpc/read_profiles_visible"))
+      return fulfill(route, [profile, otherProfile]);
     if (path.endsWith("/user_settings")) {
       if (method === "PATCH") {
         const patch = req.postDataJSON();
@@ -194,7 +195,11 @@ async function attachMocks(targetPage) {
         ? fulfill(route, directChat)
         : fulfill(route, [directChat]);
     if (path.endsWith("/chat_members")) return fulfill(route, directChatMembers);
-    if (path.endsWith("/channels") || path.endsWith("/channels_public"))
+    if (
+      path.endsWith("/channels") ||
+      path.endsWith("/channels_public") ||
+      path.endsWith("/rpc/read_channels_public")
+    )
       return req.headers().accept?.includes("object")
         ? fulfill(route, channel)
         : fulfill(route, [channel]);

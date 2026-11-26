@@ -268,7 +268,8 @@ async function attachMocks(ctx) {
         read_receipts_enabled: true,
       });
     }
-    if (p.endsWith("/profiles_visible")) return result(filter(profiles));
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible"))
+      return result(filter(profiles));
     if (p.endsWith("/app_config")) return result([{ key: "avatar_gradient_palette", value: [] }]);
     if (p.endsWith("/stories")) {
       return result(filter(stories).sort((a, b) => a.created_at.localeCompare(b.created_at)));

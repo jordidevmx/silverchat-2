@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-26",
+  "base_commit": "618da6b879153ed67c7ac870fd3547bc64988804",
+  "branch": "fix-security-definer-views",
+  "migration": "supabase/migrations/20261126171911_secure_privacy_views.sql",
+  "migration_sha256": "74a3f66837ddddd337a4319d63f11138a8b149764cf8f89d5cfe2045fcaff90f",
+  "database": {
+    "project": "silverchat-staging",
+    "ref": "gffdrrtatxdiucigtwdn",
+    "postgres": "17.11",
+    "execution": "Supabase execute_sql connector; guard checked before every write; outer BEGIN/ROLLBACK",
+    "permanent_task_migration": false,
+    "synthetic_users_remaining": 0
+  },
+  "baseline_reproduction": {
+    "own_block_rows": 1,
+    "broken_invoker_list_rows": 0,
+    "third_party_block_disclosed": true,
+    "mfa_satisfied": false,
+    "viewers_disclosed_before_mfa": 1
+  },
+  "sql_passed": [
+    "backend_foundation",
+    "authentication",
+    "profile_settings",
+    "messages",
+    "message_actions",
+    "novedades",
+    "novedades_storage",
+    "shared_roles_permissions",
+    "security_view_profiles",
+    "security_view_privileges",
+    "security_view_channels_media",
+    "security_view_helpers"
+  ],
+  "roundtrip": {
+    "migration": true,
+    "functional_rollback": true,
+    "rollback_shared_roles_smoke": true,
+    "reapply": true,
+    "new_authorization_suites": true,
+    "rollback_profile_settings_smoke": true
+  },
+  "local_checks": {
+    "typecheck": "passed",
+    "biome_changed_js_ts": "passed",
+    "production_bundle": "passed with chunk-size warning",
+    "focused_node_tests": {
+      "passed": 73,
+      "failed": 0
+    },
+    "browser_passed": ["block-identity", "shared-roles-permissions", "messages"],
+    "baseline_messages_browser": "passed on untouched618da6b export",
+    "browser_failures": [
+      {
+        "suite": "novedades-browser.mjs",
+        "execution": "owner-run full suite",
+        "assertion": "Send button must be a >=44px circle, got 48x36",
+        "classification": "pre-existing on baseline 618da6b",
+        "baseline_probe": "original text-story layout assertion fails with 48x36 on untouched baseline export",
+        "candidate_probe": "same original text-story layout assertion fails with 48x36",
+        "probe_scope": "text story only; unused video generation and later scenarios excluded",
+        "unchanged_sources": [
+          "src/components/ui/story-surfaces.tsx",
+          "src/components/ui/button.tsx",
+          "src/styles/novedades.css"
+        ]
+      }
+    ],
+    "browser_pending": ["novedades scenarios after the first story layout assertion"]
+  },
+  "review": {
+    "critical_findings": 0,
+    "resolved": [
+      "ID batches use POST to avoid duplicate UUID URL arrays",
+      "Helper negative tests validate SQLSTATE/message and positive admission"
+    ],
+    "remaining_blockers": []
+  },
+  "ci_followup": {
+    "run_url": "https://github.com/jordidevmx/silverchat-2/actions/runs/45878617237",
+    "head_commit": "17e8f0f96ddef037d5b516454cb4886c8ba43795",
+    "tested_merge_ref": "dc57ba616355ecd592ef354b7bb294718240663d",
+    "unit_tests_passed": 273,
+    "clean_database_migration_replay": "passed",
+    "sql_suites_passed": 17,
+    "typecheck_build_lint": "passed",
+    "only_failed_step": "Verify committed database types match the schema",
+    "cause": "Manual type declarations differed from generated formatting, ordering and inline RPC return objects",
+    "local_correction": "Reconstruct complete generated output from 30 CI diff hunks with exact source-context validation",
+    "corrected_types_lf_sha256": "b4bb106b246d058f84d96880d998f3294f625ed5c71187f8ca414e0e50969e37",
+    "corrected_types_exact_comparison": "passed",
+    "corrected_types_typecheck": "passed",
+    "rerun": "passed on 6f4baed; https://github.com/jordidevmx/silverchat-2/actions/runs/45879450002"
+  },
+  "remote_application": {
+    "authorization": "Owner explicitly authorized Staging and Production",
+    "versions": ["20261126171911", "20261126190701"],
+    "staging_ledger_count": 34,
+    "production_ledger_count": 32,
+    "followup_sha256": "b67d5f70a96f8d58bb8107613669d8d1fc06ed400b0099413e8c439d3ed6eed2",
+    "followup_red_test": "Four public RPC search_path omissions detected",
+    "followup_green_tests": "12 SQL suites in ROLLBACK; four final suites on installed Staging",
+    "production_read_only_suite": "passed: effective privileges, function configuration, anonymous and identityless access",
+    "security_definer_view_alerts": 0,
+    "function_search_path_mutable_alerts": 0,
+    "remaining_existing_advisories": {
+      "authenticated_security_definer_function_executable": 104,
+      "auth_leaked_password_protection": 1
+    },
+    "owner_application_check": "Owner reported everything works after requested contact, blocked-list, channel/invitation and media checks",
+    "linked_target_after_application": "gffdrrtatxdiucigtwdn",
+    "followup_ci": "pending commit and push"
+  },
+  "not_run": [
+    "Agent-controlled authenticated PostgREST/Storage HTTP suite; owner reported successful deployed application use"
+  ],
+  "rollback_sha256": "40ecef8217ba89f4f7c9c689290c4bc25e941e7ca3a498aed9c00bd29bee00fe",
+  "final_combined_sql": {
+    "result": "passed",
+    "suite_count": 12,
+    "command": "node scripts/prepare-privacy-view-verification.mjs supabase/tests/backend_foundation.sql supabase/tests/authentication.sql supabase/tests/profile_settings.sql supabase/tests/messages.sql supabase/tests/message_actions.sql supabase/tests/novedades.sql supabase/tests/novedades_storage.sql supabase/tests/shared_roles_permissions.sql supabase/tests/security_view_profiles.sql supabase/tests/security_view_privileges.sql supabase/tests/security_view_channels_media.sql supabase/tests/security_view_helpers.sql"
+  }
+}

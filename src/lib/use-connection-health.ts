@@ -14,8 +14,8 @@ export function useConnectionHealth() {
     focusManager.setFocused(false);
     const probe = async () => {
       const r = await supabase
-        .from("profiles_visible")
-        .select("id", { count: "exact", head: true })
+        .rpc("read_profiles_visible", { p_limit: 1 }, { head: true, count: "exact" })
+        .select("id")
         .limit(1);
       if (!r.error || !isServerError(r.error)) {
         markHealthy();

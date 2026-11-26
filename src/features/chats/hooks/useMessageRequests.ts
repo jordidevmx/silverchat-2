@@ -32,7 +32,7 @@ export function useMessageRequests() {
           chunks(ids).map((part) =>
             allRows((from, to) =>
               supabase
-                .from("profiles_visible")
+                .rpc("read_profiles_visible", { p_ids: part })
                 .select("id,username,display_name,avatar_url")
                 .in("id", part)
                 .order("id")

@@ -48,7 +48,11 @@ export function useCreateChannelDialog(onClose: () => void) {
     queryKey: ["channel-slug", user?.id, term],
     enabled: validSlug(term) && !created,
     queryFn: async () => {
-      const r = await supabase.from("channels_public").select("id").eq("slug", term).maybeSingle();
+      const r = await supabase
+        .rpc("read_channels_public", { p_slug: term }, { get: true })
+        .select("id")
+        .eq("slug", term)
+        .maybeSingle();
       if (r.error) throw r.error;
       return !r.data;
     },

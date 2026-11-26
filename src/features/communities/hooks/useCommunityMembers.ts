@@ -23,7 +23,10 @@ export function useCommunityMembers(communityId: string) {
       );
       const profiles = new Map<string, Profile>();
       for (const part of chunks(rows.map((row) => row.user_id))) {
-        const result = await supabase.from("profiles_visible").select("*").in("id", part);
+        const result = await supabase
+          .rpc("read_profiles_visible", { p_ids: part })
+          .select("*")
+          .in("id", part);
         if (result.error) throw result.error;
         for (const profile of result.data) if (profile.id) profiles.set(profile.id, profile);
       }

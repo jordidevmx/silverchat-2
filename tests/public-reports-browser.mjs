@@ -131,7 +131,7 @@ async function setupRoutes(context) {
         read_receipts_enabled: true,
       });
     }
-    if (p.endsWith("/profiles_visible")) {
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible")) {
       const uname = s.get("username")?.slice(3);
       if (uname) return out(profiles.filter((x) => x.username === uname));
       const idFilter = s.get("id");
@@ -154,10 +154,14 @@ async function setupRoutes(context) {
       }
       return out([]);
     }
-    if (p.endsWith("/channels") || p.endsWith("/channels_public")) {
+    if (
+      p.endsWith("/channels") ||
+      p.endsWith("/channels_public") ||
+      p.endsWith("/rpc/read_channels_public")
+    ) {
       const id = s.get("id")?.slice(3);
       const list = (id ? channels.filter((c) => c.id === id) : channels).map((c) => {
-        if (!p.endsWith("/channels_public")) return c;
+        if (!(p.endsWith("/channels_public") || p.endsWith("/rpc/read_channels_public"))) return c;
         const { owner_id: _o, ...rest } = c;
         return rest;
       });

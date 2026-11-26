@@ -120,7 +120,7 @@ export function useContacts() {
       const ids = [...new Set(members.data.map((r) => r.user_id))];
       if (!ids.length) return [];
       const profiles = await supabase
-        .from("profiles_visible")
+        .rpc("read_profiles_visible", { p_ids: ids })
         .select("*")
         .in("id", ids)
         .order("display_name");

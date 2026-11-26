@@ -104,7 +104,7 @@ async function setup(context) {
         : null;
     const result = (data) =>
       send(route, req.headers().accept?.includes("object") ? (data[0] ?? null) : data);
-    if (p.includes("/rpc/")) {
+    if (p.includes("/rpc/") && !p.includes("/rpc/read_")) {
       const rpc = p.split("/").at(-1);
       calls.push({ rpc, body });
       if (rpc === "create_community") {
@@ -195,7 +195,7 @@ async function setup(context) {
         language: "en",
         read_receipts_enabled: true,
       });
-    if (p.endsWith("/profiles_visible"))
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible"))
       return result(profiles.filter((x) => !s.get("id") || s.get("id").includes(x.id)));
     if (p.endsWith("/communities")) return result(community ? [community] : []);
     if (p.endsWith("/community_members"))

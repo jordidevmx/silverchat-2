@@ -43,7 +43,7 @@ export function useChannelMessages(id: string, enabled = true) {
       const mediaRows = uploadIds.length
         ? await allRows((from, to) =>
             supabase
-              .from("message_media_public")
+              .rpc("read_message_media_public", { p_ids: uploadIds })
               .select("*")
               .in("id", uploadIds)
               .order("id")

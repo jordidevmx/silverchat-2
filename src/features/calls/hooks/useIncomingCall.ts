@@ -31,7 +31,7 @@ export function useIncomingCall(userId: string | undefined) {
         chat?.direct_pair_key?.split("::").find((id) => id !== viewerId) ?? verdict.initiator_id;
       if (!otherId) return;
       const { data: other } = await supabase
-        .from("profiles_visible")
+        .rpc("read_profiles_visible", { p_ids: [otherId] })
         .select("id, username, display_name, avatar_url, last_seen_at")
         .eq("id", otherId)
         .maybeSingle();

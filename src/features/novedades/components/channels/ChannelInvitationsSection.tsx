@@ -31,7 +31,10 @@ export function ChannelInvitationsBanner() {
       );
       if (!rows.length) return [];
       const ids = [...new Set(rows.map((r) => r.channel_id))];
-      const chRes = await supabase.from("channels_public").select("*").in("id", ids);
+      const chRes = await supabase
+        .rpc("read_channels_public", { p_ids: ids })
+        .select("*")
+        .in("id", ids);
       if (chRes.error) throw chRes.error;
       const byId = new Map(
         (chRes.data ?? [])
@@ -150,7 +153,7 @@ export function ChannelInviteContactsPanel({ channelId }: { channelId: string })
     enabled: Boolean(user),
     queryFn: async () => {
       const r = await supabase
-        .from("channel_invitations_sent")
+        .rpc("read_channel_invitations_sent", { p_channel_id: channelId }, { get: true })
         .select("*")
         .eq("channel_id", channelId);
       if (r.error) throw r.error;

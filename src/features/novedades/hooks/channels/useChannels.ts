@@ -24,7 +24,7 @@ export function useChannels() {
       const channelIds = follows.map((f) => f.channel_id);
       const publicChannels = await allRows((from, to) =>
         supabase
-          .from("channels_public")
+          .rpc("read_channels_public", { p_ids: channelIds })
           .select("*")
           .in("id", channelIds)
           .order("id")

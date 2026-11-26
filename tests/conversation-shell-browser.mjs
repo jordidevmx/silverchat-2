@@ -277,7 +277,8 @@ async function setup(context) {
       }
       return respond(route, userSettings);
     }
-    if (p.endsWith("/profiles_visible")) return result(filter(profiles));
+    if (p.endsWith("/profiles_visible") || p.endsWith("/rpc/read_profiles_visible"))
+      return result(filter(profiles));
     if (p.endsWith("/user_blocks") || p.endsWith("/profiles_blocked")) return result([]);
     if (p.endsWith("/app_config")) return result([{ key: "avatar_gradient_palette", value: [] }]);
     if (p.endsWith("/chats")) {

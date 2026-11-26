@@ -154,7 +154,7 @@ await context.route("https://supabase.test/**", async (route) => {
       read_receipts_enabled: true,
     });
   // Direction-aware visibility: a contact I blocked is still visible to me.
-  if (path.endsWith("/profiles_visible")) {
+  if (path.endsWith("/profiles_visible") || path.endsWith("/rpc/read_profiles_visible")) {
     const idParam = s.get("id");
     if (idParam?.startsWith("eq.")) {
       const targetId = idParam.slice(3);

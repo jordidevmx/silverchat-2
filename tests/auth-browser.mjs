@@ -105,7 +105,10 @@ await page.route("**/api/auth/**", async (route) => {
 await page.route("https://supabase.test/**", async (route) => {
   const url = new URL(route.request().url());
   if (url.pathname.endsWith("/user")) return fulfill(route, user());
-  if (url.pathname.endsWith("/profiles_visible"))
+  if (
+    url.pathname.endsWith("/profiles_visible") ||
+    url.pathname.endsWith("/rpc/read_profiles_visible")
+  )
     return fulfill(route, availability === "taken" ? [{ id: "another-user" }] : []);
   if (url.pathname.endsWith("/profiles")) {
     if (route.request().method() === "PATCH") {
