@@ -69,19 +69,22 @@ export type Database = {
           status?: Database["public"]["Enums"]["call_status"];
           type?: Database["public"]["Enums"]["call_type"];
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "calls_chat_id_fkey";
             columns: ["chat_id"];
             isOneToOne: false;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "calls_initiator_id_fkey";
             columns: ["initiator_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       channel_feed_events: {
         Row: {
@@ -106,13 +109,15 @@ export type Database = {
           id?: string;
           message_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "channel_feed_events_channel_id_fkey";
             columns: ["channel_id"];
             isOneToOne: false;
             referencedRelation: "channels";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       channel_followers: {
         Row: {
@@ -137,19 +142,22 @@ export type Database = {
           muted_until?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "channel_followers_channel_id_fkey";
             columns: ["channel_id"];
             isOneToOne: false;
             referencedRelation: "channels";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "channel_followers_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       channel_invitations: {
         Row: {
@@ -180,25 +188,29 @@ export type Database = {
           sender_id?: string;
           status?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "channel_invitations_channel_id_fkey";
             columns: ["channel_id"];
             isOneToOne: false;
             referencedRelation: "channels";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "channel_invitations_recipient_id_fkey";
             columns: ["recipient_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "channel_invitations_sender_id_fkey";
             columns: ["sender_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       channel_staff: {
         Row: {
@@ -220,19 +232,22 @@ export type Database = {
           role?: string;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "channel_staff_channel_id_fkey";
             columns: ["channel_id"];
             isOneToOne: false;
             referencedRelation: "channels";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "channel_staff_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       channels: {
         Row: {
@@ -281,19 +296,22 @@ export type Database = {
           slug?: string;
           updated_at?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "channels_last_message_id_fkey";
             columns: ["last_message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "channels_owner_id_fkey";
             columns: ["owner_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       chat_invite_links: {
         Row: {
@@ -324,19 +342,22 @@ export type Database = {
           token?: string;
           updated_at?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "chat_invite_links_chat_id_fkey";
             columns: ["chat_id"];
             isOneToOne: true;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "chat_invite_links_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       chat_members: {
         Row: {
@@ -376,19 +397,22 @@ export type Database = {
           role?: Database["public"]["Enums"]["chat_member_role"];
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "chat_members_chat_id_fkey";
             columns: ["chat_id"];
             isOneToOne: false;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "chat_members_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       chat_requests: {
         Row: {
@@ -419,25 +443,29 @@ export type Database = {
           sender_id?: string;
           status?: Database["public"]["Enums"]["chat_request_status"];
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "chat_requests_chat_id_fkey";
             columns: ["chat_id"];
             isOneToOne: false;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "chat_requests_recipient_id_fkey";
             columns: ["recipient_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "chat_requests_sender_id_fkey";
             columns: ["sender_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       chats: {
         Row: {
@@ -516,31 +544,36 @@ export type Database = {
           updated_at?: string;
           write_policy?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "chats_community_id_fkey";
             columns: ["community_id"];
             isOneToOne: false;
             referencedRelation: "communities";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "chats_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "chats_last_message_id_fkey";
             columns: ["last_message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "chats_owner_id_fkey";
             columns: ["owner_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       communities: {
         Row: {
@@ -574,13 +607,15 @@ export type Database = {
           owner_id?: string | null;
           updated_at?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "communities_owner_id_fkey";
             columns: ["owner_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       community_announcement_writers: {
         Row: {
@@ -602,25 +637,29 @@ export type Database = {
           granted_by?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "community_announcement_writers_community_id_fkey";
             columns: ["community_id"];
             isOneToOne: false;
             referencedRelation: "communities";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_announcement_writers_granted_by_fkey";
             columns: ["granted_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_announcement_writers_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       community_audit_logs: {
         Row: {
@@ -657,31 +696,36 @@ export type Database = {
           target_chat_id?: string | null;
           target_user_id?: string | null;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "community_audit_logs_actor_id_fkey";
             columns: ["actor_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_audit_logs_community_id_fkey";
             columns: ["community_id"];
             isOneToOne: false;
             referencedRelation: "communities";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_audit_logs_target_chat_id_fkey";
             columns: ["target_chat_id"];
             isOneToOne: false;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_audit_logs_target_user_id_fkey";
             columns: ["target_user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       community_bans: {
         Row: {
@@ -706,25 +750,29 @@ export type Database = {
           reason?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "community_bans_banned_by_fkey";
             columns: ["banned_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_bans_community_id_fkey";
             columns: ["community_id"];
             isOneToOne: false;
             referencedRelation: "communities";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_bans_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       community_members: {
         Row: {
@@ -755,25 +803,29 @@ export type Database = {
           silenced_until?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "community_members_community_id_fkey";
             columns: ["community_id"];
             isOneToOne: false;
             referencedRelation: "communities";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_members_silenced_by_fkey";
             columns: ["silenced_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "community_members_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       devices: {
         Row: {
@@ -810,13 +862,15 @@ export type Database = {
           user_agent?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "devices_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       file_uploads: {
         Row: {
@@ -868,13 +922,15 @@ export type Database = {
           uploader_id?: string;
           width?: number | null;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "file_uploads_uploader_id_fkey";
             columns: ["uploader_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       group_join_requests: {
         Row: {
@@ -908,31 +964,36 @@ export type Database = {
           status?: string;
           target_user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "group_join_requests_chat_id_fkey";
             columns: ["chat_id"];
             isOneToOne: false;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "group_join_requests_requested_by_fkey";
             columns: ["requested_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "group_join_requests_reviewed_by_fkey";
             columns: ["reviewed_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "group_join_requests_target_user_id_fkey";
             columns: ["target_user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       message_deletions: {
         Row: {
@@ -951,19 +1012,22 @@ export type Database = {
           message_id?: string;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "message_deletions_message_id_fkey";
             columns: ["message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "message_deletions_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       message_reactions: {
         Row: {
@@ -985,19 +1049,22 @@ export type Database = {
           message_id?: string;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "message_reactions_message_id_fkey";
             columns: ["message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "message_reactions_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       message_receipts: {
         Row: {
@@ -1019,19 +1086,22 @@ export type Database = {
           read_at?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "message_receipts_message_id_fkey";
             columns: ["message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "message_receipts_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       messages: {
         Row: {
@@ -1102,55 +1172,64 @@ export type Database = {
           sender_id?: string | null;
           type?: Database["public"]["Enums"]["message_type"];
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "messages_channel_id_fkey";
             columns: ["channel_id"];
             isOneToOne: false;
             referencedRelation: "channels";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "messages_chat_id_fkey";
             columns: ["chat_id"];
             isOneToOne: false;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "messages_file_upload_id_fkey";
             columns: ["file_upload_id"];
             isOneToOne: false;
             referencedRelation: "file_uploads";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "messages_forwarded_from_message_id_fkey";
             columns: ["forwarded_from_message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "messages_media_thumbnail_upload_id_fkey";
             columns: ["media_thumbnail_upload_id"];
             isOneToOne: false;
             referencedRelation: "file_uploads";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "messages_reply_to_message_id_fkey";
             columns: ["reply_to_message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "messages_reply_to_story_id_fkey";
             columns: ["reply_to_story_id"];
             isOneToOne: false;
             referencedRelation: "stories";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "messages_sender_id_fkey";
             columns: ["sender_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -1245,43 +1324,50 @@ export type Database = {
           reviewed_by?: string | null;
           status?: Database["public"]["Enums"]["report_status"];
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "reports_reported_channel_id_fkey";
             columns: ["reported_channel_id"];
             isOneToOne: false;
             referencedRelation: "channels";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "reports_reported_chat_id_fkey";
             columns: ["reported_chat_id"];
             isOneToOne: false;
             referencedRelation: "chats";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "reports_reported_message_id_fkey";
             columns: ["reported_message_id"];
             isOneToOne: false;
             referencedRelation: "messages";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "reports_reported_user_id_fkey";
             columns: ["reported_user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "reports_reporter_id_fkey";
             columns: ["reporter_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "reports_reviewed_by_fkey";
             columns: ["reviewed_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       stories: {
         Row: {
@@ -1321,25 +1407,29 @@ export type Database = {
           text_content?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "stories_file_upload_id_fkey";
             columns: ["file_upload_id"];
             isOneToOne: false;
             referencedRelation: "file_uploads";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "stories_media_thumbnail_upload_id_fkey";
             columns: ["media_thumbnail_upload_id"];
             isOneToOne: false;
             referencedRelation: "file_uploads";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "stories_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       story_views: {
         Row: {
@@ -1358,19 +1448,22 @@ export type Database = {
           viewed_at?: string;
           viewer_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "story_views_story_id_fkey";
             columns: ["story_id"];
             isOneToOne: false;
             referencedRelation: "stories";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "story_views_viewer_id_fkey";
             columns: ["viewer_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       two_factor_backup_codes: {
         Row: {
@@ -1395,13 +1488,15 @@ export type Database = {
           used_at?: string | null;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "two_factor_backup_codes_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       user_blocks: {
         Row: {
@@ -1420,19 +1515,22 @@ export type Database = {
           blocker_id?: string;
           created_at?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "user_blocks_blocked_id_fkey";
             columns: ["blocked_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },{
+          },
+          {
             foreignKeyName: "user_blocks_blocker_id_fkey";
             columns: ["blocker_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
       user_settings: {
         Row: {
@@ -1493,13 +1591,15 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [{
+        Relationships: [
+          {
             foreignKeyName: "user_settings_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: true;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }];
+          },
+        ];
       };
     };
     Views: {
@@ -1590,10 +1690,6 @@ export type Database = {
       };
     };
     Functions: {
-      read_channel_invitations_sent: { Args: { p_channel_id: string }; Returns: Database["public"]["Views"]["channel_invitations_sent"]["Row"][]; SetofOptions: { from: "*"; to: "channel_invitations_sent"; isOneToOne: false; isSetofReturn: true; }; };
-      read_profiles_visible: { Args: {p_ids?: string[]; p_username?: string; p_query?: string; p_match_id_prefix?: boolean; p_exclude_self?: boolean; p_sort?: string; p_limit?: number;}; Returns: Database["public"]["Views"]["profiles_visible"]["Row"][]; SetofOptions: { from: "*"; to: "profiles_visible"; isOneToOne: false; isSetofReturn: true; }; };
-      read_channels_public: { Args: {p_ids?: string[]; p_slug?: string; p_offset?: number; p_limit?: number;}; Returns: Database["public"]["Views"]["channels_public"]["Row"][]; SetofOptions: { from: "*"; to: "channels_public"; isOneToOne: false; isSetofReturn: true; }; };
-      read_message_media_public: { Args: {p_ids: string[];}; Returns: Database["public"]["Views"]["message_media_public"]["Row"][]; SetofOptions: { from: "*"; to: "message_media_public"; isOneToOne: false; isSetofReturn: true; }; };
       accept_chat_request: { Args: { p_request_id: string }; Returns: undefined };
       add_chat_member: { Args: { p_chat_id: string; p_user_id: string }; Returns: undefined };
       add_chat_members: { Args: { p_chat_id: string; p_user_ids: string[] }; Returns: number };
@@ -1875,6 +1971,98 @@ export type Database = {
       promote_community_admin: {
         Args: { p_community_id: string; p_user_id: string };
         Returns: undefined;
+      };
+      read_channel_invitations_sent: {
+        Args: { p_channel_id: string };
+        Returns: {
+          accepted_at: string | null;
+          channel_id: string | null;
+          created_at: string | null;
+          id: string | null;
+          recipient_id: string | null;
+          status: string | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "channel_invitations_sent";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      read_channels_public: {
+        Args: { p_ids?: string[]; p_limit?: number; p_offset?: number; p_slug?: string };
+        Returns: {
+          avatar_url: string | null;
+          created_at: string | null;
+          description: string | null;
+          follower_count: number | null;
+          id: string | null;
+          is_verified: boolean | null;
+          last_message_at: string | null;
+          last_message_id: string | null;
+          last_message_preview: string | null;
+          name: string | null;
+          slug: string | null;
+          updated_at: string | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "channels_public";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      read_message_media_public: {
+        Args: { p_ids: string[] };
+        Returns: {
+          bucket: string | null;
+          completed_at: string | null;
+          created_at: string | null;
+          duration_seconds: number | null;
+          height: number | null;
+          id: string | null;
+          mime_type: string | null;
+          original_filename: string | null;
+          path: string | null;
+          size_bytes: number | null;
+          status: Database["public"]["Enums"]["upload_status"] | null;
+          width: number | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "message_media_public";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      read_profiles_visible: {
+        Args: {
+          p_exclude_self?: boolean;
+          p_ids?: string[];
+          p_limit?: number;
+          p_match_id_prefix?: boolean;
+          p_query?: string;
+          p_sort?: string;
+          p_username?: string;
+        };
+        Returns: {
+          avatar_initials: string | null;
+          avatar_url: string | null;
+          bio: string | null;
+          created_at: string | null;
+          display_name: string | null;
+          id: string | null;
+          last_seen_at: string | null;
+          social_links: Json | null;
+          updated_at: string | null;
+          username: string | null;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "profiles_visible";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       reject_chat_request: { Args: { p_request_id: string }; Returns: undefined };
       remove_channel_admin: {

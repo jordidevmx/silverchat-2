@@ -30,7 +30,8 @@ The JSON snapshots in this directory contain catalog metadata only.
   7,874 after, with all 200 IDs in the POST body and no `p_ids` URL parameter.
 - Type declarations remove view mutation types and inferred FK relationships
   no longer provided by the function-backed views, and add the RPC return contracts.
-  These are reviewed updates, not a claimed full remote type regeneration.
+  The initial manual declarations were subsequently aligned with the complete
+  CI-generated schema output; see the CI follow-up below.
 - With explicit scope approval, the public block helpers reject unrelated
   third-party pairs and `get_story_viewers` requires valid identity/MFA.
   Four trusted group/community callers use a non-executable private pair helper.
@@ -82,6 +83,20 @@ These commands print reviewable rollback-only SQL. Executing it remotely require
 the applicable authorization and a fresh successful guard.
 
 ## Application checks and performance
+
+CI run [45878617237](https://github.com/jordidevmx/silverchat-2/actions/runs/45878617237)
+tested PR head `17e8f0f` through GitHub's merge ref
+`dc57ba616355ecd592ef354b7bb294718240663d` against main `afc026a`.
+All 273 unit tests, typecheck, build, changed-file lint, clean-database migration
+replay and all 17 SQL suites passed. Only the generated database-type comparison
+failed: the manual declarations used different relationship formatting, RPC
+ordering and view-row aliases instead of the generator's inline return objects.
+The correction was reconstructed from all 30 complete hunks of CI's generated
+diff, validating every original context line against `17e8f0f`. The resulting
+LF file has SHA-256 `b4bb106b246d058f84d96880d998f3294f625ed5c71187f8ca414e0e50969e37`.
+Exact comparison with that generated output and local `pnpm typecheck` pass.
+The next CI run must confirm the corrected committed types; no SQL or workflow
+checks were changed or disabled.
 
 - PASS: `pnpm typecheck`; Biome on changed JS/TS and the preparation script.
 - PASS: 73 focused Node tests covering auth, settings, chats, messages, novedades
@@ -189,6 +204,6 @@ and issued signed URLs may remain usable until expiry. Strengthening this rule
 was not authorized.
 
 Still pending after local preparation: permanent application, live PostgREST/
-Storage HTTP verification of the deployed candidate, and clean-database
-`pnpm test:db --all` in CI. No Docker/psql was installed, no dependencies were
+Storage HTTP verification of the deployed candidate, and a green CI rerun after
+the generated-type correction. No Docker/psql was installed locally, no dependencies were
 changed, and no claim is made that Production alerts have been resolved.

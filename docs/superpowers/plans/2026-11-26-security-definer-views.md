@@ -26,6 +26,9 @@ application types/build and migration/rollback/reapplication. See the verificati
 The owner-run novedades browser suite failed on a pre-existing 48 x 36 px Send
 button layout assertion, independently reproduced on baseline and candidate.
 Later scenarios in that suite remain unverified. No unrelated UI fix was made.
-Pending: final Git delivery, clean-database CI and any separately approved live
+Delivered as commit `17e8f0f` and PR #76. Clean-database CI passed all migrations,
+17 SQL suites and 273 unit tests; only the generated-type comparison failed.
+Types now match the CI-generated output and pass local typecheck. Pending:
+commit/push and CI rerun of this correction, and separately approved live
 deployment checks.
 Stronger Storage deletion semantics remain outside the authorized correction.

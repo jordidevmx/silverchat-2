@@ -77,8 +77,23 @@
     ],
     "remaining_blockers": []
   },
+  "ci_followup": {
+    "run_url": "https://github.com/jordidevmx/silverchat-2/actions/runs/45878617237",
+    "head_commit": "17e8f0f96ddef037d5b516454cb4886c8ba43795",
+    "tested_merge_ref": "dc57ba616355ecd592ef354b7bb294718240663d",
+    "unit_tests_passed": 273,
+    "clean_database_migration_replay": "passed",
+    "sql_suites_passed": 17,
+    "typecheck_build_lint": "passed",
+    "only_failed_step": "Verify committed database types match the schema",
+    "cause": "Manual type declarations differed from generated formatting, ordering and inline RPC return objects",
+    "local_correction": "Reconstruct complete generated output from 30 CI diff hunks with exact source-context validation",
+    "corrected_types_lf_sha256": "b4bb106b246d058f84d96880d998f3294f625ed5c71187f8ca414e0e50969e37",
+    "corrected_types_exact_comparison": "passed",
+    "corrected_types_typecheck": "passed",
+    "rerun": "pending commit and push of type correction"
+  },
   "not_run": [
-    "Clean-database migration replay and pnpm test:db --all in CI",
     "Live PostgREST/Storage HTTP on permanently deployed candidate",
     "Permanent Staging or Production application"
   ],
