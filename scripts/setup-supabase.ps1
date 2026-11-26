@@ -7,7 +7,12 @@
 #   every call site below passes literal tokens inside each switch branch.
 # - $ErrorActionPreference='Stop' turns npx stderr warnings (npm warn ...)
 #   into terminating NativeCommandErrors, so it is deliberately not set.
+param(
+  [switch]$Staging
+)
+
 Set-Location (Split-Path $PSScriptRoot -Parent)
+$STAGING_REF = 'gffdrrtatxdiucigtwdn'
 
 $shimPath = Join-Path (Get-Location) 'node_modules\.bin\supabase.CMD'
 $cliMode = if (Get-Command supabase -ErrorAction SilentlyContinue) {
@@ -67,22 +72,23 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "Auth: OK"
 
-# 3. Link only if missing. Reads SUPABASE_PROJECT_ID from the environment,
-#    falling back to a READ-ONLY .env.local lookup. Never hardcodes a ref.
-if (Test-Path supabase/.temp/project-ref) {
-  Write-Host "Link: OK ($(Get-Content supabase/.temp/project-ref))"
+# 3. Link to Staging when -Staging is passed, or when missing in a fresh worktree.
+#    Never defaults to Production: falls back safely to silverchat-staging.
+$currentRef = if (Test-Path supabase/.temp/project-ref) { (Get-Content supabase/.temp/project-ref -Raw).Trim() } else { '' }
+if ($Staging -and $currentRef -ne $STAGING_REF) {
+  Write-Host "Linking worktree to Staging ($STAGING_REF)..."
+  Invoke-SbLink $STAGING_REF | Out-Null
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: 'supabase link' failed. See docs/SUPABASE_CLI.md." -ForegroundColor Red
+    exit 4
+  }
+  Write-Host "Link: OK ($STAGING_REF)"
+} elseif ($currentRef) {
+  Write-Host "Link: OK ($currentRef)"
 } else {
   $ref = $env:SUPABASE_PROJECT_ID
-  if (-not $ref -and (Test-Path .env.local)) {
-    $line = (Get-Content .env.local | Select-String '^SUPABASE_PROJECT_ID=' | Select-Object -First 1)
-    if ($line) { $ref = (($line.Line -split '=', 2)[1].Trim().Trim('"')) }
-  }
-  if (-not $ref) {
-    Write-Host "ERROR: Not linked and SUPABASE_PROJECT_ID is not set." -ForegroundColor Red
-    Write-Host "Add 'SUPABASE_PROJECT_ID=<your-project-ref>' to .env.local (see docs/SUPABASE_CLI.md), then re-run."
-    exit 3
-  }
-  Write-Host "Not linked; linking with SUPABASE_PROJECT_ID..."
+  if (-not $ref) { $ref = $STAGING_REF }
+  Write-Host "Not linked; linking to $ref..."
   Invoke-SbLink $ref | Out-Null
   if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: 'supabase link' failed. See docs/SUPABASE_CLI.md." -ForegroundColor Red

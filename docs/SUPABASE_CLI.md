@@ -151,34 +151,57 @@ must show `w/lf`.
 
 ## For AI agents
 
-Before running any `supabase` command, verify the CLI is authenticated and
-linked:
+- Always invoke the local devDependency via `pnpm exec supabase` (never check only the global `PATH`).
+- Local Docker and `psql` are intentionally not installed on this workstation; **Staging (`gffdrrtatxdiucigtwdn`)** is the authorized live sandbox for task-scoped migrations, linting, and rollback-safe SQL verification. Clean-room `supabase start` + all `supabase/tests/*.sql` suites (`pnpm test:db --all`) run in GitHub Actions CI.
+- **Worktrees and linking:** `supabase/.temp/` is gitignored, so every newly created git worktree starts unlinked. Agents are authorized to link their worktree directly to **Staging (`gffdrrtatxdiucigtwdn`)** once CLI auth is present (`pnpm exec supabase projects list` succeeds):
 
 ```bash
-npx supabase projects list && cat supabase/.temp/project-ref
+powershell -File scripts/setup-supabase.ps1 -Staging   # Windows PowerShell
+# or
+bash scripts/setup-supabase.sh --staging               # Linux / macOS / Git Bash
+# or directly
+pnpm exec supabase link --project-ref gffdrrtatxdiucigtwdn
 ```
 
-If either fails, do NOT try `supabase login` or `supabase link` yourself.
-Ask the developer to run them.
-
-Before any command that writes to a remote database, run the guard for the
-intended target and stop if it exits non-zero:
+- **Hard gates (never bypass):**
+  - Never run `supabase login` yourself; if `pnpm exec supabase projects list` fails, ask the developer to sign in.
+  - Never link to or write to **Production (`lmzbaxlojgsdwgcxkmzx`)** without explicit human authorization and `node scripts/db-guard.mjs --expect lmzbaxlojgsdwgcxkmzx --allow-production`. Relink back to Staging (`gffdrrtatxdiucigtwdn`) immediately after any authorized Production operation.
+- **Pre-write guard:** Before any command that writes to a remote database, run the guard for the intended target and stop if it exits non-zero:
 
 ```bash
-node scripts/db-guard.mjs --expect gffdrrtatxdiucigtwdn          # staging
-node scripts/db-guard.mjs --expect lmzbaxlojgsdwgcxkmzx --allow-production
+node scripts/db-guard.mjs --expect gffdrrtatxdiucigtwdn          # staging (default agent sandbox)
+node scripts/db-guard.mjs --expect lmzbaxlojgsdwgcxkmzx --allow-production  # production (explicit approval only)
 ```
 
-Fast path if everything is healthy:
+- **Applying a task migration on shared Staging (`gffdrrtatxdiucigtwdn`):**
+  1. Run `node scripts/db-guard.mjs --expect gffdrrtatxdiucigtwdn` and `pnpm exec supabase migration list --linked`.
+  2. If the remote ledger has no foreign unmerged versions, run `pnpm exec supabase db push --dry-run` followed by `pnpm exec supabase db push`.
+  3. If Staging already contains an unmerged migration from another active branch (`DbPushMissingLocalError`), **never revert that foreign version**. Apply strictly the current task's migration file atomically and record its version:
+     ```bash
+     pnpm exec supabase db query --linked -f supabase/migrations/<YYYYMMDDHHMMSS_name>.sql
+     pnpm exec supabase migration repair --status applied <YYYYMMDDHHMMSS> --linked
+     ```
+  4. Verify schema health with `pnpm exec supabase db lint --linked` and read-only checks.
+
+- **Running SQL test suites:**
+  - Against **Staging** without Docker/`psql` (rollback-safe pure-SQL suites containing `BEGIN; ... ROLLBACK;` and no `psql` meta-commands such as `\gset`):
+    ```bash
+    pnpm test:db --staging supabase/tests/<suite>.sql
+    ```
+    (`run-db-tests.mjs` automatically enforces `db-guard` for Staging and blocks `COMMIT;` or Production links.)
+  - Full suite in **CI** (or any machine with Docker + `psql`):
+    ```bash
+    pnpm test:db --all
+    ```
+
+Fast path for linking a fresh worktree safely to Staging:
 
 ```bash
-bash scripts/setup-supabase.sh      # Linux / macOS / Git Bash
-powershell -File scripts/setup-supabase.ps1   # Windows PowerShell
+bash scripts/setup-supabase.sh --staging      # Linux / macOS / Git Bash
+powershell -File scripts/setup-supabase.ps1 -Staging   # Windows PowerShell
 ```
 
-Both scripts are idempotent, prompt-free health checks: they verify the CLI
-version and authentication, and link the project if `SUPABASE_PROJECT_ID`
-is available. They never ask for credentials — that is the human's job.
+Both scripts are idempotent, prompt-free health checks: they verify the CLI version and authentication, and link the worktree to Staging (`gffdrrtatxdiucigtwdn`) when unlinked (or when `--staging` / `-Staging` is passed). They never ask for credentials and never default to Production.
 
 ### Live Staging app & Magic Link test sessions
 

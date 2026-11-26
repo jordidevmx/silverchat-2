@@ -4,6 +4,11 @@
 # See docs/SUPABASE_CLI.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+STAGING_REF="gffdrrtatxdiucigtwdn"
+FORCE_STAGING=false
+if [ "${1:-}" = "--staging" ]; then
+  FORCE_STAGING=true
+fi
 
 # 1. Resolve the CLI: prefer a global install, else the dev dependency via npx.
 if command -v supabase >/dev/null 2>&1; then
@@ -34,21 +39,21 @@ if ! sb projects list >/dev/null 2>&1; then
 fi
 echo "Auth: OK"
 
-# 4. Link only if missing. Reads SUPABASE_PROJECT_ID from the environment,
-#    falling back to a READ-ONLY .env.local lookup. Never hardcodes a ref.
+# 4. Link to Staging when --staging is passed, or when missing in a fresh worktree.
+#    Never defaults to Production: falls back safely to silverchat-staging.
+current_ref=""
 if [ -f supabase/.temp/project-ref ]; then
-  echo "Link: OK ($(cat supabase/.temp/project-ref))"
+  current_ref=$(tr -d '[:space:]' < supabase/.temp/project-ref)
+fi
+if [ "$FORCE_STAGING" = "true" ] && [ "$current_ref" != "$STAGING_REF" ]; then
+  echo "Linking worktree to Staging ($STAGING_REF)..."
+  sb link --project-ref "$STAGING_REF" || { echo "ERROR: 'supabase link' failed. See docs/SUPABASE_CLI.md." >&2; exit 4; }
+  echo "Link: OK ($STAGING_REF)"
+elif [ -n "$current_ref" ]; then
+  echo "Link: OK ($current_ref)"
 else
-  ref=${SUPABASE_PROJECT_ID:-}
-  if [ -z "$ref" ] && [ -f .env.local ]; then
-    ref=$(grep '^SUPABASE_PROJECT_ID=' .env.local | head -1 | cut -d= -f2- | tr -d ' "' || true)
-  fi
-  if [ -z "$ref" ]; then
-    echo "ERROR: Not linked and SUPABASE_PROJECT_ID is not set." >&2
-    echo "Add 'SUPABASE_PROJECT_ID=<your-project-ref>' to .env.local (see docs/SUPABASE_CLI.md), then re-run." >&2
-    exit 3
-  fi
-  echo "Not linked; linking with SUPABASE_PROJECT_ID..."
+  ref=${SUPABASE_PROJECT_ID:-$STAGING_REF}
+  echo "Not linked; linking to $ref..."
   sb link --project-ref "$ref" || { echo "ERROR: 'supabase link' failed. See docs/SUPABASE_CLI.md." >&2; exit 4; }
   echo "Link: OK ($ref)"
 fi
