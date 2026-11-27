@@ -10,5 +10,5 @@
   "approval_authority": "Product Owner",
   "documentation_language": "en",
   "last_reconciled_revision": "6aed855",
-  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); TASK-014 ACCEPTED through a8bc376 (CHG-007, EVID-012, EVID-013, ADR-001) and post-a8bc376 delta ACCEPTED (CONDITIONAL on Netlify VITE_VAPID_PUBLIC_KEY) 2026-11-27 (CHG-010); CHG-006 and AUD-020 ACCEPTED 2026-11-27 (CHG-010, EVID-015, EVID-016). CHG-010 verified RISK-008 closure (08bcbf9, PR #85 CI 46054379971 SUCCESS; Staging 38/38 & 3/3 functions; Production 38/38 & 3/3 functions; livekit-token AUD-024 hardened; 7 CHG-006 audit handoffs recovered). Open Production call blocker: LIVEKIT_* secrets unset (RISK-009)."
+  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); TASK-014 ACCEPTED through a8bc376 (CHG-007, EVID-012, EVID-013, ADR-001) and post-a8bc376 delta ACCEPTED (CONDITIONAL on Netlify VITE_VAPID_PUBLIC_KEY) 2026-11-27 (CHG-010); CHG-006 and AUD-020 ACCEPTED 2026-11-27 (CHG-010, EVID-015, EVID-016). CHG-011 (EVID-017) verified 7d76c5e and closed RISK-009: Staging (38/38, 3/3 functions) and Production (38/38, 3/3 functions, LIVEKIT_* secrets configured — names only) are synchronized; TASK-013 awaits live Production call E2E (G4) and PO acceptance."
 }
