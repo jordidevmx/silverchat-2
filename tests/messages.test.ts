@@ -108,6 +108,9 @@ test("date labels cross year boundaries and bytes remain finite at zero", () => 
   assert.equal(dateLabel(previous, "es", now), "Ayer");
   assert.equal(formatBytes(0, "en"), "0 B");
   assert.equal(formatBytes(1536, "en"), "1.5 KB");
+  // A scaled whole number keeps one fraction digit and the locale's decimal separator.
+  assert.equal(formatBytes(1024 * 1024, "en"), "1.0 MB");
+  assert.equal(formatBytes(1024 * 1024, "es"), "1,0 MB");
 });
 test("conversation strings resolve en/es translations and interpolate channel names safely", () => {
   assert.equal(formatConversationText("en", "conversation.start"), "Start of this conversation");

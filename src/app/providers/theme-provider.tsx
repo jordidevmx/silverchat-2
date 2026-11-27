@@ -19,12 +19,17 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   );
   useEffect(() => {
     writePreference("theme", theme);
+    const root = document.documentElement;
     const media = matchMedia("(prefers-color-scheme: dark)");
+    // :root is the light source of truth; only effective dark gets the attribute.
     const apply = () => {
-      document.documentElement.dataset.theme =
-        theme === "system" ? (media.matches ? "dark" : "light") : theme;
+      const dark = theme === "dark" || (theme === "system" && media.matches);
+      if (dark) root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
     };
     apply();
+    // An explicit Light/Dark choice must never follow the OS.
+    if (theme !== "system") return;
     media.addEventListener("change", apply);
     return () => media.removeEventListener("change", apply);
   }, [theme]);

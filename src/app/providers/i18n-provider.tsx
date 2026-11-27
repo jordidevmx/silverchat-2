@@ -10,8 +10,8 @@ import { registerBeforeSignOut } from "@/lib/auth";
 import {
   detectDeviceLanguage,
   type Language,
-  readChosenLanguage,
-  rememberChosenLanguage,
+  readStoredLanguage,
+  storeLanguage,
 } from "@/lib/language";
 
 const spanish: Record<string, string> = {
@@ -230,22 +230,34 @@ const I18nContext = createContext<{
   t: (value: string) => string;
 } | null>(null);
 
-/** Anonymous resolution: an explicit choice, otherwise the language of the device. */
+/** Stored preference first, then the device language, then the default. */
 function resolveLanguage(): Language {
-  return readChosenLanguage() ?? detectDeviceLanguage();
+  return readStoredLanguage() ?? detectDeviceLanguage();
 }
 export function I18nProvider({ children }: PropsWithChildren) {
   const [language, setLanguageState] = useState<Language>(resolveLanguage);
   const setLanguage = useCallback((value: Language) => {
     setLanguageState(value);
-    rememberChosenLanguage(value);
+    storeLanguage(value);
   }, []);
+  // An account value is authoritative while signed in. It does not overwrite the
+  // stored key: that key records the device choice and is reset to the device
+  // language on sign-out, which prevents stale values bleeding into another account.
   const applyLanguage = useCallback((value: Language) => setLanguageState(value), []);
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
-  // Without an account the device language applies again.
-  useEffect(() => registerBeforeSignOut(async () => setLanguageState(resolveLanguage())), []);
+  // Reset to the device language on sign-out so a second account never inherits
+  // the previous account's stored preference. No extra marker is needed.
+  useEffect(
+    () =>
+      registerBeforeSignOut(async () => {
+        const next = detectDeviceLanguage();
+        storeLanguage(next);
+        setLanguageState(next);
+      }),
+    [],
+  );
   return (
     <I18nContext.Provider
       value={{

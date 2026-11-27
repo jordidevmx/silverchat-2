@@ -1,13 +1,10 @@
-import { hasPreference, readPreference, writePreference } from "./preferences.ts";
+import { readRawPreference, writePreference } from "./preferences.ts";
 
 export const SUPPORTED_LANGUAGES = ["en", "es"] as const;
 
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const DEFAULT_LANGUAGE: Language = "en";
-
-/** Marker written next to the language the user picked explicitly. */
-const CHOSEN_KEY = "language_chosen";
 
 /**
  * Resolves the first language tag the app supports, ignoring region and script
@@ -25,21 +22,20 @@ export function matchDeviceLanguage(
   return fallback;
 }
 
-/** The language the device asks for, used until an account or a choice says otherwise. */
+/** The language the device asks for, used when no stored preference is valid. */
 export function detectDeviceLanguage(): Language {
   if (typeof navigator === "undefined") return DEFAULT_LANGUAGE;
   const tags = navigator.languages?.length ? navigator.languages : [navigator.language];
   return matchDeviceLanguage(tags.filter(Boolean));
 }
 
-/** The language the user picked explicitly in this browser, if any. */
-export function readChosenLanguage(): Language | null {
-  if (!hasPreference(CHOSEN_KEY)) return null;
-  return readPreference("language", SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE);
+/** The single stored language key, validated against the supported allow-list. */
+export function readStoredLanguage(): Language | null {
+  const value = readRawPreference("language");
+  return SUPPORTED_LANGUAGES.find((language) => language === value) ?? null;
 }
 
-/** Stores an explicit choice so device detection never overrides it. */
-export function rememberChosenLanguage(language: Language) {
+/** Persists the resolved language under the single, stable key. */
+export function storeLanguage(language: Language) {
   writePreference("language", language);
-  writePreference(CHOSEN_KEY, "1");
 }

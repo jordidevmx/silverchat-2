@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { reactionNotificationStore } from "@/features/chats/utils/reactionNotifications";
-import { detectDeviceLanguage, readChosenLanguage } from "@/lib/language";
+import { detectDeviceLanguage, readStoredLanguage } from "@/lib/language";
 import { type ToastRecord, type ToastTone, useToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -176,7 +176,7 @@ export function ToastViewport() {
   const { toasts, dismiss, pause, resume, clear } = useToast();
   const viewportRef = useRef<HTMLDivElement>(null);
 
-  const language = readChosenLanguage() ?? detectDeviceLanguage();
+  const language = readStoredLanguage() ?? detectDeviceLanguage();
   const regionLabel = language === "es" ? "Notificaciones" : "Notifications";
   const dismissLabel = language === "es" ? "Cerrar" : "Dismiss";
   const hasToasts = toasts.length > 0;

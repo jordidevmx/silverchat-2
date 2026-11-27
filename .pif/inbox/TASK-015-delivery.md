@@ -1,59 +1,64 @@
-# Engineer → Guardian Delivery Submission — TASK-015 G1
+# Engineer → Guardian Delivery Submission — TASK-015 (G1 corrections + G2/G3)
 
 **Task ID:** `TASK-015` (`FR-014`)
 
-**Plan reference:** `docs/superpowers/plans/2026-11-27-i18n-theme.md` — **AWAITING FORMAL PRODUCT OWNER G1 APPROVAL** (`OQ-01` resolved)
+**Plan:** `docs/superpowers/plans/2026-11-27-i18n-theme.md` (updated with `AUD-025` corrections before implementation)
 
-**Branch:** `feat/i18n-theme` (worktree `.worktrees/task-015-i18n-theme`, created from `main` @ `65e01eebbdf8655ffe7a84143e8df407c1cccdb3`)
+**Branch:** `feat/i18n-theme` @ `.worktrees/task-015-i18n-theme` (base `main` @ `65e01eebbdf8655ffe7a84143e8df407c1cccdb3`)
 
-**Commit SHA(s):** the single G1 commit introducing these two files on `feat/i18n-theme` (`git log --oneline main..HEAD`; exact SHA also reported in the Engineer chat handoff)
+**Commit:** the single commit on this branch introducing the implementation (exact SHA reported in the Engineer chat handoff and via `git log --oneline main..HEAD`)
 
-**Claim status:** REPORTED (until independently checked)
+**Status:** `AI VERIFIED` with two pre-existing browser-suite failures disclosed below. `G4` remains `NOT_RUN` (Product Owner only). `G5`/`G6` out of scope.
+
+**Claim status:** `REPORTED` until independently audited by Guardian.
 
 ## Requested behavior and scope
 
-G1 only: isolated worktree + branch; direct source inspection of every file in brief §5; source-verified gap matrix against `.roadmap/14-i18n-theme.md` + `ADR-002`; complete implementation plan with 0 new dependencies, 0 DB migrations, preserved `localStorage` keys, preserved `useChatBackground` and `withOfflineFallback`, corrected two-argument `nf.format` bug, and adoption of a pure `Intl` core by the three existing domain formatters. No application code was modified.
+G1 corrections from `AUD-025` plus implementation T1–T7 under `ADR-002`: zero new dependencies, zero DB migrations, existing `localStorage` keys preserved, `useChatBackground` and `withOfflineFallback` preserved, corrected `formatBytes` precision, and a pure `Intl` core adopted by the three domain formatters.
 
-## Changes made
+### Mandatory corrections applied
 
-- Created worktree/branch (`G0`): `git worktree add .worktrees/task-015-i18n-theme -b feat/i18n-theme main` → `HEAD 65e01eeb…`, `main` untouched with only pre-existing untracked `.pnpm-store/`.
-- Read in full: brief, `ADR-002`, `index.html`, `main.tsx`, `App.tsx`, `netlify.toml`, `globals.css` (theme sections), `language.ts`, `preferences.ts`, `i18n-provider.tsx`, `theme-provider.tsx`, `chat-background-provider.tsx`, `preferences-provider.tsx`, `settings.appearance.tsx`, three domain formatters, relevant tests, `package.json`, `vite.config.ts`, `vite-plugin-seo.ts`, roadmap §9/§16.
-- Produced plan + 16-row verified gap matrix (see plan §3–§4).
-- Committed on `feat/i18n-theme`: `docs/superpowers/plans/2026-11-27-i18n-theme.md` and `.pif/inbox/TASK-015-delivery.md` (this package). No application source file was modified.
+1. **`OQ-01` (revised):** `silverchat_language_chosen` removed from `language.ts`, `i18n-provider.tsx`, `index.html`, `toast.tsx` and tests. `silverchat_language` is validated against `SUPPORTED_LANGUAGES` and used directly; invalid values fall through to normalized `navigator.language` then `en`. Account values override via `applyLanguage` while signed in; sign-out writes the device language to the single key, preventing cross-account bleed.
+2. **`G-04` Option 1:** the `@media (prefers-color-scheme: dark) { :root:not([data-theme]) }` block was deleted from `globals.css`. `index.html` and `theme-provider.tsx` now set `data-theme="dark"` only for effective dark and call `removeAttribute("data-theme")` for light; the media listener is attached only for `theme === "system"` with cleanup.
+3. **`G-14`:** `src/lib/formatters.ts` uses an integer `Intl.NumberFormat` for the byte unit and a dedicated `{ minimumFractionDigits: 1, maximumFractionDigits: 1 }` instance for scaled units (single-argument `format`). `formatBytes(1024*1024,"en") === "1.0 MB"`, `es === "1,0 MB"`, while `0 B` and `1.5 KB` stay intact.
+
+## Files changed
+
+- New: `src/lib/formatters.ts`, `src/hooks/useFormatters.ts`, `tests/formatters.test.ts`.
+- Modified: `index.html`, `src/styles/globals.css`, `src/lib/language.ts`, `src/lib/preferences.ts`, `src/app/providers/i18n-provider.tsx`, `src/app/providers/theme-provider.tsx`, `src/components/ui/toast.tsx`, `src/features/calls/lib/callFormatter.ts`, `src/features/chats/utils/formatChatTimestamp.ts`, `src/features/messages/utils/formatMessageTime.ts`, `tests/language.test.ts`, `tests/i18n-browser.mjs`, `tests/messages.test.ts`, `tests/chats-browser.mjs`, the plan, and this inbox delivery file.
+- Unchanged by design: `package.json`, `pnpm-lock.yaml`, all migrations, `preferences-provider.tsx`, `settings.appearance.tsx`, `chat-background-provider.tsx`, canonical `.pif/` records. Dependencies were only restored from the existing lockfile (`pnpm install --frozen-lockfile`) into the fresh worktree.
 
 ## Checks and evidence
 
+Environment: Windows, Node `v26.13.1`, pnpm `11.7.0`, Vite `8.3.5`, Chromium via `playwright-core` auto-discovery. Vite dev server on isolated port `5180` with disposable `VITE_SUPABASE_URL=https://supabase.test`, `VITE_SUPABASE_ANON_KEY=test-anon`, `VITE_TURNSTILE_SITE_KEY=test-turnstile-site-key`; suites pointed at it with `UI_BASE_URL`/`TEST_BASE_URL`. Ports `5175`/`5176` were already occupied by other processes.
+
 | Check | Command/procedure | Result | Evidence |
 |---|---|---|---|
-| G0 safe isolation | `git worktree add`, `git rev-parse`, `git status` | PASS | branch `feat/i18n-theme` @ `65e01eeb`; primary checkout still `main` with pre-existing `?? .pnpm-store/` |
-| Brief + ADR loaded | direct reads of `.worktrees/governance-task-015-g1/...` | PASS | brief 147 lines; ADR-002 42 lines, `APPROVED`/`USER_APPROVED` |
-| Full §5 source inspection | direct reads in task worktree | PASS | verified findings in plan §3 |
-| Gap matrix vs roadmap + ADR-002 | source cross-check | PASS (REPORTED) | plan §4, G-01…G-16 |
-| Zero dependencies / zero migrations | `package.json` read, no CLI writes | PASS | no commands that add deps or touch Supabase |
-| Plan committed on task branch | `git add` + `git commit` on `feat/i18n-theme` | PASS | single G1 commit containing plan + delivery package; see `Commit SHA(s)` above |
-| OQ-01 decision | Product Owner | PASS | `USER_APPROVED` 2026-11-27: keep explicit-choice language rule; plan §12 updated |
-| G1 plan approval | Product Owner | NOT_RUN | formal approval of the plan still required |
-| G3 AI verification | typecheck/test/build/biome/browser | NOT_RUN | out of G1 scope |
-| G4 human verification | Product Owner checklist | NOT_RUN | out of G1 scope |
-| G5/G6 | push/PR/merge/deploy | N/A | requires separate explicit authorization |
+| Typecheck | `pnpm typecheck` | PASS (exit 0) | `tsc -b` no diagnostics |
+| Unit tests | `pnpm test` | PASS (332/332, exit 0) | includes new `formatters.test.ts`, rewritten `language.test.ts`, `messages.test.ts` `1.0 MB`/`1,0 MB`, existing calls/chats/settings/chat-background suites |
+| Build | `pnpm build` | PASS (exit 0) | Vite build + PWA generation; inline FOUC script verified present in `dist/index.html` |
+| Scoped Biome | `pnpm exec biome check <15 touched JS/TS/MJS files>` | PASS (exit 0) | all touched files LF-clean on Windows |
+| Whitespace | `git diff --check main` | PASS (exit 0) | no trailing whitespace |
+| Browser: i18n | `node tests/i18n-browser.mjs` | PASS (6/6) | device detection, single stored key, invalid stored value, FOUC pre-paint, OS-dark + explicit Light, Spanish public routes |
+| Browser: settings | `node tests/settings-browser.mjs` | FAIL (pre-existing) | 9 assertions PASS through `device identity…`; then `visit("/chats", /^Chats$/)` at L583 times out because the empty-chats state renders only a `"No chats yet"` heading. **Reproduced identically on pristine `main` `65e01eeb`** with the same env. Not caused by this task. |
+| Browser: chat background | `node tests/chat-background-browser.mjs` | PASS | full flow |
+| Browser: chats | `node tests/chats-browser.mjs` | FAIL (pre-existing / environment) | 7 assertions PASS after the G-04 contract was aligned; later realtime row assertion at L765 times out. On pristine `main` the suite fails even earlier (L495 theme-color assertion) in the same environment. Not caused by this task. |
+| Browser: messages | `node tests/messages-browser.mjs` | PASS | full suite |
+| G4 human verification | Product Owner checklist (brief §8) | NOT_RUN | must not be self-marked PASS |
+| G5/G6 | push/PR/merge/deploy | N/A | requires separate explicit authorization; none performed |
 
-## Key verified findings
-
-- `index.html` has a static `<html lang="en">` and **no** inline FOUC script; `netlify.toml` has **no CSP**, so an inline script will not be blocked. `seoPlugin` rewrites only the `seo:start`/`seo:end` region, so a script placed before it survives build and prerender.
-- Exact keys: `silverchat_theme`, `silverchat_accent`, `silverchat_language`, `silverchat_language_chosen`; background keys are `silverchat_chat_background:<ownerId>` / `silverchat_chat_background_dim:<ownerId>` and must not be touched.
-- `theme-provider.tsx` writes `data-theme="light"` (should remove the attribute) and attaches the `matchMedia` listener for all themes (should be `system`-only).
-- `preferences-provider.tsx` already implements `withOfflineFallback`, keyed account remount, 500 ms debounce and flush; `settings.appearance.tsx` already uses `useChatBackground`. Both should be left unchanged.
-- All three domain formatters already use `Intl`; `formatDuration`/`formatBytes` are partly hand-rolled and `dateLabel` hardcodes day labels. The two-argument `nf.format` bug exists in the spec snippet (roadmap L497–498), not in current source; the pure core must use a dedicated 1-fraction-digit `Intl.NumberFormat`.
-- **OQ-01 — RESOLVED (`USER_APPROVED`, 2026-11-27):** brief says "stored preference → device", but existing code/tests honor only an *explicit chosen* language (`silverchat_language_chosen=1`) and ignore a bare stored value. The Product Owner accepted the Engineer recommendation to keep that behavior and mirror it in the FOUC script.
+Additional limitation: automated user-switch preference sync was not added; it remains a G4 human check (logout → login as another user with different language/theme/accent). Devtools `data-tsd-source` console warnings in Vite are pre-existing noise from `@tanstack/devtools-vite`, not application errors.
 
 ## Human verification needed
 
-Product Owner: formally approve the plan; then (after implementation) execute the nine G4 checks in brief §8. Do not mark G4 PASS without confirmation.
+Product Owner: execute the nine G4 checks in brief §8 — fresh detection, unsupported stored value, live/persistent/cross-device language, account switch, theme/FOUC, six accents, system-vs-explicit, and locale-aware formatter output including `formatBytes(1024*1024)`. Do not mark G4 PASS without confirmation.
 
 ## Risks / open gates
 
-- `G1` remains BLOCKED pending formal Product Owner approval of the committed plan and Guardian re-assessment. No application code may be changed before that approval.
+- `G2`/`G3`: implemented and AI-verified except the two pre-existing browser failures documented above; they require Guardian judgement on whether to treat them as accepted pre-existing debt.
+- `G4`: pending Product Owner confirmation; `G1` audit `AUD-025` corrections are reflected in the plan.
+- No push, PR, merge, deployment, dependency change, migration, or remote database write was performed.
 
 ## Requested Guardian action
 
-Audit the committed G1 package against the brief and `ADR-002` once the Product Owner formally approves the plan; do not mark `G1` PASS before approval.
+Audit the implementation and updated plan against `ADR-002` and `AUD-025`; verify the two browser failures reproduce on pristine `main` before treating them as pre-existing; record `G2`/`G3` status and leave `G4` for the Product Owner.
