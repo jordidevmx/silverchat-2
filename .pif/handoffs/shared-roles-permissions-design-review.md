@@ -1,0 +1,58 @@
+# Guardian review | Shared roles and permissions
+
+Reviewed G1 design: docs/superpowers/specs/2026-11-20-shared-roles-permissions-design.md (SHA-256 D083951D3F2688259CD17DB449890375F4C0D42A95E0096B69A6751317855DEE). Worktree base 7a54131690ab4923f59f5ef26b1ee17e25fd6bba. Source: PO responses to OC-01 through OC-10 in this conversation. Disposition: revise design before plan approval. This review concerns the design, not verification of application behavior.
+
+| Choice | Resolution for Engineer |
+| --- | --- |
+| OC-01 | Groups: only the owner can demote or remove an admin. Enforce both operations and preserve owner protection. The answer concerns removal/demotion only. |
+| OC-02 | Channels: count the owner and every admin as followers, exactly once per account. Preserve the invariant through appointment, transfer and unfollow attempts while in office. |
+| OC-03 | Channel admins publish and manage their own posts only. Channel details and other authors' posts are outside that permission. If pinning changes a shared channel slot or displaces another author's pin, do not grant it implicitly. |
+| OC-04 | Owners, admins and ordinary channel members can invite contacts and see acceptance of their own specific invitation. The PO confirmed that channel admins may report their own channel. Enable the report action and allow the corresponding server-side submission for admins. Test both. The current proposed matrix excludes visitors from tracked invitations. |
+| OC-05 | A community owner may transfer ownership to any current member. Previous owner becomes admin. Channel transfer still requires an existing admin. |
+| OC-06 | Moderators have read-only access to the blocked list and can delete a message whose author has departed. Only owner/admin can lift a ban. Test departed authors separately from current staff. |
+| OC-07 | Include all agreed moderation/governance events, including staff deletion of others' messages and expulsion-related bulk deletion. Record actor, action, target and time without copying deleted content into the log. Correct the message deletion row's reference to OC-06. |
+| OC-08 | The PO superseded the local-only recommendation. Enable Communities navigation and all Communities routes, including direct links, across build modes. Verify access through navigation and deep links while enforcing the existing authentication and membership rules. The PO will decide when to disable the routes later. |
+| OC-09 | PO delegated a recommendation. Guardian recommends preserving existing permissions for existing groups: admin-only add/share/edit where historically restricted, the stored send rule unchanged, approval off. Use the approved open defaults for newly created groups. Before backfill, confirm effective historical behavior for each setting; document any discrepancy. This recommendation is submitted for review, not recorded as explicit PO approval. |
+| OC-10 | PO reports one Avisos per existing community. Check cardinality before migration, preserve that chat's ID, messages and memberships. Earlier PO instruction authorizes creating one for an existing community missing it. Flag duplicates for review rather than silently assigning one. Run legacy identification once; subsequent creation/rename or deletion must not change official status automatically. |
+
+## Corrections for the next revision
+
+- Reconcile all tables, RPC descriptions, migrations and acceptance cases, not only the open-choices section. Include moderator edits to both community and child-chat descriptions, with name/photo changes restricted to authorized roles. Explicitly include expulsion confirmation even when message deletion is unchecked.
+- The channel design says followers may react. The agreed access is viewing plus explicit contact invitations. Remove reaction-writing from the proposed follower privileges unless the PO grants it separately.
+- Use a single dialog for channel creation including photo selection/crop. Reuse the editor inside the step rather than launching the nested photo modal described in section 6. Select from contacts; keep search scoped to eligible contacts.
+- Explain how invitation delivery preserves staff identity privacy (including the recipient-facing sender field, notification and any existing direct-message path). The sender can see their own invitation's acceptance. Provide separate data projections for recipients and senders; row visibility alone does not hide columns.
+- Specify how message/media projections, realtime and storage paths protect identities under direct reads. Prove parity with real database authorization checks, in addition to mocked browser tests. Avoid claiming a write policy is rechecked at commit without an explicit serialization design.
+- Cover recovery after a successful create whose response is lost, as well as after partial invite delivery. Verify a retry cannot create another channel or send duplicate invitations.
+
+Next action: Engineer revises G1 design and supplies an updated matrix and checks. Guardian re-reviews it before plan approval by the PO. No remote writes authorized.
+
+## Round 2 | Guardian disposition: revise before G1 sign-off
+
+Reviewed design SHA-256 3D4B701FC02628664F1787F1C9D9F093BCE902848683C92D7075A255648E647B. Confirmed in the design: all-build Communities navigation and deep links, admin reporting, inline photo editor, contact-scoped invitations, departed-author moderation, audit coverage, and recovery from a lost create response. No implementation or test execution was audited in this round.
+
+1. **Group membership (line 31).** The proposed group-info predicate allows the open switch alone to satisfy the condition. Require active membership of the specific group for every member-configurable action, including avatar writes. Test an outsider and former member with open permissions. Separate sharing an existing invitation from revoking or rotating it.
+2. **Channel invitation privacy (lines 157-166).** A recipient can see the inviter's ID and name. Only channel participants can send invitations, and all participants count as followers. A staff recipient can therefore identify a follower even if the recipient never accepts. The PO-approved exception is in the opposite direction: the sender may see acceptance of their own invitation. Use channel-attributed delivery without a personal sender on the received invitation, notification or DM envelope. Retain attribution privately for the sender. Include an ordinary follower inviting a staff contact in acceptance checks.
+3. **Forwarded files (lines 151-155).** The storage exception needs a precise read contract. The cited policy in migration 0010 applies to chat-media only and preserves original uploader metadata. Specify how an authorized destination-chat reader can view supported forwarded media without learning the channel author's identity via referenced file rows, thumbnails or storage metadata. Test a non-staff destination member and an unrelated viewer.
+4. **Concurrency (lines 168-170).** Identify a common lock and acquisition order for send/forward and each community-wide mutation, including announcement-grant revocation. A parent-community lock and a child-chat lock alone do not conflict. Add a two-session check for grant revocation or silence racing a send, and show that unrelated direct/group conversations retain their existing behavior.
+5. **Evidence and status (lines 17, 247, 265).** Describe authorization tests as planned until executed. scripts/run-db-tests.mjs defaults to calls.sql. Specify the suite path, e.g. pnpm test:db supabase/tests/shared_roles_permissions.sql on the designated local test database. OC-09 remains the recommended historical backfill pending plan approval. Reconcile the executive summary accordingly.
+
+Engineer can address these findings in the design. Guardian will re-review the updated revision. This is a review of the specification, not a finding of an issue in a deployed system.
+
+## Round 3 | Proceed to planning with targeted corrections
+
+Design revision 3, SHA-256 A43947B5DC65157F6621F641FD09EE1A23AC0A9B284AB7C4987E5815CB02AFD7. All five Round 2 topics now have substantive design responses: active membership plus link rotation separation, channel-attributed delivery, forwarded media projections, common lock order and two-session scenarios, and explicitly planned SQL suites with valid paths. These are design findings only. Engineer may prepare the implementation plan and correct the following in the design and its corresponding acceptance cases before G1 sign-off.
+
+- Section 4.2 restricts avatar reads to staff but the signing contract only describes post attachments and forwards. Existing saveGroupAvatar stores channel images in avatars and sets the current channel avatar path. Provide an authorized read of the current public channel avatar, bound to that channel and its current file. Test discovery cards and invite previews as a non-staff user, including replacement and metadata privacy.
+- Section 4.2 should authorize the forwarded-message context using the verified end user's identity. A check using auth.uid() must actually execute under that identity. Reserve the privileged client for minting a URL for the object already authorized. Test the deployed-function contract locally with distinct users in addition to database checks. Distinguish a still-public original from an attachment accessible only through the destination chat when testing unrelated viewers.
+- Sections 3.2 and 8.1 disagree on receipt by staff (N/A in the matrix versus a staff recipient in the acceptance case). Avoid disclosing existing follower/staff status through invite eligibility or delivery results. Ensure the sender projection distinguishes acceptance through that invitation only; dismissing it privately should not reveal an extra recipient action to the sender.
+- OC-09 remains for PO confirmation with the plan. No application tests executed; no gate for implementation or release passed in this review.
+
+## Round 4 | Guardian recommends PO approval of the local implementation plan
+
+Reviewed design revision 4 (SHA-256 475076D76A7DB17A86040DC90B88E250E19282DC53C99F5BA3A64859733464E6) and its seven-task plan (SHA-256 D942B89FBE20B9A61CBABC15DCEC09D8E25494993479C23E44FA0A2467D19690) on base 7a54131. All three Round 3 findings are closed at design level. Sections 4.2, 4.3 and 8 specify and plan checks for current-channel-only avatar signing, end-user authorization of forwarded media, and invitations to eligible staff with channel attribution and private dismissal. The plan carries these into Tasks 1, 2, 5 and 7.
+
+Execution note: the bare db-guard command in Tasks 1 and 7 returns usage error (exit 2) without --expect. For a local-only migration, verify LF directly and run SQL suites on the designated disposable local database. Use the linked-target guard with the expected reference only when applicable to an independently authorized linked operation. Record the exact command, target class and result. A usage error is not a passed check.
+
+Guardian design/plan review complete. G1 is awaiting PO approval of the local implementation plan including OC-09: preserve historical admin restrictions for existing groups and their stored send rule, use open defaults for new groups. No implementation, runtime checks or release were assessed.
+
+Product Owner decision (2026-11-20, CHG-006): USER_APPROVED. The PO replied "aprobado" to the Round 4 plan and OC-09 confirmation request. G1 PASS for the exact design and plan above. Engineer may start local implementation with Task 1. Submit implementation evidence for independent Guardian review.

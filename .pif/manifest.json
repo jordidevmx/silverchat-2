@@ -10,5 +10,5 @@
   "approval_authority": "Product Owner",
   "documentation_language": "en",
   "last_reconciled_revision": "6aed855",
-  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); TASK-014 ACCEPTED through a8bc376 2026-11-27 (EVID-012, EVID-013, CHG-007, ADR-001). CHG-008 (EVID-014) reconciled canonical .pif/ to main HEAD 6aed855 and integrated governance/pwa-offline-g1-brief. CHG-009 (EVID-015) audited AUD-020 (8be9cc6 VERIFIED), direct source code (TASK-014 4ad2372, TASK-013, CHG-006, PR #84), CI (19/19 PRs #46/#67-#84 SUCCESS), local tests (326/326 PASS), Staging (37/38 migrations; 20261125120000 pending), and Production read-only (34/38 migrations, 4 pending; livekit-token missing; send-push & sign-channel-media ACTIVE)."
+  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); TASK-014 ACCEPTED through a8bc376 (CHG-007, EVID-012, EVID-013, ADR-001) and post-a8bc376 delta ACCEPTED (CONDITIONAL on Netlify VITE_VAPID_PUBLIC_KEY) 2026-11-27 (CHG-010); CHG-006 and AUD-020 ACCEPTED 2026-11-27 (CHG-010, EVID-015, EVID-016). CHG-010 verified RISK-008 closure (08bcbf9, PR #85 CI 46054379971 SUCCESS; Staging 38/38 & 3/3 functions; Production 38/38 & 3/3 functions; livekit-token AUD-024 hardened; 7 CHG-006 audit handoffs recovered). Open Production call blocker: LIVEKIT_* secrets unset (RISK-009)."
 }
