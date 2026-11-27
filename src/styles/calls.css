@@ -242,6 +242,391 @@ dialog.call-modal > h2 {
   filter: brightness(0.93);
 }
 
+/* Fullscreen minimize control (top-left, opposite local camera PiP). */
+.call-minimize-button {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: 16px;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid rgb(255 255 255 / 26%);
+  border-radius: 9999px;
+  background: rgb(15 20 30 / 72%);
+  color: white;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.call-minimize-button:hover {
+  background: rgb(15 20 30 / 88%);
+}
+
+.call-minimize-button:active {
+  transform: scale(0.94);
+}
+
+.call-minimize-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+:root[data-theme="light"] .call-minimize-button {
+  border-color: #c9d1dc;
+  background: rgb(249 250 252 / 92%);
+  color: #202c3c;
+  box-shadow: 0 2px 12px rgb(21 34 51 / 12%);
+}
+
+:root[data-theme="light"] .call-minimize-button:hover {
+  background: #ffffff;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Minimized active-call sticky top banner (voice & collapsed video).
+ * Uses theme + accent tokens with contrast-safe light-mode accent mix.
+ * ───────────────────────────────────────────────────────────── */
+.call-top-banner {
+  --call-banner-accent: color-mix(in oklab, var(--neon) 42%, var(--foreground));
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-block-size: calc(52px + env(safe-area-inset-top));
+  padding: calc(6px + env(safe-area-inset-top)) 12px 6px;
+  border-bottom: 1px solid color-mix(in oklab, var(--neon) 28%, var(--border));
+  background: color-mix(in oklab, var(--neon) 10%, var(--card));
+  color: var(--foreground);
+  box-shadow: var(--shadow-silver);
+  backdrop-filter: blur(16px);
+}
+
+:root[data-theme="dark"] .call-top-banner {
+  --call-banner-accent: var(--neon);
+  background: color-mix(in oklab, var(--neon) 11%, var(--card));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .call-top-banner {
+    --call-banner-accent: var(--neon);
+    background: color-mix(in oklab, var(--neon) 11%, var(--card));
+  }
+}
+
+.call-top-banner-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+
+.call-top-banner-btn:active {
+  transform: scale(0.94);
+}
+
+.call-top-banner-btn:focus-visible,
+.call-top-banner-main:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.call-top-banner-mic {
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  background: color-mix(in oklab, var(--foreground) 9%, var(--card));
+  color: var(--foreground);
+}
+
+.call-top-banner-mic:hover {
+  background: color-mix(in oklab, var(--foreground) 15%, var(--card));
+}
+
+.call-top-banner-mic[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.call-top-banner-hangup {
+  border: 0;
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.call-top-banner-hangup:hover {
+  filter: brightness(0.92);
+}
+
+.call-top-banner-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-inline-size: 0;
+  min-block-size: 40px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--call-banner-accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.call-top-banner-main:hover {
+  background: color-mix(in oklab, var(--neon) 12%, transparent);
+}
+
+.call-top-banner-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.call-top-banner-name {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.call-top-banner-sep,
+.call-top-banner-duration {
+  flex: none;
+}
+
+.call-top-banner-duration {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 359px) {
+  .call-top-banner {
+    gap: 6px;
+    padding-inline: 8px;
+  }
+
+  .call-top-banner-btn {
+    inline-size: 36px;
+    block-size: 36px;
+  }
+
+  .call-top-banner-main {
+    padding-inline: 6px;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (min-width: 700px) {
+  .call-top-banner {
+    gap: 12px;
+    padding-inline: 16px;
+  }
+
+  .call-top-banner-main {
+    gap: 8px;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .call-top-banner {
+    padding-inline: 20px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Minimized draggable floating video window.
+ * ───────────────────────────────────────────────────────────── */
+.call-floating-window {
+  --call-safe-top: env(safe-area-inset-top, 0px);
+  --call-safe-right: env(safe-area-inset-right, 0px);
+  --call-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --call-safe-left: env(safe-area-inset-left, 0px);
+  position: fixed;
+  z-index: 50;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--neon) 38%, rgb(255 255 255 / 22%));
+  border-radius: 16px;
+  background: oklch(0.14 0.015 255);
+  box-shadow:
+    0 12px 32px rgb(0 0 0 / 42%),
+    0 0 0 1px rgb(0 0 0 / 12%);
+  transition:
+    width var(--duration-base) var(--ease-out),
+    height var(--duration-base) var(--ease-out),
+    left var(--duration-base) var(--ease-out),
+    top var(--duration-base) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.call-floating-window.is-expanded {
+  border-color: color-mix(in oklab, var(--neon) 68%, rgb(255 255 255 / 35%));
+  box-shadow:
+    0 16px 38px rgb(0 0 0 / 50%),
+    var(--shadow-glow);
+}
+
+.call-floating-window.is-dragging {
+  border-color: var(--neon);
+  box-shadow:
+    0 18px 42px rgb(0 0 0 / 55%),
+    var(--shadow-glow);
+  transition: none;
+}
+
+.call-floating-stage {
+  position: relative;
+  inline-size: 100%;
+  block-size: 100%;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.call-floating-stage > * {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.call-floating-window.is-dragging .call-floating-stage {
+  cursor: grabbing;
+}
+
+.call-floating-stage:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.call-floating-avatar-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: 12px;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    color-mix(in oklab, var(--neon) 22%, oklch(0.18 0.015 255)),
+    oklch(0.14 0.015 255) 75%
+  );
+}
+
+.call-floating-fallback-name {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(255 255 255 / 92%);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.call-floating-controls {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 62%), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.call-floating-window:hover .call-floating-controls,
+.call-floating-window:focus-within .call-floating-controls,
+.call-floating-window.is-expanded .call-floating-controls {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.call-floating-control-btn {
+  display: grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border: 1px solid rgb(255 255 255 / 26%);
+  border-radius: 9999px;
+  background: rgb(15 20 30 / 78%);
+  color: white;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.call-floating-window:hover .call-floating-control-btn,
+.call-floating-window:focus-within .call-floating-control-btn,
+.call-floating-window.is-expanded .call-floating-control-btn {
+  pointer-events: auto;
+}
+
+.call-floating-control-btn:hover {
+  background: rgb(15 20 30 / 94%);
+}
+
+.call-floating-control-btn:active {
+  transform: scale(0.92);
+}
+
+.call-floating-control-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (min-width: 700px) {
+  .call-floating-control-btn {
+    inline-size: 34px;
+    block-size: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .call-minimize-button,
+  .call-top-banner-btn,
+  .call-top-banner-main,
+  .call-floating-window,
+  .call-floating-controls,
+  .call-floating-control-btn {
+    transition: none;
+  }
+
+  .call-floating-controls {
+    transform: none;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────
  * Reusable inline call event (timeline card + compact preview).
  * All colours come from theme tokens so both themes stay intentional.

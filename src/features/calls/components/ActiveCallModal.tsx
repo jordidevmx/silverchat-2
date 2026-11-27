@@ -1,49 +1,17 @@
-import type { LocalVideoTrack, RemoteVideoTrack } from "livekit-client";
-import { useEffect, useRef, useState } from "react";
+import { Minimize2 } from "lucide-react";
+import { useRef, useState } from "react";
 
-import { useLiveKitRoom } from "../hooks/useLiveKitRoom";
+import { useActiveCallControls } from "../hooks/useActiveCallControls";
+import { useCallTimer } from "../hooks/useCallTimer";
 import { useCallText } from "../i18n";
-import { hangupActiveCall, markCallVideo } from "../lib/callActions";
 import { formatDuration } from "../lib/callFormatter";
-import { resolveCameraToggle } from "../lib/cameraPromotion";
-import { notifyCall, useCallStore } from "../stores/callStore";
+import { minimizeActiveCall, useCallStore } from "../stores/callStore";
 import { CallAvatar } from "./CallAvatar";
 import { CallControls } from "./CallControls";
 import { CallModalShell } from "./CallModalShell";
+import { CallVideo } from "./CallVideo";
 
-/** 12.1/12.2 — attach a LiveKit track to a <video> element. Local (mirrored)
- * playback is muted to avoid feedback. */
-function CallVideo({
-  track,
-  mirrored,
-  className,
-}: {
-  track: RemoteVideoTrack | LocalVideoTrack | null;
-  mirrored?: boolean;
-  className?: string;
-}) {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element || !track) return;
-    void track.attach(element);
-    return () => {
-      track.detach(element);
-    };
-  }, [track]);
-  return (
-    <video
-      ref={ref}
-      autoPlay
-      playsInline
-      muted={mirrored}
-      className={className}
-      style={mirrored ? { transform: "scaleX(-1)" } : undefined}
-    />
-  );
-}
-
-/** Desktop-draggable PiP (12.2): pointer-drag clamped to the viewport. */
+/** Desktop-draggable self-view PiP (12.2): pointer-drag inside the call modal. */
 function DraggablePiP({ children }: { children: React.ReactNode }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const draggable = useRef(
@@ -83,20 +51,6 @@ function DraggablePiP({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Elapsed seconds since answeredAt, ticked once per second (11.3). */
-function useCallTimer(answeredAt: string | null) {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    if (!answeredAt) return;
-    const start = new Date(answeredAt).getTime();
-    const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - start) / 1000)));
-    tick();
-    const timer = setInterval(tick, 1000);
-    return () => clearInterval(timer);
-  }, [answeredAt]);
-  return elapsed;
-}
-
 export function ActiveCallModal() {
   const say = useCallText();
   const call = useCallStore((state) => state.call);
@@ -107,82 +61,14 @@ export function ActiveCallModal() {
   const isMicEnabled = useCallStore((state) => state.isMicEnabled);
   const isCameraEnabled = useCallStore((state) => state.isCameraEnabled);
   const isSpeakerOn = useCallStore((state) => state.isSpeakerOn);
-  const room = useCallStore((state) => state.room);
-  const remoteAudioTrack = useCallStore((state) => state.remoteAudioTrack);
+  const remoteAudioLevel = useCallStore((state) => state.remoteAudioLevel);
   const [fit, setFit] = useState<"cover" | "contain">("cover");
 
-  const remoteAudioLevel = useCallStore((state) => state.remoteAudioLevel);
-  useLiveKitRoom(call?.id ?? "", call?.type ?? "voice");
+  const { toggleMic, toggleCamera, toggleSpeaker, hangup } = useActiveCallControls();
   const elapsed = useCallTimer(answeredAt);
 
   if (!call || !other) return null;
   const name = other.display_name?.trim() || say("Unavailable contact");
-
-  const toggleMic = () => {
-    const next = !isMicEnabled;
-    void room?.localParticipant
-      .setMicrophoneEnabled(next)
-      .then(() => useCallStore.setState({ isMicEnabled: next }))
-      .catch(() => notifyCall(say("Call failed. Try again.")));
-  };
-  const toggleCamera = () => {
-    if (!room || !call) return;
-    const next = !isCameraEnabled;
-    const expectedRoom = room;
-    const activeCallId = call.id;
-    void expectedRoom.localParticipant
-      .setCameraEnabled(next)
-      .then((publication) => {
-        const latest = useCallStore.getState();
-        const publishedTrack = publication?.videoTrack ?? null;
-        const resolution = resolveCameraToggle({
-          next,
-          callId: activeCallId,
-          expectedRoom,
-          currentRoom: latest.room,
-          currentCallId: latest.call?.id,
-          currentPhase: latest.phase,
-          publishedVideoTrack: publishedTrack,
-        });
-        if (resolution.stale) return;
-        // Toggling unpublishes/publishes a new track: the PiP must follow the
-        // publication or it keeps the stopped one (a frozen last frame).
-        useCallStore.setState({
-          isCameraEnabled: resolution.isCameraEnabled,
-          localVideoTrack: resolution.hasTrack ? publishedTrack : null,
-        });
-        if (next && !resolution.hasTrack) {
-          notifyCall(say("Call failed. Try again."));
-          return;
-        }
-        // Only a camera that actually published marks the call as video.
-        // Never mutate store.call.type here: useLiveKitRoom keys its effect on
-        // that value and would reconnect the room mid-call.
-        if (resolution.shouldPromoteToVideo) {
-          void markCallVideo(activeCallId).then((ok) => {
-            if (!ok) notifyCall(say("Could not update call details"));
-          });
-        }
-      })
-      .catch(() => notifyCall(say("Call failed. Try again.")));
-  };
-  const toggleSpeaker = () => {
-    const next = !isSpeakerOn;
-    try {
-      remoteAudioTrack?.setVolume(next ? 1 : 0);
-      useCallStore.setState({ isSpeakerOn: next });
-    } catch {
-      notifyCall(say("Call failed. Try again."));
-    }
-  };
-
-  // Guardian round 4 (AUD-003): a failed hangup write is never silently
-  // discarded — same feedback pattern as the voice modal.
-  const hangup = () => {
-    void hangupActiveCall("hangup").then((outcome) => {
-      if (outcome === "error") notifyCall(say("Call failed. Try again."));
-    });
-  };
 
   return (
     <CallModalShell
@@ -191,6 +77,15 @@ export function ActiveCallModal() {
       className="call-modal-video"
     >
       <div className="absolute inset-0">
+        <button
+          type="button"
+          className="call-minimize-button"
+          aria-label={say("Minimize call")}
+          title={say("Minimize call")}
+          onClick={minimizeActiveCall}
+        >
+          <Minimize2 size={20} aria-hidden="true" />
+        </button>
         {remoteVideoTrack ? (
           <button
             type="button"

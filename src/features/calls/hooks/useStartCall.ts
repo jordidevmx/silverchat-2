@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-provider";
 import { supabase } from "@/lib/supabase";
 import { requestCallPermissions } from "../lib/callActions";
+import { canStartCallInPhase } from "../lib/callPresentation";
 import { invokeStartCall } from "../lib/startCallRpc";
 import { enterOutgoingCall, useCallStore } from "../stores/callStore";
 import type { CallParticipant, CallType } from "../types";
@@ -61,6 +62,11 @@ async function resolveParticipant(chatId: string, userId: string): Promise<CallP
 }
 
 async function startCall(input: StartCallInput, userId: string): Promise<void> {
+  // Guard before requesting getUserMedia so clicking a call button while a call
+  // is minimized never interrupts the active LiveKit microphone track.
+  if (!canStartCallInPhase(useCallStore.getState().phase)) {
+    throw new CallStartError("busy");
+  }
   const granted = await requestCallPermissions(input.type === "video");
   if (granted !== "ok") throw new CallStartError(granted);
 
