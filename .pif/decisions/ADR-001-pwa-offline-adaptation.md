@@ -42,3 +42,8 @@ Alternative 2 was approved. Specific decisions:
 - `--no-verify-jwt` means the Edge Function owns authentication; its constant-time check and payload sanitization are mandatory invariants verified by tests and Staging smoke.
 - Staging was configured and verified; branch push/PR, CI `G5`, merge and Production `G6` are still separate authorizations.
 - The follow-up delta `a8bc376` added explicit `REVOKE ... FROM service_role` for the five push functions as defense in depth; verified by Staging SQL assertions (`EVID-013`).
+
+## Amendment (`2026-11-27` — Commit `4ad2372` / PR `#82` & Production Backend Verification, `EVID-015`)
+
+- **IndexedDB v2 (`view_cache`) & `clientsClaim: true`:** Prior to merging PR `#82` (`8105aa9`), the Product Owner directed commit `4ad2372`, upgrading `silverchat` IndexedDB from `v1` to `v2` (`OFFLINE_DB_VERSION = 2`) to add a user-scoped `view_cache` store (`[user_id, cache_key]`, `by-user` index, cleared by `clearAllUserData(userId)` on logout) for `preferences`, `calls`, `communities`, `stories`, and `channels`, and enabling Workbox `clientsClaim: true` while keeping non-forced `registerType: "prompt"` updates. Audited `VERIFIED` (`G2`/`G3`/`G5` `PASS`) in `EVID-015`; post-`4ad2372` `G4` human sign-off remains open.
+- **Production backend rollout (item 6 updated under separate PO authorization `2026-11-27`):** Read-only Production inspection (`EVID-015`, `lmzbaxlojgsdwgcxkmzx`) verified both push migrations (`20261127040628`, `20261127150500`) recorded in Production and `send-push` `ACTIVE` v1 (`verify_jwt: false`, matching Staging bundle hash). Netlify `VITE_VAPID_PUBLIC_KEY` and live Production push delivery remain `NOT_RUN` (`G6`).
