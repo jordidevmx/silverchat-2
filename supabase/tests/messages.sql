@@ -74,4 +74,12 @@ SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.get_chat_messages(curr
 RESET ROLE;
 SELECT pg_temp.assert_true(NOT has_function_privilege('anon','public.get_chat_messages(uuid,timestamptz,uuid)','execute'),'Anonymous access denied');
 SELECT pg_temp.assert_true((SELECT command LIKE '%media_thumbnail_upload_id%' FROM cron.job WHERE jobname='cleanup_orphan_uploads'),'Cron protects referenced thumbnails');
+-- Message content is bounded at 10,000 characters on INSERT and UPDATE.
+SELECT set_config('request.jwt.claims','{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.rejects(format('INSERT INTO public.messages(chat_id,sender_id,content) VALUES(%L,auth.uid(),repeat(''x'',10001))',current_setting('test.group_id')::uuid),'messages_content_length_check');
+WITH bounded AS (INSERT INTO public.messages(chat_id,sender_id,content) VALUES(current_setting('test.group_id')::uuid,auth.uid(),repeat('x',10000)) RETURNING id)
+SELECT set_config('test.bounded_id',id::text,true) FROM bounded;
+SELECT pg_temp.rejects(format('UPDATE public.messages SET content=repeat(''y'',10001) WHERE id=%L',current_setting('test.bounded_id')::uuid),'messages_content_length_check');
+RESET ROLE;
 ROLLBACK;

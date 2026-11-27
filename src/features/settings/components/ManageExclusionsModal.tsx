@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useI18n } from "@/app/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { SettingsDialog } from "@/components/ui/settings-surfaces";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useContacts } from "../hooks";
 import { usePreferenceConfirmation } from "../hooks/useSettingsDialogActions";
 import { usePreferences } from "../preferences-provider";
@@ -31,6 +32,7 @@ export function ManageExclusionsModal({
           <input
             id="contact-search"
             type="search"
+            maxLength={MAX_TEXT_LENGTH}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

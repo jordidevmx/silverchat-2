@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback } from "react";
 import { ComposerDock } from "@/components/ui/messaging";
 import { MAX_CLIPBOARD_IMAGES_DEFAULT } from "@/lib/clipboard-images";
 import { useClipboardImageTarget } from "@/lib/clipboard-paste";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useComposerController } from "../hooks/useComposerController";
 import type { ChatDetails, Message, SendInput } from "../types";
 import { AttachmentMenu } from "./AttachmentMenu";
@@ -167,6 +168,7 @@ export function Composer({
                 }
                 enterKeyHint="send"
                 rows={1}
+                maxLength={MAX_TEXT_LENGTH}
                 value={text}
                 aria-controls={mentions.options.length ? "mention-options" : undefined}
                 aria-activedescendant={

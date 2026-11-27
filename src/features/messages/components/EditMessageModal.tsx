@@ -2,6 +2,7 @@ import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/features/auth/components";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useEditMessageDialog } from "../hooks/useEditMessageDialog";
 import { useMessageText } from "../i18n";
 import type { Message } from "../types";
@@ -37,7 +38,7 @@ export function EditMessageModal({
           id={inputId}
           data-clipboard-reason="edit-message"
           value={text}
-          maxLength={message.type === "text" ? undefined : 500}
+          maxLength={message.type === "text" ? MAX_TEXT_LENGTH : 500}
           onChange={(e) => setText(e.target.value)}
           rows={4}
         />

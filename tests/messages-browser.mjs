@@ -387,6 +387,8 @@ const scroll = async (top) => {
 };
 try {
   await goto();
+  const messageBox = page.getByRole("textbox", { name: "Message", exact: true });
+  assert.equal(await messageBox.getAttribute("maxlength"), "10000");
   assert.ok((await metrics()).bottom < 5, "Initial scroll reaches bottom");
   assert.equal(await page.locator("[data-message-id]").count(), 50);
   await scroll(50);
@@ -438,6 +440,19 @@ try {
     await page.getByRole("textbox", { name: "Message", exact: true }).inputValue(),
     "Draft survives navigation",
   );
+  await goto(groupId);
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), {
+    key: `silverchat_draft_${chatId}`,
+    value: JSON.stringify({
+      text: "x".repeat(12_000),
+      mediaUrls: [],
+      replyToId: null,
+      updatedAt: new Date().toISOString(),
+      ownerId: me,
+    }),
+  });
+  await goto();
+  assert.equal((await messageBox.inputValue()).length, 10_000);
   await goto(groupId);
   await page.getByRole("textbox", { name: "Message", exact: true }).fill("@sof");
   await page.getByRole("option").waitFor();

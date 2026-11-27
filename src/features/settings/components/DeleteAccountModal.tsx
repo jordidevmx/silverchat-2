@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SettingsDialog } from "@/components/ui/settings-surfaces";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useAccountDeletion } from "../hooks/useAccountActions";
 export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
   const { confirmation, setConfirmation, action, t, scheduleDeletion } =
@@ -22,6 +23,7 @@ export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
           <input
             id="delete-confirm"
             autoComplete="off"
+            maxLength={MAX_TEXT_LENGTH}
             value={confirmation}
             onChange={(e) => setConfirmation(e.target.value)}
           />
