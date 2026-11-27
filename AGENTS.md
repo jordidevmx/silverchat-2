@@ -5,8 +5,16 @@ These instructions apply to all agents and delegated subagents working in this r
 ## Instruction Priority
 
 - Follow the human owner's explicit instructions first, then this file, then tool-specific workflows and skills, subject to higher-priority safety constraints.
-- Use available workflows such as Superpowers rather than duplicating their methodology here. When a workflow conflicts with an explicit rule in this file, follow this file.
+- Use available workflows such as Superpowers rather than duplicating their methodology here. When a workflow conflicts with an explicit rule in this file, follow this file, except in an explicitly initialized PIF session (see PIF Mode below).
 - Delegation never expands permissions: subagents must follow the same instructions and authorization boundaries.
+
+## PIF Mode (Opt-In Only)
+
+PIF workflows and records are inactive by default. Unless the human owner explicitly says in the current session to initialize the PIF Engineer or PIF Guardian workflow, do not load, follow, or partially apply `.agents/workflows/pif-*.md`, `SHARED_MEMORY_PROTOCOL.md`, or `.pif/` records as operating instructions; treat them as dormant project material. Do not use them to override, supplement, or reinterpret this file.
+
+When PIF mode is explicitly initialized, the PIF initializer and protocol govern that session: `AGENTS.md` is not applied, including its Superpowers workflow guidance and Git/commit timing rules. Only the human owner can reverse this by saying so explicitly. This mutual exclusion is between this file and the PIF instructions only; it does not override system or harness-level safety rules, tool permissions, or the human owner's authority.
+
+Initializers (use only on explicit request): `.agents/workflows/pif-engineer.init.md`, `.agents/workflows/pif-guardian.init.md`.
 
 ## Discover Before Changing
 
