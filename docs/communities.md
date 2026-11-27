@@ -1,5 +1,11 @@
 # Communities implementation (Prompt 11)
 
+> **Historical Snapshot:** This is a pre-PIF implementation record, not the
+> current project state. Communities was merged to `main`, and migrations
+> `0001`–`0014` were reconciled under `TASK-012` (`EVID-011`). Authoritative
+> current status lives in [`.pif/state.md`](../.pif/state.md) and
+> [`.pif/roadmap.md`](../.pif/roadmap.md).
+
 Branch: `feat/communities`. Migration 0014 was applied manually by the developer and verified in production.
 This is an implementation record, not the developer's Prompt 11 acceptance report.
 Production catalog verification passed. The implementation is ready for the single commit/push and the developer's separate acceptance checklist. No PR is authorized.

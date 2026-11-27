@@ -1,5 +1,11 @@
 # Prompt 09 verification report
 
+> **Historical Snapshot:** This is a pre-PIF verification record, not the
+> current project state. The feature was merged to `main`, and migrations
+> `0001`–`0014` were reconciled under `TASK-012` (`EVID-011`). Authoritative
+> current status lives in [`.pif/state.md`](../.pif/state.md) and
+> [`.pif/roadmap.md`](../.pif/roadmap.md).
+
 ## Status: COMPLETE (52/66 items PASS, 14 DEFERRED to Prompt 11)
 
 Branch: `verify/09-contact-profile-chat-settings`

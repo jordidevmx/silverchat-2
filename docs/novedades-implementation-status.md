@@ -1,5 +1,11 @@
 # Prompt 10 — implemented and locally verified; staging pending
 
+> **Historical Snapshot:** This is a pre-PIF implementation record, not the
+> current project state. Novedades was merged to `main`, and migrations
+> `0001`–`0014` were reconciled under `TASK-012` (`EVID-011`). Authoritative
+> current status lives in [`.pif/state.md`](../.pif/state.md) and
+> [`.pif/roadmap.md`](../.pif/roadmap.md).
+
 The original stopped draft is replaced by
 `supabase/migrations/0012_stories_channels.sql`. Version 0011 remains the
 previous chat-settings migration. No migration 0001–0011 or environment file

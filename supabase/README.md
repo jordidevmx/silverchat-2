@@ -1,17 +1,22 @@
 # SilverChat backend foundation
 
-The migration series now runs to `0014_communities.sql`; the tables below
-describe the original 0001–0003 foundation, and
-[Current deployment state](#current-deployment-state-2026-11-11) records what
-is applied on each remote project today.
+At `main` `6aed855` (2026-11-27) the repository contains **38 migrations**:
+`0001`–`0014` plus 24 timestamped migrations from `20261111103000` through
+`20261127150500`. Three Edge Functions are committed under
+`supabase/functions/`: `livekit-token`, `sign-channel-media` and `send-push`.
+The tables below describe the original `0001`–`0003` foundation, and
+[Current deployment state](#current-deployment-state-2026-11-27) records the
+live ledger status.
 
 Authentication added migration `0004_auth_backup_codes.sql`; see
 [authentication deployment notes](../docs/authentication.md). The remote
-results further down describe 0001–0003 as they stood at the time and are
-kept as a historical record; the migration set now has 22 application tables.
+results further down describe `0001`–`0003` as they stood at the time and are
+kept as a historical record; that foundation created 22 application tables and
+later migrations extend the schema.
 
 Built from roadmap 01, 02, 04a, 04b-1 and 04b-2, after refreshing `main` to
-`bf12b71`. No roadmap files from 05 onward were read for this implementation.
+`bf12b71`. No roadmap files from 05 onward were read for that historical
+foundation work.
 
 ## Graphify dependency order
 
@@ -42,18 +47,35 @@ place. This change adds no UI or application dependencies.
 `0004_auth_backup_codes.sql` adds backup codes, device uniqueness, service-only
 recovery RPCs, and MFA assurance gates. Apply it separately before deploying auth.
 
-### Current deployment state (2026-11-11)
+### Current deployment state (2026-11-27)
 
-The migration set now runs to `0014_communities.sql`; the table above lists the
-original 0001–0003 foundation only.
+The committed set at `main` `6aed855` contains **38 LF-clean migration files**:
+`0001`–`0014` plus 24 timestamped migrations from `20261111103000` through
+`20261127150500`. The table above lists only the original `0001`–`0003`
+foundation. Three Edge Functions are committed: `livekit-token`,
+`sign-channel-media` and `send-push`.
 
-- **Production** (`lmzbaxlojgsdwgcxkmzx`): the CLI ledger records 0001–0014.
-  0008–0014 were recorded with `migration repair --status applied` (ledger
-  metadata only, no DDL). The *content* of 0005 and 0006 was never created on
-  Production — see `docs/FASE-2.md` for the open decision.
-- **Staging** (`gffdrrtatxdiucigtwdn`): rebuilt from scratch on 2026-11-11;
-  0001–0014 applied in order from the committed (LF) files and verified equal
-  to them — see `docs/staging-migrations-report.md`.
+- **Staging** (`gffdrrtatxdiucigtwdn`): **38/38** versions applied as of
+  `2026-11-27`, including `20261125120000_call_events.sql` (PR `#71`).
+- **Production** (`lmzbaxlojgsdwgcxkmzx`): **38/38** versions applied as of
+  `2026-11-27`, including `20261119133500`, `20261125120000`,
+  `20261126000000` and `20261127120000`. All **3** Edge Functions are `ACTIVE`
+  (`livekit-token`, `sign-channel-media`, `send-push`); `livekit-token` uses JWT
+  verification and its Production `ezbr_sha256` matches Staging
+  (`92074dfd…`). The `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `LIVEKIT_URL`
+  secrets are configured on Production (names only; no values are stored in the
+  repository), and a zero-fixture smoke check returned `OPTIONS 200` /
+  unauthenticated `POST 401`.
+
+Ledger state changes over time: run
+`pnpm exec supabase migration list --remote=<ref>` and consult
+[`.pif/state.md`](../.pif/state.md) for the authoritative status. Production
+writes require explicit Product Owner authorization and the `--allow-production`
+guard, followed by an immediate relink to Staging.
+
+The earlier `0005`/`0006` Production content gap was resolved on `2026-11-11`
+by `20261111103000_backfill_profile_settings.sql` (`TASK-012`, `EVID-011`);
+the old claim that their content was "never created" is obsolete.
 
 Conventions for migration files:
 
@@ -109,6 +131,10 @@ Storage objects. Realtime publication membership was checked; delivery through
 an external Realtime subscription was not tested.
 
 ## Previous local validation
+
+> **Historical context:** the results in this and the following sections were
+> produced for the original `0001`–`0003` foundation and are preserved as a
+> record. They are not a verification of the current 38-migration set.
 
 The local validation project was created at `/tmp/silverchat-backend-validation`,
 separate from the application checkout. Its Supabase Postgres version is
@@ -181,7 +207,7 @@ the Supabase SQL Editor and reported that all three succeeded. The SQL files
 were left unchanged. No remote `supabase link` or `supabase db push` was run
 for this verification, and CLI migration history was not reconciled **at that
 time** — the history was reconciled on 2026-11-11 (see
-[Current deployment state](#current-deployment-state-2026-11-11)).
+[Current deployment state](#current-deployment-state-2026-11-27)).
 
 Read-only SQL through the Management API endpoint
 `POST /v1/projects/{ref}/database/query` confirmed:
@@ -238,10 +264,9 @@ not remove the underlying stored files.
 
 ## Automated SQL tests
 
-`pnpm test:db` runs `supabase/tests/calls.sql` against a reachable Postgres. It needs the `psql` client and a database with every migration applied.
+There are **18 suites** in `supabase/tests/`. `pnpm test:db` needs the `psql` client and a database with every migration applied.
 
-- Local Supabase: `supabase start`, then `pnpm test:db`.
-- Other database: set `SUPABASE_DB_URL` (and `PSQL_PATH` if psql is not on PATH).
-- Any suite: `pnpm test:db supabase/tests/<name>.sql`.
-
-CI (`.github/workflows/ci.yml`) runs on every PR update: it starts a local Supabase stack (all migrations), runs the unit, typecheck and build checks, the SQL suite, and verifies that `src/types/database.ts` matches the complete schema.
+- **CI** (`.github/workflows/ci.yml`): `pnpm test:db --all` on a clean local Supabase stack with all migrations, alongside unit, typecheck, build and generated-types equality checks.
+- **Staging** (rollback-safe suites containing `BEGIN; ... ROLLBACK;` and no `psql` meta-commands): `pnpm test:db --staging supabase/tests/<suite>.sql`, preceded by `node scripts/db-guard.mjs --expect gffdrrtatxdiucigtwdn`.
+- **Any single suite** on a reachable database: `pnpm test:db supabase/tests/<name>.sql` (set `SUPABASE_DB_URL`, and `PSQL_PATH` if `psql` is not on PATH).
+- Local Docker and `psql` are intentionally unavailable on this workstation; use CI or Staging as described above.

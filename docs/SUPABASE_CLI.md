@@ -126,10 +126,15 @@ must show `w/lf`.
 
 ## Project references in use
 
-| Environment | Project ref              | Notes                                             |
-| ----------- | ------------------------ | ------------------------------------------------- |
-| Production  | `lmzbaxlojgsdwgcxkmzx`   | Ledger 2026-11-11: 15/15 versions recorded (0001–0014 + the corrective backfill) |
-| Staging     | `gffdrrtatxdiucigtwdn`   | Rebuilt 2026-11-11: 0001–0014 applied from scratch, plus the same corrective migration (a no-op there) |
+At `main` `6aed855` the repository has **38 migrations**. As of `2026-11-27`,
+both Staging and Production report **38/38** applied. These are point-in-time
+counts: always run `pnpm exec supabase migration list --remote=<ref>` and consult
+[`.pif/state.md`](../.pif/state.md) for live status.
+
+| Environment | Project ref | Status as of 2026-11-27 |
+| --- | --- | --- |
+| Staging | `gffdrrtatxdiucigtwdn` | 38/38 applied; 3/3 Edge Functions `ACTIVE`, including `livekit-token` v3. |
+| Production | `lmzbaxlojgsdwgcxkmzx` | 38/38 applied; 3/3 Edge Functions `ACTIVE`. `livekit-token` is deployed with `verify_jwt=true`; `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `LIVEKIT_URL` are configured (names only). Writes require explicit Product Owner authorization and the `--allow-production` guard, then an immediate relink to Staging. |
 
 ## Rules for migration files
 
@@ -148,8 +153,7 @@ must show `w/lf`.
 - **Never edit an already-applied migration file.** Add a new migration
   instead — with idempotent guards (`if not exists`, `drop … if exists`) so it
   is a no-op where the change already landed.
-- **Do not run `supabase db push` against Production.** All 14 versions are
-  recorded there; pushing is unnecessary and risks re-applying DDL.
+- **Production writes require explicit Product Owner authorization.** Never link or push to Production without it. After authorization, run `node scripts/db-guard.mjs --expect lmzbaxlojgsdwgcxkmzx --allow-production`, verify the target with `pnpm exec supabase migration list --remote=lmzbaxlojgsdwgcxkmzx`, and relink back to Staging (`gffdrrtatxdiucigtwdn`) immediately afterward. Do not assume a historical ledger count makes a push safe.
 
 ## What is NOT committed
 

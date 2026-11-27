@@ -1,5 +1,12 @@
 # FASE-2 — Deferred items
 
+> **Historical Snapshot:** This is a pre-PIF / `TASK-012` historical record of
+> deferred items, not the current project state. The items recorded here were
+> resolved and merged to `main`, and migrations `0001`–`0014` were reconciled
+> under `TASK-012` (`EVID-011`). Authoritative current status lives in
+> [`.pif/state.md`](../.pif/state.md) and
+> [`.pif/roadmap.md`](../.pif/roadmap.md).
+
 ## RESOLVED (2026-11-11): remote migration history tracking for 0001–0014
 
 Migrations 0001–0007 were applied manually via the Supabase SQL Editor in a

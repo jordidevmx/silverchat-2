@@ -1,5 +1,11 @@
 # Novedades query storm — fix report
 
+> **Historical Snapshot:** This is a pre-PIF fix report, not the current
+> project state. The fix was merged to `main`, and migrations `0001`–`0014`
+> were reconciled under `TASK-012` (`EVID-011`). Authoritative current status
+> lives in [`.pif/state.md`](../.pif/state.md) and
+> [`.pif/roadmap.md`](../.pif/roadmap.md).
+
 Branch: `fix/novedades-query-storm` (one commit per fix, on top of
 82e08af). Baseline incident: opening `/novedades` fired ~50 requests in
 ~2 seconds, saturated the Supabase free-tier pool and produced a
