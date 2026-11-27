@@ -1,9 +1,10 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { allRows } from "@/features/chats/hooks/useChats";
 import { useAuth } from "@/lib/auth-provider";
+import { cacheMessages, readCachedMessages, withOfflineFallback } from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 import { CHAT_QUERY_OPTIONS } from "../lib/chatQueryPolicy";
-import { getOutboxMessages } from "../lib/outbox";
+import { getOutboxMessages, isOfflineOrNetworkError } from "../lib/outbox";
 import { type Cursor, type Message, type MessageRow, messageKey, outboxKey } from "../types";
 export async function enrichMessages(rows: MessageRow[], userId: string): Promise<Message[]> {
   if (!rows.length) return [];
@@ -127,17 +128,30 @@ export function useMessages(chatId: string) {
     initialPageParam: null as Cursor,
     ...CHAT_QUERY_OPTIONS,
     queryFn: async ({ pageParam }) => {
-      const result = await supabase.rpc("get_chat_messages", {
-        p_chat_id: chatId,
-        ...(pageParam ? { p_before_at: pageParam.at, p_before_id: pageParam.id } : {}),
-      });
-      if (result.error) throw result.error;
-      const rows = result.data ?? [];
-      const last = rows.at(-1);
-      return {
-        rows: await enrichMessages(rows, userId),
-        cursor: rows.length === 50 && last ? { at: last.created_at, id: last.id } : undefined,
+      const fetchPage = async () => {
+        const result = await supabase.rpc("get_chat_messages", {
+          p_chat_id: chatId,
+          ...(pageParam ? { p_before_at: pageParam.at, p_before_id: pageParam.id } : {}),
+        });
+        if (result.error) throw result.error;
+        const rows = result.data ?? [];
+        const last = rows.at(-1);
+        return {
+          rows: await enrichMessages(rows, userId),
+          cursor: rows.length === 50 && last ? { at: last.created_at, id: last.id } : undefined,
+        };
       };
+
+      if (pageParam) return fetchPage();
+
+      return withOfflineFallback({
+        fetchOnline: fetchPage,
+        writeCache: (page) => cacheMessages(userId, chatId, page.rows),
+        readCache: async () => {
+          const cached = await readCachedMessages(userId, chatId);
+          return cached ? { rows: cached, cursor: undefined } : null;
+        },
+      });
     },
     getNextPageParam: (page) => page.cursor,
   });
@@ -152,18 +166,23 @@ export function useMessages(chatId: string) {
     queryKey: ["first-unread", userId, chatId],
     staleTime: Infinity,
     queryFn: async () => {
-      const r = await supabase
-        .from("message_receipts")
-        .select("message_id,message:messages!inner(chat_id,created_at)")
-        .eq("user_id", userId)
-        .is("read_at", null)
-        .eq("message.chat_id", chatId)
-        .order("message(created_at)")
-        .order("message_id")
-        .limit(1)
-        .maybeSingle();
-      if (r.error) throw r.error;
-      return r.data?.message_id ?? null;
+      try {
+        const r = await supabase
+          .from("message_receipts")
+          .select("message_id,message:messages!inner(chat_id,created_at)")
+          .eq("user_id", userId)
+          .is("read_at", null)
+          .eq("message.chat_id", chatId)
+          .order("message(created_at)")
+          .order("message_id")
+          .limit(1)
+          .maybeSingle();
+        if (r.error) throw r.error;
+        return r.data?.message_id ?? null;
+      } catch (error) {
+        if (isOfflineOrNetworkError(error)) return null;
+        throw error;
+      }
     },
   });
   const server = [

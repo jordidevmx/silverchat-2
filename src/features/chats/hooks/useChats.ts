@@ -13,6 +13,7 @@ import { inAppNotification, playNotificationSound } from "@/features/settings/no
 import { usePreferences } from "@/features/settings/preferences-provider";
 import { useAuth } from "@/lib/auth-provider";
 import { getInitials } from "@/lib/avatar";
+import { cacheChats, readCachedChats, withOfflineFallback } from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 import type { Chat, MessageType } from "../types";
 import { isMuted, orderChats, receiptStatus } from "../utils/computeChatDisplay";
@@ -308,9 +309,15 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
 }
 export function useChats() {
   const { user, mfaRequired } = useAuth();
+  const userId = user?.id ?? "";
   const query = useQuery({
-    queryKey: chatKey(user?.id ?? ""),
-    queryFn: () => fetchChats(user?.id ?? ""),
+    queryKey: chatKey(userId),
+    queryFn: () =>
+      withOfflineFallback({
+        fetchOnline: () => fetchChats(userId),
+        writeCache: (chats) => cacheChats(userId, chats),
+        readCache: () => readCachedChats(userId),
+      }),
     enabled: !!user && !mfaRequired,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,

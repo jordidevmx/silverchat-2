@@ -11,7 +11,8 @@ import {
   useSyncExternalStore,
 } from "react";
 import type { AuthState, Profile } from "@/features/auth/types";
-import { clearUserOutbox } from "@/features/messages/lib/outbox";
+import { clearUserOutbox, isOfflineOrNetworkError } from "@/features/messages/lib/outbox";
+import { clearDevicePushSubscription } from "@/pwa/usePushSubscription";
 import {
   AuthError,
   authApi,
@@ -24,6 +25,13 @@ import {
   subscribeSession,
 } from "./auth";
 import { getDeviceName, getOrCreateDeviceFingerprint } from "./devices";
+import {
+  clearOfflineSessionHint,
+  readOfflineSessionHint,
+  writeOfflineSessionHint,
+} from "./message-cache";
+import { clearAllUserData } from "./offline-db";
+import { unsubscribeFromPush } from "./push";
 import { supabase } from "./supabase";
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -40,30 +48,77 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sessionExpired, setExpired] = useState(false);
+  const [offlineHydrated, setOfflineHydrated] = useState(false);
   const sequence = useRef(0);
   const refreshUser = useCallback(async () => {
     await refreshSession();
   }, []);
   useEffect(() => {
-    void refreshSession().catch((error: unknown) => {
-      if (!(error instanceof AuthError && error.status === 401))
+    let active = true;
+    void refreshSession().catch(async (error: unknown) => {
+      if (error instanceof AuthError && error.status === 401) {
+        await clearOfflineSessionHint();
+      } else if (isOfflineOrNetworkError(error)) {
+        const hint = await readOfflineSessionHint();
+        if (active && hint) {
+          setUser({
+            id: hint.user.id,
+            email: hint.user.email ?? undefined,
+            aud: "authenticated",
+            role: "authenticated",
+            app_metadata: {},
+            user_metadata: {},
+            created_at: hint.updated_at,
+          } as User);
+          setProfile(hint.profile);
+          setOfflineHydrated(true);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+        if (active) setError("We couldn’t reconnect. Check your connection and try again.");
+      } else if (active) {
         setError("We couldn’t reconnect. Check your connection and try again.");
-      setLoading(false);
+      }
+      if (active) setLoading(false);
     });
     const expired = () => {
       setExpired(true);
+      setOfflineHydrated(false);
+      void clearOfflineSessionHint();
       queryClient.clear();
     };
     window.addEventListener(SESSION_EXPIRED, expired);
-    return () => window.removeEventListener(SESSION_EXPIRED, expired);
+    return () => {
+      active = false;
+      window.removeEventListener(SESSION_EXPIRED, expired);
+    };
   }, [queryClient]);
+  useEffect(() => {
+    if (!offlineHydrated) return;
+    const reconnect = () => {
+      void refreshSession().catch(async (error: unknown) => {
+        if (error instanceof AuthError && error.status === 401) {
+          setOfflineHydrated(false);
+          setUser(null);
+          setProfile(null);
+          await clearOfflineSessionHint();
+        }
+      });
+    };
+    window.addEventListener("online", reconnect);
+    return () => window.removeEventListener("online", reconnect);
+  }, [offlineHydrated]);
   useEffect(() => {
     const version = ++sequence.current;
     if (!session) {
-      setUser(null);
-      setProfile(null);
+      if (!offlineHydrated) {
+        setUser(null);
+        setProfile(null);
+      }
       return;
     }
+    setOfflineHydrated(false);
     setError(null);
     void (async () => {
       try {
@@ -84,13 +139,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setProfile(nextProfile);
         setExpired(false);
         supabase.realtime.setAuth(session.accessToken);
+        if (!session.mfaRequired && nextProfile) {
+          void writeOfflineSessionHint(
+            { id: result.data.user.id, email: result.data.user.email ?? null },
+            nextProfile,
+          );
+        }
       } catch {
         if (version === sequence.current) setError("We couldn’t load your account. Try again.");
       } finally {
         if (version === sequence.current) setLoading(false);
       }
     })();
-  }, [session]);
+  }, [session, offlineHydrated]);
   useEffect(() => {
     if (!session) return;
     const delay = Math.max(
@@ -137,10 +198,30 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const signOut = async (all = false) => {
     const signingOutUserId = user?.id;
     await settleBeforeSignOut();
+    await queryClient.cancelQueries();
+    if (signingOutUserId) {
+      try {
+        await clearDevicePushSubscription(signingOutUserId);
+      } catch {
+        /* Best-effort push cleanup before token revocation; never block offline logout. */
+      }
+      try {
+        await unsubscribeFromPush();
+      } catch {
+        /* Optional browser PushManager cleanup. */
+      }
+      await clearAllUserData(signingOutUserId);
+      clearUserOutbox(signingOutUserId);
+    }
+    setOfflineHydrated(false);
     try {
       await logoutSession(all);
     } finally {
-      if (signingOutUserId) clearUserOutbox(signingOutUserId);
+      if (signingOutUserId) {
+        await clearAllUserData(signingOutUserId);
+        clearUserOutbox(signingOutUserId);
+      }
+      await clearOfflineSessionHint();
       setUser(null);
       setProfile(null);
       queryClient.clear();

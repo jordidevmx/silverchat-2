@@ -2,6 +2,8 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { OfflineBanner } from "@/components/pwa/OfflineBanner";
+import { UpdateAvailableBanner } from "@/components/pwa/UpdateAvailableBanner";
 import { InfrastructureNotice } from "@/components/ui/auth-surfaces";
 import { Button } from "@/components/ui/button";
 import { AppSkeleton, AuthFrame } from "@/features/auth/components";
@@ -31,6 +33,7 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: (error) => {
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
       if (isServerError(error)) useSupabaseHealth.getState().markDown();
     },
   }),
@@ -62,6 +65,7 @@ export default function App() {
       <ThemeProvider>
         <I18nProvider>
           <ClipboardPasteProvider>
+            <OfflineBanner />
             <ConnectionBanner />
             <AuthProvider>
               <PreferencesProvider>
@@ -70,6 +74,7 @@ export default function App() {
                 </ChatBackgroundProvider>
               </PreferencesProvider>
             </AuthProvider>
+            <UpdateAvailableBanner />
           </ClipboardPasteProvider>
         </I18nProvider>
       </ThemeProvider>

@@ -97,8 +97,27 @@ const spanish: Record<string, string> = {
   "Notification preferences": "Preferencias de notificaciones",
   "Push notifications require installing the app. In-browser notifications are shown while the app is open in a tab.":
     "Las notificaciones push requieren instalar la app. Las notificaciones del navegador se muestran mientras la app está abierta en una pestaña.",
-  "Web push is coming in a later release.":
-    "Las notificaciones push llegarán en una versión futura.",
+  "Push notifications are enabled on this device.":
+    "Las notificaciones push están activadas en este dispositivo.",
+  "Enable push notifications": "Activar notificaciones push",
+  Enable: "Activar",
+  "Not now": "Ahora no",
+  Reload: "Recargar",
+  "New version available.": "Nueva versión disponible.",
+  "You’re offline. Messages will be sent when you reconnect.":
+    "Estás sin conexión. Los mensajes se enviarán al reconectar.",
+  "Enable notifications to receive messages and calls when SilverChat is in the background.":
+    "Activa las notificaciones para recibir mensajes y llamadas cuando SilverChat esté en segundo plano.",
+  "Notifications are blocked in your browser settings. Allow them for this site to receive push notifications.":
+    "Las notificaciones están bloqueadas en los ajustes de tu navegador. Permítelas para este sitio para recibir notificaciones push.",
+  "Install SilverChat to your Home Screen to enable push notifications on iOS (16.4+).":
+    "Instala SilverChat en tu pantalla de inicio para activar notificaciones push en iOS (16.4+).",
+  "Push notifications are not supported by this browser.":
+    "Este navegador no admite notificaciones push.",
+  "Push notifications are not configured for this environment yet.":
+    "Las notificaciones push aún no están configuradas en este entorno.",
+  "To install SilverChat on iOS: tap Share → Add to Home Screen.":
+    "Para instalar SilverChat en iOS: toca Compartir → Añadir a la pantalla de inicio.",
   "Preview notification": "Probar notificación",
   "New message": "Nuevo mensaje",
   "New reaction": "Nueva reacción",
