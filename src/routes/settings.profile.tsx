@@ -1,3 +1,4 @@
+import { Camera } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { InlineError } from "@/features/auth/components";
@@ -41,13 +42,18 @@ function ProfileForm({ profile }: { profile: Profile }) {
       <div className="profile-avatar-editor">
         <Button
           variant="ghost"
-          className="profile-photo-trigger"
+          className="profile-photo-trigger h-auto flex-col gap-3 rounded-3xl px-5 py-3.5 text-primary transition-[background-color,box-shadow,transform] duration-150 hover:bg-[color-mix(in_oklab,var(--neon)_8%,var(--card))] hover:text-primary motion-reduce:transition-none"
           type="button"
           aria-label={t("Change photo")}
           onClick={() => setPicker(true)}
         >
-          <Avatar profile={profile} size="large" />
-          <span>{t("Change photo")}</span>
+          <span className="profile-photo-frame">
+            <Avatar profile={profile} size="large" />
+            <span className="profile-photo-badge" aria-hidden="true">
+              <Camera size={15} strokeWidth={2.1} />
+            </span>
+          </span>
+          <span className="profile-photo-label">{t("Change photo")}</span>
         </Button>
       </div>
       <form

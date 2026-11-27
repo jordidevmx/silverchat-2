@@ -284,18 +284,7 @@
   .profile-avatar-editor {
     display: flex;
     justify-content: center;
-    margin-bottom: 32px;
-  }
-  .profile-avatar-editor button {
-    display: grid;
-    justify-items: center;
-    gap: 12px;
-    background: transparent;
-    color: var(--primary);
-    border: 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
+    margin-block-end: 24px;
   }
   .settings-notice {
     padding: 12px 16px;
@@ -1364,14 +1353,71 @@
 }
 @layer components {
   .settings-panel .profile-photo-trigger {
-    height: auto;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-    border-radius: 24px;
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+  .settings-panel .profile-photo-trigger:hover,
+  .settings-panel .profile-photo-trigger:focus-visible {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon) 22%, transparent);
+  }
+  .settings-panel .profile-photo-trigger:active {
+    transform: scale(0.985);
+  }
+  .settings-panel .profile-photo-frame {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+    border-radius: 9999px;
+    border: 1.5px solid color-mix(in oklab, var(--neon) 28%, var(--border));
+    box-shadow: var(--shadow-silver);
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+  .settings-panel .profile-photo-trigger:hover .profile-photo-frame,
+  .settings-panel .profile-photo-trigger:focus-visible .profile-photo-frame {
+    border-color: color-mix(in oklab, var(--neon) 80%, transparent);
+    box-shadow: var(--shadow-glow);
+  }
+  .settings-panel .profile-photo-badge {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    inline-size: 30px;
+    block-size: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in oklab, var(--neon) 42%, var(--border));
+    background: color-mix(in oklab, var(--card) 90%, var(--background));
+    color: var(--neon);
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 4px 12px -2px oklch(0 0 0 / 0.32);
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+  .settings-panel .profile-photo-trigger:hover .profile-photo-badge,
+  .settings-panel .profile-photo-trigger:focus-visible .profile-photo-badge {
+    border-color: var(--neon);
+    background: color-mix(in oklab, var(--neon) 16%, var(--card));
+    transform: scale(1.06);
+  }
+  .settings-panel .profile-photo-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--primary);
   }
   .settings-panel .settings-form :is(input, textarea),
-  .settings-dialog input:not([type="checkbox"]):not([type="range"]):not([type="file"]):not([type="radio"]) {
+  .settings-dialog
+    input:not([type="checkbox"]):not([type="range"]):not([type="file"]):not([type="radio"]) {
     width: 100%;
     background: var(--background);
     color: var(--foreground);
@@ -1409,8 +1455,15 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .settings-panel .settings-form :is(input, textarea),
+    .settings-panel .profile-photo-frame,
+    .settings-panel .profile-photo-badge,
     .settings-dialog input {
       transition: none;
+    }
+    .settings-panel .profile-photo-trigger:active,
+    .settings-panel .profile-photo-trigger:hover .profile-photo-badge,
+    .settings-panel .profile-photo-trigger:focus-visible .profile-photo-badge {
+      transform: none;
     }
   }
 }
