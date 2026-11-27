@@ -105,6 +105,6 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("[livekit-token]", error);
-    return json({ error: "internal", detail: String(error) }, 500);
+    return json({ error: "internal" }, 500);
   }
 });

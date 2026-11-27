@@ -126,17 +126,15 @@ must show `w/lf`.
 
 ## Project references in use
 
-Static counts below are historical baselines only. At `main` `6aed855` the
-repository has **38 migrations**; as of `2026-11-27`, Staging has **37/38**
-applied (`20261125120000_call_events.sql` from PR `#71` is pending). Always run
-`pnpm exec supabase migration list --remote=<ref>` and consult
-[`.pif/state.md`](../.pif/state.md) for live status. No Production ledger count
-is asserted here.
+At `main` `6aed855` the repository has **38 migrations**. As of `2026-11-27`,
+both Staging and Production report **38/38** applied. These are point-in-time
+counts: always run `pnpm exec supabase migration list --remote=<ref>` and consult
+[`.pif/state.md`](../.pif/state.md) for live status.
 
-| Environment | Project ref | Historical baseline / current guidance |
+| Environment | Project ref | Status as of 2026-11-27 |
 | --- | --- | --- |
-| Production | `lmzbaxlojgsdwgcxkmzx` | 2026-11-11 baseline: 15/15 versions recorded (`0001`–`0014` plus the corrective backfill). Do not assume this is current; writes require explicit Product Owner authorization and the `--allow-production` guard. |
-| Staging | `gffdrrtatxdiucigtwdn` | 2026-11-11 rebuilt from scratch (`0001`–`0014` plus the corrective no-op). As of 2026-11-27: 37/38 applied; verify with the CLI before any action. |
+| Staging | `gffdrrtatxdiucigtwdn` | 38/38 applied; 3/3 Edge Functions `ACTIVE`, including `livekit-token` v3. |
+| Production | `lmzbaxlojgsdwgcxkmzx` | 38/38 applied; 3/3 Edge Functions `ACTIVE`. `livekit-token` is deployed with `verify_jwt=true`; the `LIVEKIT_*` secrets are not configured (blocker). Writes require explicit Product Owner authorization and the `--allow-production` guard, then an immediate relink to Staging. |
 
 ## Rules for migration files
 

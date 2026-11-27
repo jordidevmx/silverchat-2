@@ -55,14 +55,22 @@ The committed set at `main` `6aed855` contains **38 LF-clean migration files**:
 foundation. Three Edge Functions are committed: `livekit-token`,
 `sign-channel-media` and `send-push`.
 
-- **Staging** (`gffdrrtatxdiucigtwdn`): **37/38** versions applied as of
-  `2026-11-27`; `20261125120000_call_events.sql` (merged from PR `#71`) is still
-  pending and must not be applied from this task. Ledger state changes over
-  time: run `pnpm exec supabase migration list --remote=gffdrrtatxdiucigtwdn`
-  and consult [`.pif/state.md`](../.pif/state.md) for the authoritative status.
-- **Production** (`lmzbaxlojgsdwgcxkmzx`): no ledger count is asserted here.
-  Do not query or mutate Production without explicit Product Owner
-  authorization; Guardian audits it separately.
+- **Staging** (`gffdrrtatxdiucigtwdn`): **38/38** versions applied as of
+  `2026-11-27`, including `20261125120000_call_events.sql` (PR `#71`).
+- **Production** (`lmzbaxlojgsdwgcxkmzx`): **38/38** versions applied as of
+  `2026-11-27`, including `20261119133500`, `20261125120000`,
+  `20261126000000` and `20261127120000`. All **3** Edge Functions are `ACTIVE`
+  (`livekit-token`, `sign-channel-media`, `send-push`); `livekit-token` uses JWT
+  verification and its Production `ezbr_sha256` matches Staging
+  (`92074dfd…`). The `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `LIVEKIT_URL`
+  secrets are **not present** on Production, so calls cannot mint tokens until
+  the owner configures them.
+
+Ledger state changes over time: run
+`pnpm exec supabase migration list --remote=<ref>` and consult
+[`.pif/state.md`](../.pif/state.md) for the authoritative status. Production
+writes require explicit Product Owner authorization and the `--allow-production`
+guard, followed by an immediate relink to Staging.
 
 The earlier `0005`/`0006` Production content gap was resolved on `2026-11-11`
 by `20261111103000_backfill_profile_settings.sql` (`TASK-012`, `EVID-011`);

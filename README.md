@@ -142,7 +142,7 @@ governed by [`SHARED_MEMORY_PROTOCOL.md`](./SHARED_MEMORY_PROTOCOL.md), with
 canonical records in [`.pif/`](./.pif/) and current status in
 [`.pif/state.md`](./.pif/state.md). PIF mode is opt-in: agents follow
 [`pif-engineer.init.md`](./.agents/workflows/pif-engineer.init.md) or
-`.agents/workflows/pif-guardian.init.md` only when the Product Owner explicitly
+[`pif-guardian.init.md`](./.agents/workflows/pif-guardian.init.md) only when the Product Owner explicitly
 initializes that role. Engineer proposals go to `.pif/inbox/`; Guardian owns the
 canonical records. A reported result is not a verified result until independently
 audited.
