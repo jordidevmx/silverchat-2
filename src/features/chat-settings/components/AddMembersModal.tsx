@@ -3,6 +3,7 @@ import { ChatSettingsDialog } from "@/components/ui/chat-settings-surfaces";
 import type { ChatDetails, Profile } from "@/features/messages/types";
 import { canAddGroupMembers, resolveGroupRole } from "@/features/roles/lib/permissions";
 import { Avatar } from "@/features/settings/components/shared";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useAddMembersDialog } from "../hooks/useAddMembersDialog";
 import { toggleMember } from "../lib/chatActions";
 export function AddMembersModal({
@@ -70,6 +71,7 @@ export function AddMembersModal({
           <input
             type="search"
             className="input"
+            maxLength={MAX_TEXT_LENGTH}
             aria-label={say("Search by name or username", "Buscar por nombre o usuario")}
             placeholder={say("Search by name or @username", "Buscar por nombre o @usuario")}
             value={text}

@@ -1,9 +1,10 @@
 import * as React from "react";
 
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { cn } from "@/lib/utils";
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, maxLength = MAX_TEXT_LENGTH, ...props }, ref) => {
     return (
       <input
         data-slot="input"
@@ -13,6 +14,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className,
         )}
         ref={ref}
+        maxLength={maxLength}
         {...props}
       />
     );

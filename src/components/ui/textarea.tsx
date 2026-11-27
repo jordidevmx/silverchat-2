@@ -1,9 +1,10 @@
 import * as React from "react";
 
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { cn } from "@/lib/utils";
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<"textarea">>(
-  ({ className, ...props }, ref) => {
+  ({ className, maxLength = MAX_TEXT_LENGTH, ...props }, ref) => {
     return (
       <textarea
         data-slot="textarea"
@@ -12,6 +13,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<"tex
           className,
         )}
         ref={ref}
+        maxLength={maxLength}
         {...props}
       />
     );

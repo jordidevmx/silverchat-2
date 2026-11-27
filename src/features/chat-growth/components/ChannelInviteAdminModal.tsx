@@ -14,6 +14,7 @@ import { parseChannelInvitationResults } from "@/features/novedades/lib/channelI
 import { Avatar } from "@/features/settings/components/shared";
 import { useAuth } from "@/lib/auth-provider";
 import { supabase } from "@/lib/supabase";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import type { SupportedGrowthChatType } from "../types";
 
 export function ChannelInviteAdminModal({
@@ -183,6 +184,7 @@ export function ChannelInviteAdminModal({
               <input
                 type="search"
                 className="input"
+                maxLength={MAX_TEXT_LENGTH}
                 aria-label={say("Filter contacts", "Filtrar contactos")}
                 placeholder={say(
                   "Filter contacts by name or @username",
