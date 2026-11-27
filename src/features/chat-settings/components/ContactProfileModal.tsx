@@ -49,6 +49,7 @@ export function ContactProfileModal({ userId, chat }: { userId: string; chat: Ch
       className="contact-profile-dialog"
       onClose={ui.close}
       canClose={!action.busy}
+      lightDismiss
     >
       {(dismiss) => (
         <div className="contact-profile-body">

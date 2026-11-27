@@ -548,6 +548,22 @@ try {
       blockBox.y > fullProfileBox.y + fullProfileBox.height,
     "Actions follow tiered hierarchy: primary -> view full profile -> block",
   );
+  const dialogBox = await contactDialog.boundingBox();
+  assert.ok(dialogBox);
+  // Clicking dialog padding does not close the modal.
+  await page.mouse.click(dialogBox.x + 8, dialogBox.y + 8);
+  assert.ok(await contactDialog.evaluate((el) => el.open));
+  // Dragging from inside the dialog onto the backdrop does not close it.
+  await page.mouse.move(dialogBox.x + dialogBox.width / 2, dialogBox.y + 24);
+  await page.mouse.down();
+  await page.mouse.move(10, 10);
+  await page.mouse.up();
+  assert.ok(await contactDialog.evaluate((el) => el.open));
+  // Clicking outside the modal closes it cleanly.
+  await page.mouse.click(10, 10);
+  await contactDialog.waitFor({ state: "detached" });
+  await page.locator("button.conversation-identity").click();
+  await contactDialog.waitFor();
   await page.getByRole("button", { name: "Close", exact: true }).click();
   await options("Mute");
   let releasePatch;
@@ -686,6 +702,7 @@ try {
   await creating;
   assert.ok(await messageButton.isDisabled());
   await page.keyboard.press("Escape");
+  await page.mouse.click(10, 10);
   assert.ok(await page.getByRole("dialog", { name: "Contact profile" }).evaluate((el) => el.open));
   createGate = null;
   releaseCreate();
