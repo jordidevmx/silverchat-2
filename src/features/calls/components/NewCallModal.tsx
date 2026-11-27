@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/modal";
 import { useChats } from "@/features/chats/hooks/useChats";
 import { QueryState } from "@/features/settings/components/shared";
 import { getInitials } from "@/lib/avatar";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useVoiceCallStart } from "../hooks/useVoiceCallStart";
 import { useCallText } from "../i18n";
 import { isChatCallable } from "../lib/callEligibility";
@@ -35,6 +36,7 @@ export function NewCallModal({ onClose }: { onClose: () => void }) {
       <div className="flex flex-col gap-3 p-4">
         <input
           type="search"
+          maxLength={MAX_TEXT_LENGTH}
           aria-label={say("Search chats…")}
           placeholder={say("Search chats…")}
           value={search}

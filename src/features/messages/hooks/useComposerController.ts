@@ -8,6 +8,7 @@ import {
   formatClipboardFeedback,
   MAX_CLIPBOARD_IMAGES_DEFAULT,
 } from "@/lib/clipboard-images";
+import { clampText } from "@/lib/text-length";
 import type { ComposerAttachmentItem } from "../components/ComposerAttachmentTray";
 import { useMessageText } from "../i18n";
 import { cleanupUploads, formatGifError, prepareAndUpload } from "../lib/upload";
@@ -44,7 +45,10 @@ export function useComposerController({
   const initialMediaIdsRef = useRef(initialDraft?.mediaUrls ?? []);
   const prevMediaSignatureRef = useRef((initialDraft?.mediaUrls ?? []).join(","));
 
-  const [text, setText] = useState(() => initialDraft?.text ?? "");
+  const [text, setTextState] = useState(() => clampText(initialDraft?.text ?? ""));
+  const setText = useCallback((value: string) => {
+    setTextState(clampText(value));
+  }, []);
   const [caret, setCaret] = useState(text.length);
   const [emoji, setEmoji] = useState(false);
   const [attach, setAttach] = useState(false);
@@ -432,6 +436,7 @@ export function useComposerController({
       setAttachmentsSynced,
       updateAttachment,
       writer,
+      setText,
     ],
   );
 

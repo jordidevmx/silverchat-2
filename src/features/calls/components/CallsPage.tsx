@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useI18n } from "@/app/providers/i18n-provider";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { QueryState } from "@/features/settings/components/shared";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useCalls } from "../hooks/useCalls";
 import { useVoiceCallStart } from "../hooks/useVoiceCallStart";
 import { useCallText } from "../i18n";
@@ -60,6 +61,7 @@ export function CallsPage() {
       </header>
       <input
         type="search"
+        maxLength={MAX_TEXT_LENGTH}
         aria-label={say("Search calls…")}
         placeholder={say("Search calls…")}
         value={search}

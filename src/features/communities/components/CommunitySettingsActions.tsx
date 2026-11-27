@@ -15,6 +15,7 @@ import { Modal } from "@/features/auth/components";
 import { AddMembersModal } from "@/features/chat-settings/components/AddMembersModal";
 import { MuteSubmenu } from "@/features/chat-settings/components/MuteSubmenu";
 import type { ChatDetails } from "@/features/messages/types";
+import { MAX_TEXT_LENGTH } from "@/lib/text-length";
 import { useCommunitySettingsActions } from "../hooks/useCommunitySettingsActions";
 import type { Community } from "../types";
 import {
@@ -190,7 +191,11 @@ export function CommunitySettingsActions({
                 `This permanently deletes all chats. Type ${community.name} to confirm.`,
                 `Esto elimina todos los chats. Escribe ${community.name} para confirmar.`,
               )}
-              <input value={confirmation} onChange={(e) => setConfirmation(e.target.value)} />
+              <input
+                maxLength={MAX_TEXT_LENGTH}
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+              />
             </label>
           )}
           {error && (
