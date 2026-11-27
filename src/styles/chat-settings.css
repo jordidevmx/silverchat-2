@@ -510,16 +510,21 @@
     width: min(490px, calc(100vw - 24px));
     padding: 22px 24px;
   }
-  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog .motion-overlay-body {
+  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog .motion-overlay-body,
+  .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog .motion-overlay-body {
     animation-name: settings-fade-in;
   }
-  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog.story-exiting .motion-overlay-body {
+  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog.story-exiting .motion-overlay-body,
+  .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog.story-exiting
+    .motion-overlay-body {
     animation-name: settings-fade-out;
   }
-  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog:modal {
+  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog:modal,
+  .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog:modal {
     overscroll-behavior: contain;
   }
-  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog::backdrop {
+  .auth-modal.settings-dialog.chat-settings-dialog.report-dialog::backdrop,
+  .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog::backdrop {
     overflow: hidden;
     overscroll-behavior: contain;
   }
@@ -830,27 +835,181 @@
     height: auto;
     min-height: 30px;
   }
-  .contact-profile-dialog .contact-close {
+  .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog {
+    position: relative;
+    width: min(460px, calc(100vw - 24px));
+    padding: 20px 22px 22px;
+    border-color: color-mix(in oklab, var(--neon) 18%, var(--border));
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--neon) 6%, var(--card)) 0%,
+      var(--card) 130px
+    );
+  }
+  .contact-profile-dialog > h2 {
+    margin: 0;
+    padding-right: 46px;
+    min-height: 36px;
     display: flex;
-    margin-left: auto;
-    margin-bottom: 8px;
+    align-items: center;
+    font-size: 17px;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    color: var(--foreground);
   }
-  .contact-profile-dialog .public-profile-card {
-    box-shadow: none;
+  .contact-profile-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .contact-profile-dialog .contact-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    margin: 0;
+  }
+  .contact-profile-empty {
+    padding: 20px 12px;
+    text-align: center;
+  }
+  .contact-profile-dialog .public-profile-card-v2 {
+    border-radius: 20px;
+    border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+    background: color-mix(in oklab, var(--background) 38%, var(--card));
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 5%, transparent);
+    animation: none;
+  }
+  .contact-profile-dialog .public-profile-card-v2 .public-profile-banner {
+    position: relative;
+    height: 104px;
+  }
+  .contact-profile-dialog .public-profile-card-v2 .public-profile-banner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 35%,
+      color-mix(in oklab, var(--card) 26%, transparent) 100%
+    );
+    pointer-events: none;
+  }
+  .contact-profile-dialog .public-profile-card-v2 .public-profile-content {
+    padding: 0 18px 18px;
+  }
+  .contact-profile-dialog .public-profile-card-v2 .public-profile-identity {
+    align-items: flex-end;
+    gap: 14px;
+    margin-top: -42px;
+  }
+  .contact-profile-dialog .public-profile-card-v2 .public-profile-identity > :first-child {
+    position: relative;
+    z-index: 1;
     border: 0;
+    outline: 4px solid var(--card);
+    box-shadow: 0 8px 22px -8px color-mix(in oklab, var(--neon) 35%, oklch(0 0 0 / 0.4));
   }
-  .contact-profile-dialog .public-profile-content {
-    padding: 0 4px 8px;
+  .contact-profile-dialog .public-profile-card-v2 .public-profile-identity > div:last-child {
+    padding-bottom: 4px;
   }
-  .contact-profile-dialog .public-profile-identity h2 {
-    font-size: 22px;
-    line-height: 1.3;
+  .contact-profile-dialog .public-profile-card-v2 .public-profile-identity h2 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
     letter-spacing: -0.03em;
+    color: var(--foreground);
     margin: 0;
     overflow-wrap: anywhere;
   }
-  .contact-profile-dialog .contact-actions {
+  .contact-profile-dialog .public-profile-card-v2 .profile-handle {
+    margin: 3px 0 0;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .contact-profile-dialog .contact-presence {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    background: color-mix(in oklab, var(--muted) 82%, var(--card));
+    border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+    max-width: 100%;
+  }
+  .contact-profile-dialog .contact-presence-icon {
+    flex: none;
+    color: var(--muted-foreground);
+  }
+  .contact-profile-dialog .contact-presence[data-online="true"] {
+    color: var(--foreground);
+    border-color: color-mix(in oklab, var(--neon) 42%, var(--border));
+    background: color-mix(in oklab, var(--neon) 12%, var(--card));
+  }
+  .contact-profile-dialog .contact-presence-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon);
+  }
+  .contact-profile-dialog .public-profile-card-v2 .profile-bio {
+    padding: 12px 0 0;
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--foreground);
+  }
+  .contact-profile-dialog .public-profile-card-v2 .social-pills {
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    gap: 6px;
+  }
+  .contact-profile-dialog .contact-social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+  .contact-profile-dialog .contact-social-link:hover {
+    border-color: color-mix(in oklab, var(--neon) 40%, var(--border));
+  }
+  .contact-profile-dialog .contact-action-dock {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .contact-profile-dialog .contact-actions-primary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .contact-profile-dialog .contact-actions-primary[data-single="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .contact-profile-dialog .contact-actions-secondary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
+  }
+  .contact-profile-dialog .contact-action-block {
+    color: color-mix(in oklab, var(--destructive) 86%, var(--foreground));
+  }
+  .contact-profile-dialog .contact-action-block:hover:not(:disabled) {
+    color: color-mix(in oklab, var(--destructive) 86%, var(--foreground));
   }
   .chat-options-menu-v2 {
     padding: 6px;
@@ -1003,6 +1162,42 @@
     .report-dialog .modal-actions [data-slot="button"] {
       width: 100%;
     }
+    .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog {
+      padding: 16px;
+      max-height: calc(100dvh - 20px);
+      border-radius: 20px;
+    }
+    .contact-profile-dialog .contact-close {
+      top: 16px;
+      right: 16px;
+    }
+    .contact-profile-dialog .public-profile-card-v2 .public-profile-banner {
+      height: 88px;
+    }
+    .contact-profile-dialog .public-profile-card-v2 .public-profile-content {
+      padding: 0 14px 16px;
+    }
+  }
+  @media (max-width: 480px) {
+    .contact-profile-dialog .public-profile-card-v2 .public-profile-identity {
+      flex-direction: row;
+      align-items: flex-end;
+      margin-top: -36px;
+      gap: 12px;
+    }
+  }
+  @media (max-width: 380px) {
+    .contact-profile-dialog .contact-actions-primary {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (forced-colors: active) {
+    .contact-profile-dialog .contact-presence-dot {
+      background: Highlight;
+    }
+    .contact-profile-dialog .contact-action-safety {
+      border-color: ButtonText;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .chat-options-menu-v2,
@@ -1011,11 +1206,22 @@
     .shared-content-panel,
     .chat-settings-notice-v2,
     .auth-modal.settings-dialog.chat-settings-dialog.report-dialog .motion-overlay-body,
-    .auth-modal.settings-dialog.chat-settings-dialog.report-dialog.story-exiting .motion-overlay-body {
+    .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog .motion-overlay-body,
+    .auth-modal.settings-dialog.chat-settings-dialog.report-dialog.story-exiting
+      .motion-overlay-body,
+    .auth-modal.settings-dialog.chat-settings-dialog.contact-profile-dialog.story-exiting
+      .motion-overlay-body {
       animation: none;
     }
     .chat-settings-panel :is(input, textarea),
-    .chat-settings-dialog :is(textarea, .report-reason-option, .report-reason-icon, .report-safety-option, .member-choice),
+    .chat-settings-dialog
+      :is(
+        textarea,
+        .report-reason-option,
+        .report-reason-icon,
+        .report-safety-option,
+        .member-choice
+      ),
     .chat-settings-panel .group-links a,
     .chat-options-menu-v2 button,
     .chat-settings-panel .shared-tabs button,

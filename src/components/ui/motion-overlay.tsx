@@ -9,12 +9,14 @@ export function MotionOverlay({
   onClose,
   children,
   canClose = true,
+  lightDismiss = false,
   onDismiss,
 }: {
   title: string;
   className?: string;
   onClose: () => void;
   canClose?: boolean;
+  lightDismiss?: boolean;
   onDismiss?: () => void;
   children: (close: () => void, closing: boolean) => ReactNode;
 }) {
@@ -59,6 +61,7 @@ export function MotionOverlay({
     <Modal
       title={title}
       onClose={canClose ? close : undefined}
+      lightDismiss={lightDismiss}
       className={`motion-overlay story-overlay ${className} ${closing ? "story-exiting" : ""}`}
     >
       <div
