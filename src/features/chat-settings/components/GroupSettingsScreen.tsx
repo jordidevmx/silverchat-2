@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 import { type RefObject, useEffect, useRef, useState } from "react";
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ChatSettingsScreenSurface } from "@/components/ui/chat-settings-surfaces";
 import { CardSurface } from "@/components/ui/settings-row";
@@ -145,9 +146,14 @@ export function GroupSettingsScreen(
     <ChatSettingsScreenSurface
       header={
         <>
-          <NavLink href={context === "community" ? `/communities/${chatId}` : `/chats/${chatId}`}>
-            ← {say("Back", "Volver")}
-          </NavLink>
+          <BackButton
+            href={context === "community" ? `/communities/${chatId}` : `/chats/${chatId}`}
+            label={
+              context === "community"
+                ? say("Back to community", "Volver a la comunidad")
+                : say("Back to chat", "Volver al chat")
+            }
+          />
           <h1>
             {context === "community"
               ? say("Community info", "Información de la comunidad")

@@ -234,10 +234,6 @@
   .channel-header a {
     color: inherit;
   }
-  .channel-info .conversation-header {
-    margin-top: 20px;
-    border-radius: 18px;
-  }
   .channel-info > .button {
     margin: 16px 10px 0 0;
   }
@@ -1016,7 +1012,6 @@
     font-size: 14px;
   }
   .channel-profile {
-    margin-top: 24px;
     animation: channel-reveal var(--duration-base) var(--ease-out) both;
   }
   .channel-profile-identity {

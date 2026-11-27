@@ -1,6 +1,7 @@
 import { Flag } from "lucide-react";
 import { useState } from "react";
 import { InfrastructureNotice } from "@/components/ui/auth-surfaces";
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { PublicProfileSurface } from "@/components/ui/public-profile-surface";
 import { ReportModal } from "@/features/chat-settings/components/ReportModal";
@@ -13,9 +14,7 @@ export function PublicProfilePage() {
   const [reportOpen, setReportOpen] = useState(false);
   return (
     <main id="main" className="public-profile-shell">
-      <NavLink href="/settings" className="settings-back">
-        ← {t("Settings")}
-      </NavLink>
+      <BackButton href="/settings" label={t("Back")} className="mb-4 -ml-2" />
       <QueryState
         loading={profile.isLoading}
         error={profile.error}

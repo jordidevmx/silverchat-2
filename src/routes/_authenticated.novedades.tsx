@@ -1,6 +1,7 @@
 import { useRouter, useSearch } from "@tanstack/react-router";
 import { Compass, Megaphone } from "lucide-react";
 import { useState } from "react";
+import { BackButton } from "@/components/ui/back-button";
 import { BrandLockup } from "@/components/ui/brand-lockup";
 import { Button } from "@/components/ui/button";
 import { SearchField } from "@/components/ui/search-field";
@@ -75,10 +76,10 @@ export function ExploreChannelsPage() {
   const { say } = useMessageText();
   return (
     <main id="main" className="novedades-page">
-      <Button asChild variant="ghost">
-        <NavLink href="/novedades">← {say("Back", "Volver")}</NavLink>
-      </Button>
-      <h1>{say("Explore channels", "Explorar canales")}</h1>
+      <header data-slot="explore-header" className="mb-5 flex items-center justify-start gap-3">
+        <BackButton href="/novedades" label={say("Back to updates", "Volver a novedades")} />
+        <h1 className="!m-0">{say("Explore channels", "Explorar canales")}</h1>
+      </header>
       <DiscoverChannelsSection />
     </main>
   );

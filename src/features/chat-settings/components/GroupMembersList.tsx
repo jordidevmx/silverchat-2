@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import {
   ChatSettingsDialog,
@@ -14,7 +15,7 @@ import {
   isGroupStaff,
   resolveGroupRole,
 } from "@/features/roles/lib/permissions";
-import { Avatar, NavLink, QueryState } from "@/features/settings/components/shared";
+import { Avatar, QueryState } from "@/features/settings/components/shared";
 import { useAuth } from "@/lib/auth-provider";
 import { useGroupMembers } from "../hooks/useGroupMembers";
 import { useMemberConfirmation } from "../hooks/useMemberConfirmation";
@@ -63,13 +64,12 @@ export function GroupMembersList({
       header={
         <>
           {onBack ? (
-            <Button type="button" variant="outline" onClick={onBack}>
-              {say("Back", "Volver")}
-            </Button>
+            <BackButton onClick={onBack} label={say("Back", "Volver")} />
           ) : (
-            <NavLink href={`/chats/${chatId}/info`}>
-              ← {say("Group info", "Información del grupo")}
-            </NavLink>
+            <BackButton
+              href={`/chats/${chatId}/info`}
+              label={say("Back to group info", "Volver a información del grupo")}
+            />
           )}
           <h1>
             {hook.members.length} {say("members", "miembros")}

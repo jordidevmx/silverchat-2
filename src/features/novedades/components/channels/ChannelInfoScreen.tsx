@@ -1,5 +1,6 @@
 import { BadgeCheck, BellOff, Flag, Pencil, Trash2, Users } from "lucide-react";
 import { useState } from "react";
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ChannelFollowButton, ChannelInfoSurface } from "@/components/ui/channel-surfaces";
 import { MotionOverlay } from "@/components/ui/motion-overlay";
@@ -16,7 +17,7 @@ import {
   getRoleLabel,
 } from "@/features/roles/lib/permissions";
 import { AvatarPickerModal } from "@/features/settings/components/AvatarPickerModal";
-import { Avatar, NavLink, QueryState } from "@/features/settings/components/shared";
+import { Avatar, QueryState } from "@/features/settings/components/shared";
 import { useAuth } from "@/lib/auth-provider";
 import { useChannelDeletion } from "../../hooks/channels/useChannelDeletion";
 import { useChannelInfo } from "../../hooks/channels/useChannelInfo";
@@ -25,7 +26,6 @@ import { useMuteChannel } from "../../hooks/channels/useMuteChannel";
 import { useUnfollowChannel } from "../../hooks/channels/useUnfollowChannel";
 import { useUpdateChannelInfo } from "../../hooks/channels/useUpdateChannelInfo";
 import type { Channel } from "../../types";
-import { ChannelHeader } from "./ChannelHeader";
 import { ChannelInviteContactsPanel } from "./ChannelInvitationsSection";
 import { ChannelStaffModal } from "./ChannelStaffModal";
 
@@ -115,15 +115,25 @@ export function ChannelInfoScreen({ channelId }: { channelId: string }) {
   const isOwner = canEditChannelInfo(role);
   return (
     <main id="main" className="novedades-page channel-info">
-      <NavLink href={`/channels/${channelId}`}>
-        ← {say("Back to channel", "Volver al canal")}
-      </NavLink>
+      {!c && (
+        <header data-slot="channel-info-header" className="mb-4 flex items-center justify-start">
+          <BackButton
+            href={`/channels/${channelId}`}
+            label={say("Back to channel", "Volver al canal")}
+          />
+        </header>
+      )}
       <QueryState loading={q.isPending} error={q.error} retry={() => void q.refetch()} />
       {!q.isPending && !c && <p>{say("Channel unavailable", "Canal no disponible")}</p>}
       {c && (
         <>
-          <ChannelHeader channel={c} follow={follow} staffRole={staffRole} />
           <ChannelInfoSurface
+            back={
+              <BackButton
+                href={`/channels/${channelId}`}
+                label={say("Back to channel", "Volver al canal")}
+              />
+            }
             avatar={
               <>
                 <Avatar

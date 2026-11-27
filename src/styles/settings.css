@@ -85,16 +85,6 @@
     min-width: 0;
     max-width: 720px;
   }
-  .settings-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    text-decoration: none;
-    color: var(--muted-foreground);
-    font-size: 0.8rem;
-    font-weight: 550;
-    margin-bottom: 24px;
-  }
   .settings-page-heading {
     margin-bottom: 30px;
   }
@@ -1026,15 +1016,6 @@
   .settings-shell-v2 .setting-row:active {
     transform: scale(0.99);
   }
-  .settings-shell-v2 .settings-back {
-    border-radius: 10px;
-    padding: 6px 8px;
-    margin-left: -8px;
-    transition: background var(--duration-fast) var(--ease-out);
-  }
-  .settings-shell-v2 .settings-back:hover {
-    background: var(--accent);
-  }
   .settings-shell-v2 a:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 3px;
@@ -1307,7 +1288,6 @@
       animation: none;
     }
     .settings-shell-v2 .setting-row,
-    .settings-shell-v2 .settings-back,
     .settings-panel .theme-option,
     .settings-panel .accent-swatch,
     .settings-panel .radio-row,

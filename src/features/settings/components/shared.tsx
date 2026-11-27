@@ -20,13 +20,23 @@ export function NavLink({
   children,
   className = "",
   "aria-current": ariaCurrent,
-}: PropsWithChildren<{ href: string; className?: string; "aria-current"?: "page" }>) {
+  "aria-label": ariaLabel,
+  "data-slot": dataSlot,
+}: PropsWithChildren<{
+  href: string;
+  className?: string;
+  "aria-current"?: "page";
+  "aria-label"?: string;
+  "data-slot"?: string;
+}>) {
   const router = useRouter();
   return (
     <a
       href={href}
       className={className}
       aria-current={ariaCurrent}
+      aria-label={ariaLabel}
+      data-slot={dataSlot}
       onClick={(event) => {
         if (
           event.button === 0 &&
