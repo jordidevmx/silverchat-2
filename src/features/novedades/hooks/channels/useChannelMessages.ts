@@ -15,6 +15,12 @@ import {
   type Upload,
 } from "@/features/messages/types";
 import { useAuth } from "@/lib/auth-provider";
+import {
+  attachPostgrestStatus,
+  cacheMessages,
+  readCachedMessages,
+  withOfflineFallback,
+} from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 
 export function useChannelMessages(id: string, enabled = true) {
@@ -27,72 +33,85 @@ export function useChannelMessages(id: string, enabled = true) {
     ...CHAT_QUERY_OPTIONS,
     initialPageParam: null as Cursor,
     queryFn: async ({ pageParam }) => {
-      const r = await supabase.rpc("get_channel_messages", {
-        p_channel_id: id,
-        ...(pageParam ? { p_before_at: pageParam.at, p_before_id: pageParam.id } : {}),
-      });
-      if (r.error) throw r.error;
-      const rawRows = (r.data ?? []) as MessageRow[];
-      const uploadIds = [
-        ...new Set(
-          rawRows.flatMap((m) =>
-            [m.file_upload_id, m.media_thumbnail_upload_id].filter((u): u is string => !!u),
+      const fetchPage = async () => {
+        const r = await supabase.rpc("get_channel_messages", {
+          p_channel_id: id,
+          ...(pageParam ? { p_before_at: pageParam.at, p_before_id: pageParam.id } : {}),
+        });
+        if (r.error) throw attachPostgrestStatus(r.error, r.status);
+        const rawRows = (r.data ?? []) as MessageRow[];
+        const uploadIds = [
+          ...new Set(
+            rawRows.flatMap((m) =>
+              [m.file_upload_id, m.media_thumbnail_upload_id].filter((u): u is string => !!u),
+            ),
           ),
-        ),
-      ];
-      const mediaRows = uploadIds.length
-        ? await allRows((from, to) =>
-            supabase
-              .rpc("read_message_media_public", { p_ids: uploadIds })
-              .select("*")
-              .in("id", uploadIds)
-              .order("id")
-              .range(from, to),
+        ];
+        const mediaRows = uploadIds.length
+          ? await allRows((from, to) =>
+              supabase
+                .rpc("read_message_media_public", { p_ids: uploadIds })
+                .select("*")
+                .in("id", uploadIds)
+                .order("id")
+                .range(from, to),
+            )
+          : [];
+        const uploads: Upload[] = mediaRows
+          .filter(
+            (
+              u,
+            ): u is typeof u & {
+              id: string;
+              bucket: string;
+              path: string;
+              mime_type: string;
+              original_filename: string;
+              size_bytes: number;
+              created_at: string;
+              status: NonNullable<typeof u.status>;
+            } =>
+              !!u.id &&
+              !!u.bucket &&
+              !!u.path &&
+              !!u.mime_type &&
+              !!u.original_filename &&
+              u.size_bytes !== null &&
+              !!u.created_at &&
+              !!u.status,
           )
-        : [];
-      const uploads: Upload[] = mediaRows
-        .filter(
-          (
-            u,
-          ): u is typeof u & {
-            id: string;
-            bucket: string;
-            path: string;
-            mime_type: string;
-            original_filename: string;
-            size_bytes: number;
-            created_at: string;
-            status: NonNullable<typeof u.status>;
-          } =>
-            !!u.id &&
-            !!u.bucket &&
-            !!u.path &&
-            !!u.mime_type &&
-            !!u.original_filename &&
-            u.size_bytes !== null &&
-            !!u.created_at &&
-            !!u.status,
-        )
-        .map((u) => ({ ...u }));
+          .map((u) => ({ ...u }));
 
-      const rows: Message[] = rawRows.map((m) => {
-        const rawUpload = uploads.find((u) => u.id === m.file_upload_id);
-        const rawThumb = uploads.find((u) => u.id === m.media_thumbnail_upload_id);
-        const ctx = { channelId: id, messageId: m.id };
+        const rows: Message[] = rawRows.map((m) => {
+          const rawUpload = uploads.find((u) => u.id === m.file_upload_id);
+          const rawThumb = uploads.find((u) => u.id === m.media_thumbnail_upload_id);
+          const ctx = { channelId: id, messageId: m.id };
+          return {
+            ...m,
+            upload: rawUpload ? { ...rawUpload, ...ctx } : undefined,
+            thumbnail: rawThumb ? { ...rawThumb, ...ctx } : undefined,
+            receipts: [],
+            reactions: [],
+            unreadForMe: false,
+          };
+        });
+        const last = rawRows.at(-1);
         return {
-          ...m,
-          upload: rawUpload ? { ...rawUpload, ...ctx } : undefined,
-          thumbnail: rawThumb ? { ...rawThumb, ...ctx } : undefined,
-          receipts: [],
-          reactions: [],
-          unreadForMe: false,
+          rows,
+          cursor: rawRows.length === 50 && last ? { at: last.created_at, id: last.id } : undefined,
         };
-      });
-      const last = rawRows.at(-1);
-      return {
-        rows,
-        cursor: rawRows.length === 50 && last ? { at: last.created_at, id: last.id } : undefined,
       };
+
+      if (pageParam) return fetchPage();
+
+      return withOfflineFallback({
+        fetchOnline: fetchPage,
+        writeCache: (page) => cacheMessages(uid, id, page.rows),
+        readCache: async () => {
+          const cached = await readCachedMessages(uid, id);
+          return cached ? { rows: cached, cursor: undefined } : null;
+        },
+      });
     },
     getNextPageParam: (p) => p.cursor,
   });

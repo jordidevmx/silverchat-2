@@ -12,13 +12,15 @@ import {
 import { useChatUIStore } from "@/features/chat-settings/stores/uiStore";
 import { useMessageText } from "@/features/messages/i18n";
 import { promptInstall, useInstallStatus } from "@/lib/pwa-install";
+import { useIsIOS } from "@/pwa/useIsIOS";
 
 export function InstallPwaButton() {
   const [open, setOpen] = useState(false);
   const status = useInstallStatus();
+  const { isIOSSafari, isStandalone } = useIsIOS();
   const notify = useChatUIStore((s) => s.notify);
   const { say } = useMessageText();
-  if (status === "installed") return null;
+  if (status === "installed" || isStandalone) return null;
   const install = async () => {
     setOpen(false);
     const outcome = await promptInstall();
@@ -90,10 +92,15 @@ export function InstallPwaButton() {
         </ul>
         {status === "manual" && (
           <p className="rounded-xl bg-muted p-3 text-xs text-muted-foreground">
-            {say(
-              "If your browser offers installation, choose Install app from its menu or Add to Home Screen from the Share menu.",
-              "Si tu navegador permite instalar, elige Instalar aplicación en su menú o Añadir a inicio desde Compartir.",
-            )}
+            {isIOSSafari
+              ? say(
+                  "To install SilverChat on iOS: tap Share → Add to Home Screen.",
+                  "Para instalar SilverChat en iOS: toca Compartir → Añadir a la pantalla de inicio.",
+                )
+              : say(
+                  "If your browser offers installation, choose Install app from its menu or Add to Home Screen from the Share menu.",
+                  "Si tu navegador permite instalar, elige Instalar aplicación en su menú o Añadir a inicio desde Compartir.",
+                )}
           </p>
         )}
         <div className="flex gap-2">

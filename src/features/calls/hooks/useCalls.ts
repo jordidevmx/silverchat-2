@@ -2,6 +2,12 @@
 // client-side (isOutgoing, other participant, self-chat removal).
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-provider";
+import {
+  attachPostgrestStatus,
+  cacheView,
+  readCachedView,
+  withOfflineFallback,
+} from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 import { isChatCallable } from "../lib/callEligibility";
 import type { CallLogEntry } from "../lib/callState";
@@ -39,15 +45,13 @@ interface ProfileRow {
 async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
   // RLS (calls_select) already restricts rows to active chats I am a member
   // of; the membership pre-fetch only narrows the IN list.
-  const { data: memberships, error: membersError } = await supabase
-    .from("chat_members")
-    .select("chat_id")
-    .eq("user_id", userId);
-  if (membersError) throw membersError;
+  const membersRes = await supabase.from("chat_members").select("chat_id").eq("user_id", userId);
+  if (membersRes.error) throw attachPostgrestStatus(membersRes.error, membersRes.status);
+  const memberships = membersRes.data;
   const chatIds = ((memberships ?? []) as MembershipRow[]).map((row) => row.chat_id);
   if (!chatIds.length) return [];
 
-  const { data: rows, error } = await supabase
+  const callsRes = await supabase
     .from("calls")
     .select(
       `id, chat_id, type, status, started_at, answered_at, ended_at,
@@ -57,7 +61,8 @@ async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
     .in("chat_id", chatIds)
     .order("started_at", { ascending: false })
     .limit(100);
-  if (error) throw error;
+  if (callsRes.error) throw attachPostgrestStatus(callsRes.error, callsRes.status);
+  const rows = callsRes.data;
 
   const calls = (rows ?? []) as unknown as CallsQueryRow[];
   const directCalls = calls.filter((call) => call.chat.type === "direct");
@@ -130,9 +135,15 @@ async function fetchCalls(userId: string): Promise<CallLogEntry[]> {
 
 export function useCalls() {
   const { user, mfaRequired } = useAuth();
+  const userId = user?.id ?? "";
   return useQuery({
-    queryKey: callsKey(user?.id ?? ""),
-    queryFn: () => fetchCalls(user?.id ?? ""),
+    queryKey: callsKey(userId),
+    queryFn: () =>
+      withOfflineFallback({
+        fetchOnline: () => fetchCalls(userId),
+        writeCache: (calls) => cacheView(userId, "calls", calls),
+        readCache: () => readCachedView<CallLogEntry[]>(userId, "calls"),
+      }),
     enabled: !!user && !mfaRequired,
     staleTime: 60_000,
     refetchOnWindowFocus: false,

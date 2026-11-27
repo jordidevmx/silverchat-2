@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 import { seoPlugin } from "./scripts/vite-plugin-seo.ts";
 
 // "@" → "src/" path alias. Mirrors the "paths" mapping in tsconfig.app.json.
@@ -45,7 +46,78 @@ export default defineConfig({
       JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version,
     ),
   },
-  plugins: [...tanstackDevtools, react(), tailwindcss(), seoPlugin()],
+  plugins: [
+    ...tanstackDevtools,
+    react(),
+    tailwindcss(),
+    seoPlugin(),
+    VitePWA({
+      registerType: "prompt",
+      injectRegister: false,
+      manifest: false,
+      includeAssets: [
+        "favicon.ico",
+        "favicon.svg",
+        "apple-touch-icon.png",
+        "android-chrome-192x192.png",
+        "android-chrome-512x512.png",
+        "web-app-manifest-192x192.png",
+        "web-app-manifest-512x512.png",
+        "icons/*.png",
+        "sounds/*.mp3",
+      ],
+      workbox: {
+        clientsClaim: true,
+        importScripts: ["/sw-custom.js"],
+        globPatterns: ["**/*.{js,css,html,svg,woff2,mp3}"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api\//, /^\/functions\//, /^\/\.netlify\//],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request, sameOrigin }) =>
+              sameOrigin &&
+              (request.destination === "script" ||
+                request.destination === "style" ||
+                request.destination === "font"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "static-assets",
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/public\/avatars\/.*/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "avatars",
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 7 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/.*/i,
+            handler: "NetworkOnly",
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+            handler: "NetworkOnly",
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/functions\/v1\/.*/i,
+            handler: "NetworkOnly",
+          },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+      },
+    }),
+  ],
   resolve: { alias },
   server: { host: "127.0.0.1", port: 5173, strictPort: true },
 });

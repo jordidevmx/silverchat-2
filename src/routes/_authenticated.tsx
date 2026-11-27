@@ -1,4 +1,6 @@
 import { Outlet, redirect, useRouterState } from "@tanstack/react-router";
+import { IOSInstallInstructions } from "@/components/pwa/IOSInstallInstructions";
+import { NotificationPermissionPrompt } from "@/components/pwa/NotificationPermissionPrompt";
 import { AppSkeleton } from "@/features/auth/components";
 import { nextDestination, safeRedirect } from "@/features/auth/navigation";
 import type { AuthState } from "@/features/auth/types";
@@ -11,7 +13,9 @@ import { CommunityChatSidebar } from "@/features/communities/components/Communit
 import { useCommunity } from "@/features/communities/hooks/useCommunity";
 import { PendingDeletionBanner } from "@/features/settings/components/PendingDeletionBanner";
 import { QueryState } from "@/features/settings/components/shared";
+import { usePreferences } from "@/features/settings/preferences-provider";
 import { useAuth } from "@/lib/auth-provider";
+import { usePushSubscriptionSync } from "@/pwa/usePushSubscription";
 export function requireAuthentication(auth: AuthState, href: string, pathname: string) {
   if (auth.sessionExpired) return;
   if (!auth.user)
@@ -30,23 +34,35 @@ export function requireAuthentication(auth: AuthState, href: string, pathname: s
 }
 export function AuthenticatedLayout() {
   const auth = useAuth();
+  const { settings } = usePreferences();
   const section = useRouterState({
     select: (state) => state.location.pathname.split("/")[1]?.toLowerCase(),
   });
+  const activeUserId = auth.user && !auth.mfaRequired ? auth.user.id : null;
+  usePushSubscriptionSync(activeUserId, settings ? settings.notifications_enabled : null);
   if (!auth.user || auth.mfaRequired) return <AppSkeleton />;
   const content =
     section === "onboarding" ? (
       <>
+        <IOSInstallInstructions />
         <ActiveCallBanner />
         <PendingDeletionBanner />
         <Outlet />
       </>
     ) : (
-      <SectionLayout />
+      <>
+        <IOSInstallInstructions />
+        <SectionLayout />
+      </>
     );
   // Incoming-call realtime, lifecycle and modals stay live in every
   // authenticated section (Prompt #12 section 14).
-  return <CallProvider>{content}</CallProvider>;
+  return (
+    <CallProvider>
+      {content}
+      <NotificationPermissionPrompt />
+    </CallProvider>
+  );
 }
 
 function SectionLayout() {
