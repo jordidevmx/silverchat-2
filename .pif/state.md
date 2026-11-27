@@ -1,11 +1,11 @@
 # Current Project State
 
-- **Snapshot status:** `RECONCILED_AND_ACCEPTED_ON_MAIN` (Baseline `APPROVED` `2026-11-10`; PR `#85` merged to `main` at `65e01eeb`; `TASK-012`, `TASK-013`, `TASK-014` [full], `CHG-006`, and `AUD-020` all formally **`ACCEPTED`**; `RISK-008` & `RISK-009` `CLOSED`; draft `TASK-015` `G1` brief prepared on `governance/task-015-i18n-theme-g1`)
+- **Snapshot status:** `RECONCILED_AND_ACCEPTED_ON_MAIN` (Baseline `APPROVED` `2026-11-10`; PR `#85` merged to `main` at `65e01eeb`; `TASK-012`, `TASK-013`, `TASK-014` [full], `CHG-006`, and `AUD-020` all formally **`ACCEPTED`**; `RISK-008` & `RISK-009` `CLOSED`; `Q-001` resolved via `ADR-002` / `CHG-014` and `TASK-015` `G1` brief ready for Engineer on `governance/task-015-i18n-theme-g1`)
 - **Governance baseline revision:** `fceb0e51750eb06ee9f6f18652f7c43f18d11585` (`CHG-002`, `2026-11-10`)
 - **Last accepted `main` integration baseline:** `65e01eebbdf8655ffe7a84143e8df407c1cccdb3` (merge of PR `#85` / `governance/reconcile-pif-6aed855`, integrating `CHG-008`–`CHG-013` and `EVID-014`–`EVID-019`; prior pre-`CHG-008` integration baseline: `a0037a1f2acf1dd04ff3f16782944b01bb095830`)
 - **Observed `main` `HEAD`:** `65e01eebbdf8655ffe7a84143e8df407c1cccdb3` (`main`, working tree clean except pre-existing untracked `.pnpm-store/`; Graphify built at `65e01eeb` with `771` files, `4,705` nodes, `13,212` edges, `296` communities)
-- **Active governance branch:** `governance/task-015-i18n-theme-g1` (`.worktrees/governance-task-015-g1`, local draft only — not pushed/merged; PR `#85` merged to `main`)
-- **Last reconciliation / audit:** `2026-11-27` by PIF Guardian (post-merge clerical reconciliation of PR `#85` @ `65e01eeb` + draft `TASK-015` `G1` brief `.pif/handoffs/TASK-015-g1-brief.md`)
+- **Active governance branch:** `governance/task-015-i18n-theme-g1` (`.worktrees/governance-task-015-g1`, local only — not pushed/merged; PR `#85` merged to `main`)
+- **Last reconciliation / audit:** `2026-11-27` by PIF Guardian (post-merge clerical reconciliation of PR `#85` @ `65e01eeb`, `CHG-014` / `ADR-002`, and decision-complete `TASK-015` `G1` brief `.pif/handoffs/TASK-015-g1-brief.md`)
 
 ## Current focus
 1. **Formally Accepted Work (`ACCEPTED` — Product Owner approved):**
@@ -29,7 +29,7 @@
   - `CHG-006` (`CHG-010`, `EVID-015`, `EVID-016`, recovered `shared-roles-permissions-*.md`)
   - `AUD-020` (`CHG-010`, `EVID-015`–`EVID-017`)
 - **In-Progress Roadmap Milestones (`IN_PROGRESS`):**
-  - `TASK-015` (Prompt 14 — Internationalization & Theme System, `FR-014`): Partial (`EVID-010`, `EVID-008`, `EVID-009`); draft `G1` brief prepared (`.pif/handoffs/TASK-015-g1-brief.md`), **`G1 BLOCKED`** pending Product Owner decisions on `Q-001` & brownfield adaptation (§3).
+  - `TASK-015` (Prompt 14 — Internationalization & Theme System, `FR-014`): Partial (`EVID-010`, `EVID-008`, `EVID-009`); `Q-001` resolved (`ADR-002`, `CHG-014`) and `G1` brief ready for Engineer handoff (`.pif/handoffs/TASK-015-g1-brief.md`); **`G1 BLOCKED`** pending Engineer isolated worktree, source gap analysis & PO-approved implementation plan.
   - `TASK-016` (Prompt 15 — Privacy & Security, `FR-015`): Partial (`EVID-010`, `EVID-001`, `EVID-002`, `EVID-008`, `EVID-011`); remaining `SecuritySummaryCard` & `StorageScreen` wiring pending.
 - **Queued / Pre-PIF Tasks:**
   - `TASK-011` (`NOT_STARTED` — Low priority / optional `.env.example` historical commit check).
@@ -37,12 +37,12 @@
   - `TASK-010` (`AWAITING_ACCEPTANCE`), `TASK-009` & `TASK-007` (`AWAITING_VERIFICATION`), `TASK-008` (`AWAITING_VERIFICATION`), `TASK-006B` (`AWAITING_VERIFICATION`).
 
 ## Quality gates (Scoped by Activity)
-> **Scope Rule:** `CHG-010`–`CHG-013` record formal Product Owner acceptances for `CHG-006`, `AUD-020`, `TASK-013`, and `TASK-014` (unconditionally in full), now integrated on `main` via PR `#85` (`65e01eeb`). `TASK-015` `G1` is `BLOCKED` pending Product Owner decisions (`Q-001`); pre-PIF checklists (`RISK-002`) and Prompt `16` (`TASK-017`) remain open.
+> **Scope Rule:** `CHG-010`–`CHG-013` record formal Product Owner acceptances for `CHG-006`, `AUD-020`, `TASK-013`, and `TASK-014` (unconditionally in full), now integrated on `main` via PR `#85` (`65e01eeb`). `CHG-014` (`ADR-002`) resolves `Q-001` for `TASK-015`; `TASK-015` `G1` remains `BLOCKED` pending Engineer worktree + PO-approved implementation plan; pre-PIF checklists (`RISK-002`) and Prompt `16` (`TASK-017`) remain open.
 
 | Gate | Scope | State | Evidence / blocker |
 |---|---|---|---|
 | `G0` Safe isolation | `TASK-012`, `TASK-014`, `CHG-008`–`CHG-013` (merged `65e01eeb`), `governance/task-015-i18n-theme-g1` | `PASS` | `EVID-011`–`EVID-019` + worktree `.worktrees/governance-task-015-g1` created from `main` (`65e01eeb`), primary checkout `main` untouched |
-| `G1` Approved requirements and plan | `TASK-012`, `TASK-013`, `TASK-014` (`ADR-001`), `CHG-006`, `CHG-008`–`CHG-013` (`PASS`) / `TASK-015` (`BLOCKED`) | `PASS` (Accepted Scope) / `BLOCKED` (`TASK-015`) | `USER_APPROVED` directives (`CHG-002`, `CHG-007`–`CHG-013`) + recovered `CHG-006` design/plan reviews. `TASK-015` `G1` `BLOCKED` pending PO decisions on `Q-001` & adaptation (`.pif/handoffs/TASK-015-g1-brief.md`) |
+| `G1` Approved requirements and plan | `TASK-012`, `TASK-013`, `TASK-014` (`ADR-001`), `CHG-006`, `CHG-008`–`CHG-013` (`PASS`) / `TASK-015` (`BLOCKED`) | `PASS` (Accepted Scope) / `BLOCKED` (`TASK-015`) | `USER_APPROVED` directives (`CHG-002`, `CHG-007`–`CHG-014`) + `ADR-002`. `TASK-015` strategic scope is `USER_APPROVED`; `G1` `BLOCKED` only on Engineer isolated worktree, source gap analysis & PO-approved implementation plan (`.pif/handoffs/TASK-015-g1-brief.md`) |
 | `G2` Implementation integrity | `TASK-012`, `TASK-013`, `TASK-014`, `CHG-006`, `PR #84`, `AUD-020` (`PASS`) / Pre-PIF (`BLOCKED`) | `PASS` (Audited Scope) / `BLOCKED` (Pre-PIF) | `EVID-015`–`EVID-017`: `livekit-token` `AUD-024` closed (`08bcbf9`); all 7 `CHG-006` audits recovered; non-`.pif/` docs synced & verified |
 | `G3` AI verification | `main` (`6aed855` → `65e01eeb`) | `PASS` (Local & Remote Lint/Ledger) / `BLOCKED` (Local Docker Concurrency `RISK-003`) | `EVID-015`–`EVID-017`: `tsc -b` (`0`), `326/326` unit tests, `38/38` LF-clean migrations, Staging & Prod `db lint` `0` errors, `git diff --check` `0` |
 | `G4` Human verification | `TASK-012`, `TASK-013`, `TASK-014` (full), `CHG-006`, `AUD-020` (`PASS`) / Pre-PIF (`BLOCKED`) | `PASS` (Accepted Tasks) / `BLOCKED` (Pre-PIF `RISK-002`) | PO confirmed live Production `TASK-013` calls (`EVID-018`), formally accepted `TASK-013`, `CHG-006`, `AUD-020`, and closed the Netlify `VITE_VAPID_PUBLIC_KEY` condition on `TASK-014` (`CHG-010`, `CHG-013`, `EVID-019`). `RISK-002` pre-PIF checklists remain open |
@@ -61,6 +61,6 @@
 - **`RISK-009` (CLOSED — Production `LIVEKIT_*` Secrets Configured):** `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, and `LIVEKIT_URL` verified present on Production (`lmzbaxlojgsdwgcxkmzx`, names-only CLI check) with `livekit-token` v2 `ACTIVE` (`verify_jwt: true`, `ezbr_sha256: 92074dfd...`) and zero-fixture smoke `OPTIONS 200` / unauthenticated `POST 401` (`7d76c5e`, `EVID-017`, `CHG-011`).
 
 ## Next authorized step
-1. **Product Owner reviews `.pif/handoffs/TASK-015-g1-brief.md` (`governance/task-015-i18n-theme-g1`)** and resolves open `G1` decisions **D1 (`Q-001`)–D6** (and optionally grants Guardian read-only permission to inspect existing i18n/theme source files before finalizing the brief).
+1. **Product Owner hands `.pif/handoffs/TASK-015-g1-brief.md` + `.pif/decisions/ADR-002-i18n-theme-adaptation.md` (`governance/task-015-i18n-theme-g1`) to PIF Engineer** so Engineer creates an isolated task worktree from `main` (`65e01eeb`), inspects existing i18n/theme/formatter source files, and returns a source-verified gap analysis & implementation plan for PO approval and Guardian `G1` re-assessment.
 2. **Optional post-merge housekeeping (requires explicit PO authorization):** Remove the superseded clean worktrees `governance-pwa-offline-g1` (`governance/pwa-offline-g1-brief`) and `.worktrees/governance-reconciliation-6aed855` (`governance/reconcile-pif-6aed855`), and decide disposition of the `5` dirty local worktrees (`baseline-block-check`, `feature-calls`, `fix-chat-polling-storm`, `fix-security-definer-views`, `shared-roles-permissions`).
-3. **Upcoming roadmap priorities when authorized by Product Owner:** Complete Prompt `14` (`TASK-015`, after `G1` unblocks), Prompt `15` (`TASK-016`), and Prompt `16` (`TASK-017`) production observability/release readiness.
+3. **Upcoming roadmap priorities when authorized by Product Owner:** Complete Prompt `14` (`TASK-015`, after `G1` passes), Prompt `15` (`TASK-016`), and Prompt `16` (`TASK-017`) production observability/release readiness.

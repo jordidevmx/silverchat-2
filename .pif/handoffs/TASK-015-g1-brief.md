@@ -1,128 +1,99 @@
-# Guardian → Engineer Task Brief — TASK-015 (G1 Draft)
+# Guardian → Engineer Task Brief — TASK-015 (G1)
 
 **Project:** SilverChat
-**Task:** `TASK-015` — Prompt 14: Internationalization (`en`/`es`) & Theme/Accent Persistence System (`.roadmap/14-i18n-theme.md`)
+**Task:** `TASK-015` — Prompt 14: Internationalization (`en`/`es`) & Theme/Accent Persistence System (adapted to current architecture via `ADR-002`)
 **Prepared by:** PIF Guardian
 **Preparation date:** 2026-11-27
 **Canonical baseline revision:** `fceb0e51750eb06ee9f6f18652f7c43f18d11585` (`.pif/manifest.json`); observed `main` `HEAD` @ `65e01eebbdf8655ffe7a84143e8df407c1cccdb3` (post-merge of PR `#85`)
-**Source records:** `.pif/manifest.json`, `.pif/project.md`, `.pif/state.md`, `.pif/requirements.md`, `.pif/roadmap.md`, `.pif/traceability.md`, `.pif/evidence/index.md`, `.roadmap/14-i18n-theme.md`, `graphify-out/GRAPH_REPORT.md` & `graphify-out/graph.json` (built at `65e01eeb`), read-only directory listings
-**Handoff status:** Draft governance brief on branch `governance/task-015-i18n-theme-g1` (`.worktrees/governance-task-015-g1`); not merged to `main`. This document does **not** authorize implementation, dependency installation, or application source changes. Product Owner decisions in §3 are required before handing the task to PIF Engineer.
+**Source records:** `.pif/manifest.json`, `.pif/project.md`, `.pif/state.md`, `.pif/requirements.md`, `.pif/roadmap.md`, `.pif/traceability.md`, `.pif/evidence/index.md`, `.pif/decisions/ADR-002-i18n-theme-adaptation.md`, `.roadmap/14-i18n-theme.md`, `graphify-out/GRAPH_REPORT.md` & `graphify-out/graph.json` (built at `65e01eeb`), read-only directory listings
+**Handoff status:** Decision-complete `G1` governance brief on branch `governance/task-015-i18n-theme-g1` (`.worktrees/governance-task-015-g1`); not merged to `main`. Ready for Product Owner to hand to PIF Engineer for isolated worktree setup, source-level gap analysis, and implementation planning. This document does **not** itself authorize application edits, push, PR, merge, or deployment.
 
 ---
 
 ## 1. Governance disposition
 
-- **Gate `G1` (Requirements & Plan): `BLOCKED`.**
-  - Canonical Definition of Ready (`.pif/roadmap.md`, `TASK-015`) explicitly requires: `Spec in .roadmap/14-i18n-theme.md + resolution of Q-001`.
-  - Material brownfield conflicts exist between the greenfield Prompt 14 specification (`.roadmap/14-i18n-theme.md`) and the live SilverChat architecture (`CON-004`, `EVID-008`, `EVID-010`, Graphify at `65e01eeb`).
-  - No Product Owner decision on `Q-001` or the adaptation questions in §3 has been recorded yet; no Engineer worktree/branch or PO-approved implementation plan exists.
-- **Disposition of this brief: `BLOCKED` (pending Product Owner decisions §3).**
-- **Conditions required before `G1` can pass:**
-  1. Product Owner resolves open decisions **D1 (`Q-001`)–D6** in §3 (and optionally grants Guardian read-only permission to inspect the existing i18n/theme source files listed in §7 to convert `INFERRED`/`UNKNOWN` items into `VERIFIED` baseline facts).
-  2. Guardian updates this brief with the `USER_APPROVED` decisions (and records an ADR, e.g., `ADR-002`, if an adapted architecture is chosen).
-  3. Engineer creates an isolated worktree/branch from `main` (`65e01eeb` or newer), submits a concrete implementation plan conforming to the approved decisions, and obtains Product Owner plan approval.
-  4. If `i18next` packages are approved under **D1/D6**, exact versions are reviewed, pinned, and lockfile changes are verified before application coding begins.
+- **Gate `G1` (Requirements & Plan): `BLOCKED`.** All material strategic/architectural uncertainties (`Q-001` and brownfield adaptations) are now resolved and `USER_APPROVED` in §3 (`ADR-002`, `CHG-014`), but the mandatory "isolated worktree + approved implementation plan" checks are not yet satisfied.
+- **Disposition of this brief: `CONDITIONALLY ACCEPTABLE` (ready for Engineer handoff).**
+- **Conditions to clear before `G1` can pass (owned by PIF Engineer + Product Owner):**
+  1. Engineer creates an isolated worktree/branch from current `main` (`65e01eeb`).
+  2. Engineer performs the full direct source-code inspection and gap analysis against §3–§4 (Guardian intentionally delegated direct source inspection to Engineer per Product Owner direction).
+  3. Engineer writes a concrete, source-verified implementation plan (including exact existing `localStorage` keys, DOM attributes, gap matrix against Prompt 14, and formatter adoption plan) and commits/submits it for Product Owner approval and Guardian `G1` re-assessment before modifying application code.
+- All decisions in §3 are `USER_APPROVED` by the Product Owner on `2026-11-27` (`ADR-002`, `CHG-014`). No gate is marked `PASS` without supporting evidence.
 
 ---
 
-## 2. Objective & Brownfield Context (`CON-004`)
+## 2. Approved objective
 
-Complete `FR-014` (`TASK-015` — Internationalization & Runtime Theme System) without regressing SilverChat's existing working `en`/`es` localization, theme/accent persistence, custom chat backgrounds (PR `#73`), or offline preferences fallback (`TASK-014` / PR `#82`).
-
-Per `CON-004` (`.pif/project.md`) and `EVID-010`, SilverChat is a brownfield repository where substantial i18n and theme functionality was built earlier than Prompt 14's roadmap slot:
-- **Existing i18n surface (Graphify at `65e01eeb` — structural map, not source-verified):**
-  - `src/app/providers/i18n-provider.tsx` (`I18nProvider`, `useI18n` — **99 Graphify edges / 59 file connections** across PWA banners, settings routes/modals, chat list, calls, security banners).
-  - `src/lib/language.ts` (`Language`, `detectDeviceLanguage`, `matchDeviceLanguage`, `readChosenLanguage`, `rememberChosenLanguage` — **22 connections**, plus `tests/language.test.ts` and `tests/i18n-browser.mjs`).
-  - Feature-scoped typed dictionaries: `src/features/messages/i18n.ts` (`useMessageText` — **189 Graphify edges**), `src/features/auth/i18n.ts` (`useAuthText`), `src/features/chats/i18n.ts`, `src/features/calls/i18n.ts`, plus `src/features/messages/lib/systemMessageText.ts`, `conversationStrings.ts`, `src/features/calls/lib/callEvent.ts`, `src/features/chat-growth/lib/growthConfig.ts`, `src/components/ui/toast.tsx`.
-  - `package.json` currently has **none** of `i18next`, `react-i18next`, or `i18next-browser-languagedetector` (Graphify `package.json` dependency list).
-- **Existing theme, preferences & appearance surface (Graphify at `65e01eeb`):**
-  - `src/app/providers/theme-provider.tsx` (`ThemeProvider`, `useTheme`, `Theme`, `Accent`, `ThemeContext` — **14 connections**).
-  - `src/lib/preferences.ts` (`readPreference`, `writePreference`, `hasPreference`).
-  - `src/features/settings/preferences-provider.tsx` (`usePreferences` — **37 connections**; bridges `useAuth`, `useI18n`, `useTheme`, `supabase`, `@tanstack/react-query`, and `src/lib/message-cache.ts` via `withOfflineFallback` / `attachPostgrestStatus`).
-  - `src/routes/settings.appearance.tsx` (`AppearancePage` — **29 connections**; wired to `useTheme`, `useI18n`, `usePreferences`, and `useChatBackground`).
-- **Missing spec paths verified on disk (`VERIFIED` via directory check):**
-  - `src/locales/` does **not** exist (`False`).
-  - `src/features/settings/components/AppearanceScreen.tsx` does **not** exist (`False`).
-  - `src/hooks/` exists but contains only `.gitkeep` and `useInView.ts` (no `useTheme.ts`, `useLanguage.ts`, or `useFormatters.ts`).
-  - Existing domain formatters exist at `src/features/calls/lib/callFormatter.ts`, `src/features/chats/utils/formatChatTimestamp.ts`, and `src/features/messages/utils/formatMessageTime.ts`.
+Complete `FR-014` (`TASK-015` — Internationalization & Runtime Theme System) against SilverChat's **current** brownfield architecture (`CON-004`, `ADR-002`): harden and verify the existing custom `en`/`es` i18n and theme/accent persistence stack with **zero new dependencies**; ensure inline FOUC prevention in `index.html` using existing `localStorage` keys; verify `prefers-color-scheme` live handling, cross-device `user_settings` sync, debounced DB persistence, and user-switch preference updates; introduce native `Intl`-only `useFormatters` (backed by a pure `Intl` core) and adopt it cleanly across the existing domain formatters; and deliver full automated unit and browser test coverage without regressing custom chat backgrounds (PR `#73`) or offline preferences fallback (`TASK-014` / PR `#82`).
 
 ---
 
-## 3. Open Product Owner Decisions Required to Unblock `G1`
+## 3. Approved decisions (`USER_APPROVED`, 2026-11-27 — `ADR-002` / `CHG-014`)
 
-Guardian does not resolve strategic or architectural scope decisions on the Product Owner's behalf. Each item below requires an explicit Product Owner decision (`USER_APPROVED`):
-
-### D1 (`Q-001` — Primary Architectural Blocker): i18n Engine Strategy
-- **Conflict:** `.roadmap/14-i18n-theme.md` (T1, T3, T4) specifies installing `i18next`, `react-i18next`, and `i18next-browser-languagedetector`, creating `src/lib/i18n.ts`, `src/types/i18n.d.ts`, and `18` JSON locale files (`9` namespaces × `en`/`es`), and replacing `I18nProvider`. However, SilverChat already runs a custom `I18nProvider` + `src/lib/language.ts` + feature `i18n.ts` dictionaries wired into `189+` message call sites and `99+` app/settings/PWA call sites (`CON-004`).
-- **Options:**
-  - **Option A (Recommended for brownfield coherence — Formalize & Harden Existing Architecture via `ADR-002`, zero new deps):** Keep `src/app/providers/i18n-provider.tsx`, `src/lib/language.ts`, and feature `i18n.ts` modules as the canonical i18n architecture; close only the genuine Prompt 14 functional gaps (inline FOUC script in `index.html`, verified `prefers-color-scheme` runtime listener & 6-accent class contract, shared `Intl`-only `src/hooks/useFormatters.ts`, verified detection priority + cross-device `user_settings` sync + logout/user-switch reset, and automated unit/browser test coverage). Avoids adding 3 packages and an unused parallel 18-file JSON tree.
-  - **Option B (Adopt `i18next` + Bridge Existing `I18nProvider`):** Install `i18next`, `react-i18next`, and `i18next-browser-languagedetector` (exact pinned versions), create `src/lib/i18n.ts`, `src/types/i18n.d.ts`, and the 18 JSON locale files per spec, AND bridge `I18nProvider` / `preferences-provider.tsx` so switching language updates both `i18next` and existing `useI18n()`/`useMessageText()` consumers in lockstep without breaking current screens. (Requires explicit decision on **D5** and **D6**.)
-  - **Option C (Full component migration to `i18next`):** Out of scope per `.roadmap/14-i18n-theme.md` §16 ("Do NOT translate any existing component"); high regression risk.
-
-### D2: File Paths & Appearance Screen Adaptation
-- **Conflict:** Spec §3/§10/§11/§13 references PascalCase `ThemeProvider.tsx`, `I18nProvider.tsx`, and `src/features/settings/components/AppearanceScreen.tsx`, whereas the live codebase uses kebab-case `src/app/providers/theme-provider.tsx`, `src/app/providers/i18n-provider.tsx`, `src/features/settings/preferences-provider.tsx`, and `src/routes/settings.appearance.tsx` (which also hosts custom chat backgrounds via `useChatBackground` and offline fallback via `withOfflineFallback`).
-- **Proposed decision:** Adapt to existing repository paths; do **not** create duplicate PascalCase provider files or a parallel `AppearanceScreen.tsx`; preserve `useChatBackground` and `withOfflineFallback` integrations in `src/routes/settings.appearance.tsx` and `src/features/settings/preferences-provider.tsx`.
-
-### D3: `localStorage` Key Continuity & FOUC Script Alignment
-- **Conflict/Uncertainty (`UNKNOWN` pending source read):** Spec §1 locks `silverchat_language`, `silverchat_theme`, `silverchat_accent`, `<html data-theme="dark">`, `<html class="theme-{accent}">`, and an inline blocking FOUC-prevention script in `index.html`. Existing `src/lib/preferences.ts` and `index.html` have not yet been read by Guardian.
-- **Proposed decision:** Verify existing storage keys and DOM attributes first. If existing Production keys differ from `silverchat_*`, decide whether to (a) keep existing keys in both runtime and the `index.html` FOUC script, or (b) migrate to `silverchat_*` with a one-way legacy key fallback so existing users do not lose saved preferences.
-
-### D4: `src/hooks/useFormatters.ts` Scope (and Spec Bug Correction)
-- **Context:** Spec §9 specifies `src/hooks/useFormatters.ts` (`Intl` only — no date libraries: `formatTime`, `formatDate`, `formatLongDate`, `formatRelative`, `formatBytes`, `formatDuration`). Existing domain formatters exist in `src/features/calls/lib/callFormatter.ts`, `src/features/chats/utils/formatChatTimestamp.ts`, and `src/features/messages/utils/formatMessageTime.ts`.
-- **Mandatory technical note (spec snippet bug `VERIFIED` in `.roadmap/14-i18n-theme.md` L497–498):** The spec's snippet calls `nf.format(bytes / 1024, 1)` and `nf.format(bytes / 1024 / 1024, 1)`. `Intl.NumberFormat.prototype.format` accepts **1** argument, not 2 (TypeScript error `TS2554`). Engineer must use a dedicated 1-fraction-digit `Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })` (matching the spec's `"1.0 MB"` checklist item) or equivalent locale-aware single-arg formatter.
-- **Decision needed:** Confirm whether `useFormatters.ts` should be delivered as a standalone shared `Intl` hook (without refactoring existing feature formatters, consistent with §16) or also adopted by existing feature formatters.
-
-### D5 (Applies only if D1 = Option B): Static Import vs. Lazy Loading Contradiction in Spec
-- **Conflict (`VERIFIED` in `.roadmap/14-i18n-theme.md` L28 vs. L108–165):** Table T3 states "lazy-loaded per namespace", whereas §4 (`src/lib/i18n.ts`) statically imports all 18 JSON files into `resources`.
-- **Proposed decision (if Option B):** Confirm static bundling per §4 (simpler, type-safe, zero runtime network failure when offline under `TASK-014` PWA cache).
-
-### D6 (Applies only if D1 = Option B): New Dependency Authorization
-- Installing `i18next`, `react-i18next`, and `i18next-browser-languagedetector` requires explicit Product Owner approval and exact version pinning before `pnpm add`. Under Option A, **zero** new dependencies are added.
+1. **`D1` (`Q-001` resolved — Option A): Formalize and harden the existing custom i18n architecture.** Keep `src/app/providers/i18n-provider.tsx`, `src/lib/language.ts`, and feature-scoped `i18n.ts` dictionaries (`src/features/{messages,auth,chats,calls}/i18n.ts`) as the canonical i18n engine. Do **not** install `i18next`, `react-i18next`, or `i18next-browser-languagedetector`, and do **not** create `src/lib/i18n.ts`, `src/types/i18n.d.ts`, or the 18 JSON files in `src/locales/`. Prompt 14 T1/T3/T4 (`i18next` packages & 9-namespace JSON tree) are formally superseded by `ADR-002`. **Zero new dependencies** are authorized (`D5` and `D6` are `N/A`).
+2. **`D2`: Adapt to existing repository paths and Appearance screen.** Use existing kebab-case paths (`src/app/providers/theme-provider.tsx`, `src/app/providers/i18n-provider.tsx`, `src/features/settings/preferences-provider.tsx`, `src/routes/settings.appearance.tsx`). Do **not** create duplicate PascalCase provider files (`ThemeProvider.tsx`, `I18nProvider.tsx`) or a parallel `src/features/settings/components/AppearanceScreen.tsx`. Preserve `useChatBackground` (PR `#73`) and `withOfflineFallback` / `attachPostgrestStatus` (`TASK-014`).
+3. **`D3` (Option a): Preserve existing `localStorage` keys.** Keep the exact `localStorage` keys currently used by `src/lib/preferences.ts` / `src/lib/language.ts` / `src/app/providers/theme-provider.tsx` in both runtime code and the inline FOUC-prevention script in `index.html`, so existing Production users never lose saved theme, accent, or language preferences.
+4. **`D4`: Implement shared `Intl` formatters and adopt them in existing domain formatters.** Build `src/hooks/useFormatters.ts` using native `Intl` only (no date libraries) — structured over a pure `Intl` formatter module (e.g. `src/lib/formatters.ts`) so non-React domain helpers can share the exact same `Intl` implementation without violating Rules of Hooks — and adopt it in `src/features/calls/lib/callFormatter.ts`, `src/features/chats/utils/formatChatTimestamp.ts`, and `src/features/messages/utils/formatMessageTime.ts` while preserving existing behavior and public signatures. Fix the Prompt 14 §9 snippet bug (`nf.format(bytes / 1024, 1)` 2-arg call → dedicated 1-fraction-digit `Intl.NumberFormat`).
 
 ---
 
-## 4. Provisional Scope (Subject to §3 Decisions)
+## 4. Scope & Engineer Discovery Responsibilities
 
-**In (baseline requirements from `.roadmap/14-i18n-theme.md`, adapted per §3):**
-- Inline blocking FOUC-prevention script in `index.html` (runs before stylesheets/module scripts; applies effective dark mode, accent class, and `<html lang>` safely inside `try/catch`).
-- Verified theme/accent contract: `'light' | 'dark' | 'system'` (`system` default), 6 accents (`blue`, `purple`, `red`, `orange`, `yellow`, `green`; `blue` default), `<html data-theme="dark">` only when effective theme is dark, `<html class="theme-{accent}">`, live `prefers-color-scheme` listener active **only** when `theme === 'system'`.
-- Verified language detection & dual persistence contract: `localStorage` → `navigator.language` (normalized `es*` → `es`, `en*` → `en`, fallback `en`) → authenticated `user_settings` override (cross-device sync) + logout/user-switch update, `<html lang>` synchronization, debounced (`500ms`) DB updates to avoid write storms, and `try/catch` around `localStorage` access.
-- `src/hooks/useFormatters.ts` (`Intl`-only: `formatTime`, `formatDate`, `formatLongDate`, `formatRelative`, `formatBytes`, `formatDuration`) with the spec `nf.format` 2-argument bug corrected.
-- *(Only if D1 = Option B)* `i18next` + `react-i18next` + `i18next-browser-languagedetector`, `src/lib/i18n.ts`, `src/types/i18n.d.ts`, 18 locale JSON files (`en`/`es` × 9 namespaces), `src/app/main.tsx` first-import wiring, and bridge to `I18nProvider`.
-- Unit and browser verification tests covering detection, fallback, theme/accent DOM attributes, `prefers-color-scheme`, FOUC reload, formatters, and cross-user switch.
+**Engineer owns full source-level discovery & gap audit during `G1` planning.** Because Guardian operates without direct application source reads here, Engineer must inspect the live files listed in §5 and document in the implementation plan what is **already implemented** vs. what **must be added or hardened**:
 
-**Out (locked exclusions from `.roadmap/14-i18n-theme.md` §16 & `CON-001`–`CON-004`):**
-- Translating existing UI components (`*.tsx`) beyond approved appearance/provider wiring.
-- Regenerating components from earlier prompts or removing chat backgrounds / offline fallback in `settings.appearance.tsx` / `preferences-provider.tsx`.
-- Any database schema or migration changes to `user_settings` (columns already exist; no Staging/Production DB writes expected).
+**In:**
+1. **Inline FOUC-prevention script in `index.html`:**
+   - Inspect `index.html` and `src/styles/globals.css` to verify exact current DOM attributes/classes (`data-theme="dark"`, `theme-{accent}`, `<html lang>`) and whether a blocking inline script already exists.
+   - Ensure a blocking inline `<script>` runs before stylesheets/module scripts, reading the **existing** `localStorage` keys (`D3`), wrapped in `try/catch` (Safari private mode safe), applying effective dark mode (`system` resolved via `matchMedia('(prefers-color-scheme: dark)')`), validated accent class, and `<html lang>` with zero flash of unstyled/wrong theme.
+   - Check Netlify CSP/header config (if any exists in repo) to ensure no inline-script conflict.
+2. **Theme & Accent runtime contract (`theme-provider.tsx`, `preferences.ts`, `preferences-provider.tsx`, `settings.appearance.tsx`):**
+   - Verify `'light' | 'dark' | 'system'` (`system` default) and all 6 accents (`blue`, `purple`, `red`, `orange`, `yellow`, `green`; `blue` default).
+   - Verify `<html data-theme="dark">` is applied only when effective theme is dark (light is default `:root`) and `<html class="theme-{accent}">` replaces previous `theme-*` classes cleanly.
+   - Verify live `prefers-color-scheme` `MediaQueryList` listener is active **only** when `theme === 'system'` (and cleaned up on change/unmount; never overrides explicit `light`/`dark`).
+   - Verify dual persistence (`localStorage` in `try/catch` + debounced `500ms` `user_settings` DB update to prevent rapid preview write storms) and cross-device override from `user_settings` on login, preserving `withOfflineFallback` (`TASK-014`) and `useChatBackground` (PR `#73`).
+3. **Language detection, `<html lang>` sync & cross-user switch (`language.ts`, `i18n-provider.tsx`, `preferences-provider.tsx`):**
+   - Verify detection priority: stored preference → `navigator.language` normalized (`es*` → `es`, `en*` → `en`, unsupported → `en`) → authenticated `user_settings.language` override (cross-device sync).
+   - Verify `<html lang>` stays in sync on initial load and every language change.
+   - Verify logout followed by login as a different user with a different `user_settings` language/theme/accent updates the UI cleanly to the new user's preferences (no stale preference leak across accounts).
+   - Verify changing language in `/settings/appearance` updates UI live without page reload and persists across reload.
+4. **Shared `Intl` formatters & adoption (`D4`):**
+   - Create `src/hooks/useFormatters.ts` (consuming current language from `useI18n()`) backed by a pure `Intl` core (e.g. `src/lib/formatters.ts`) exposing `formatTime`, `formatDate`, `formatLongDate`, `formatRelative` (`Intl.RelativeTimeFormat` with `numeric: 'auto'`), `formatBytes` (correcting Prompt 14 §9's invalid 2-arg `nf.format(bytes / 1024, 1)` bug with a 1-fraction-digit `Intl.NumberFormat` so `1024 * 1024` formats cleanly as `"1.0 MB"` / locale equivalent), and `formatDuration`.
+   - Adopt the shared `Intl` formatter core in `src/features/calls/lib/callFormatter.ts`, `src/features/chats/utils/formatChatTimestamp.ts`, and `src/features/messages/utils/formatMessageTime.ts`, preserving existing semantics and fixing any locale hardcoding where appropriate (documenting any deliberate edge-case difference in the plan).
+5. **Automated tests & verification evidence (§8):**
+   - Expand unit and browser tests covering all hardened behaviors, formatter core + hook + adopted domain formatters, FOUC reload, `prefers-color-scheme`, unsupported stored language fallback, and user-switch preference update.
+
+**Out (locked exclusions — `.roadmap/14-i18n-theme.md` §16 + `ADR-002`):**
+- Installing `i18next`, `react-i18next`, `i18next-browser-languagedetector`, or any other new dependency (including date libraries `moment`, `date-fns`, `dayjs`).
+- Creating `src/locales/**`, `src/lib/i18n.ts`, `src/types/i18n.d.ts`, PascalCase provider duplicates, or `src/features/settings/components/AppearanceScreen.tsx`.
+- Bulk-translating unrelated existing UI components (`*.tsx`) outside approved provider/appearance/formatter scope.
+- Any database schema or migration changes to `user_settings` (columns already exist; zero Supabase CLI writes or remote migrations in scope).
 - Additional locales beyond `en` and `es`.
-- External date libraries (`moment`, `date-fns`, `dayjs`).
 - Modifications to canonical `.pif/` records by Engineer.
 
 ---
 
-## 5. Relevant Requirements, Artifacts & Dependencies
+## 5. Relevant Requirements, Existing Files & Dependencies
 
-- **Requirements:** `FR-014` (`TASK-015`), `FR-002`, `FR-003`, `FR-006` (`user_settings`), `FR-013` (offline fallback & PWA interaction), `GOAL-003`, `CON-002`, `CON-004`.
-- **Existing components to preserve/integrate (Graphify structural references — Engineer must inspect directly in task worktree):**
-  - `index.html`, `src/app/main.tsx`, `src/app/App.tsx`
+- **Requirements & Decisions:** `FR-014` (`TASK-015`), `ADR-002`, `FR-002`, `FR-003`, `FR-006` (`user_settings`), `FR-013` (offline fallback), `GOAL-003`, `CON-002`, `CON-004`.
+- **Files Engineer must inspect directly in task worktree (Graphify map at `65e01eeb`):**
+  - `index.html`, `src/app/main.tsx`, `src/app/App.tsx`, `src/styles/globals.css`, `netlify.toml` (if present, for CSP check)
   - `src/app/providers/i18n-provider.tsx`, `src/app/providers/theme-provider.tsx`, `src/app/providers/chat-background-provider.tsx`
   - `src/lib/language.ts`, `src/lib/preferences.ts`
   - `src/features/settings/preferences-provider.tsx`, `src/routes/settings.appearance.tsx`
-  - `src/features/{auth,calls,chats,messages}/i18n.ts`
-  - Existing tests: `tests/language.test.ts`, `tests/i18n-browser.mjs`, `tests/settings.test.ts`, `tests/settings-browser.mjs`, `tests/chat-background.test.ts`, `tests/chat-background-browser.mjs`.
-- **Database impact:** None expected (`.roadmap/14-i18n-theme.md` §16 explicitly prohibits `user_settings` schema changes). No Supabase CLI writes, migrations, or Edge Function deployments are in scope.
+  - `src/features/calls/lib/callFormatter.ts`, `src/features/chats/utils/formatChatTimestamp.ts`, `src/features/messages/utils/formatMessageTime.ts`
+  - Existing tests: `tests/language.test.ts`, `tests/i18n-browser.mjs`, `tests/settings.test.ts`, `tests/settings-browser.mjs`, `tests/chat-background.test.ts`, `tests/chat-background-browser.mjs`, `tests/calls-presentation.test.ts`, `tests/chats.test.ts`, `tests/messages.test.ts`.
+- **New dependencies:** **None** (`0` package additions; `package.json` and `pnpm-lock.yaml` must remain untouched).
+- **Database / Supabase impact:** **None.** Do not run migrations or remote Supabase writes.
 
 ---
 
 ## 6. Risks
 
-- **Dual i18n system drift (`HIGH` if D1 = Option B without bridge):** Running `i18next` alongside unbridged `I18nProvider`/`useI18n()` would cause partial language switches where some screens change language and others stay stale.
-- **Existing user preference reset (`MEDIUM`):** Changing `localStorage` keys from what `src/lib/preferences.ts` currently uses without fallback would reset saved theme/accent/language on reload for existing Production users.
-- **AppearanceScreen / Chat Background regression (`MEDIUM`):** Blindly applying `.roadmap/14-i18n-theme.md` §13 would overwrite or bypass `src/routes/settings.appearance.tsx` (custom chat backgrounds from PR `#73` and offline fallback from `TASK-014`).
-- **CSP / inline script interaction (`MEDIUM`):** Adding an inline `<script>` to `index.html` must be checked against any Content-Security-Policy headers in Netlify config (relevant ahead of `TASK-017`).
-- **Spec code defect (`LOW` — caught early):** `nf.format(bytes / 1024, 1)` in spec §9 does not typecheck in strict TypeScript (`TS2554`).
-- **Unverified source internals (`MEDIUM` — Guardian audit limitation):** Guardian has not directly read application source files (role boundary pending explicit PO permission); exact gap depth in `index.html`, `theme-provider.tsx`, `i18n-provider.tsx`, `preferences.ts`, and `preferences-provider.tsx` is currently `UNKNOWN` until source inspection is authorized.
+- **Regression in domain formatters (`MEDIUM`):** Adopting a shared `Intl` core in `callFormatter.ts`, `formatChatTimestamp.ts`, and `formatMessageTime.ts` touches Calls, Chats, and Messages UI strings and unit/browser tests; Engineer must audit every consumer and keep existing suites green.
+- **FOUC / storage-key mismatch (`MEDIUM`):** Any mismatch between `index.html`'s inline script keys/values/DOM attributes and `src/lib/preferences.ts` / `theme-provider.tsx` / `src/styles/globals.css` will fail to prevent flash or desync dark/accent styling.
+- **Offline fallback / chat background regression (`MEDIUM`):** Touching `preferences-provider.tsx` or `settings.appearance.tsx` must preserve `withOfflineFallback` (`TASK-014`), `useChatBackground` (PR `#73`), and debounce/logout cleanup semantics.
+- **Account-switch preference bleed (`MEDIUM`):** Logging out as User A and logging in as User B must not leave User A's `localStorage` language/theme/accent overriding User B's `user_settings`.
+- **Pre-existing repo risks:** `RISK-004` (repo-wide Biome drift — run scoped Biome on touched files only, LF-clean on Windows).
 
 ---
 
@@ -130,47 +101,47 @@ Guardian does not resolve strategic or architectural scope decisions on the Prod
 
 | Finding | Classification | Source |
 |---|---|---|
-| `main` `HEAD` = `65e01eeb` (PR `#85` merged); `TASK-015` is `IN_PROGRESS` with DoR requiring `Q-001` resolution | `VERIFIED` | `git rev-parse HEAD`, `.pif/roadmap.md`, `.pif/requirements.md`, `.pif/state.md` |
-| `src/locales/` absent (`False`); `src/features/settings/components/AppearanceScreen.tsx` absent (`False`); `src/hooks/` contains only `.gitkeep` and `useInView.ts` | `VERIFIED` | Direct read-only directory checks on `main` @ `65e01eeb` |
-| Existing `i18n-provider.tsx`, `theme-provider.tsx`, `language.ts`, `preferences.ts`, `features/{auth,calls,chats,messages}/i18n.ts`, `tests/language.test.ts`, `tests/i18n-browser.mjs` exist on disk | `VERIFIED` | Direct read-only directory checks on `main` @ `65e01eeb` |
-| Spec internal bug (`nf.format(bytes / 1024, 1)` 2-arg call) and T3 vs. §4 lazy-load vs. static-import mismatch | `VERIFIED` | Direct read of `.roadmap/14-i18n-theme.md` (L28, L108–165, L497–498) |
-| Structural coupling of `useI18n()` (99 edges), `useMessageText()` (189 edges), `preferences-provider.tsx` (`withOfflineFallback`), `settings.appearance.tsx` (`useChatBackground`), and absence of `i18next` in `package.json` | `INFERRED` (architectural graph) | `graphify-out/graph.json` built at `65e01eeb` (`graphify query` / `graphify explain`) |
-| Existing `en`/`es` i18n and theme persistence are functional | `REPORTED` / `USER_APPROVED` (PO statement, not Guardian source-verified) | `EVID-008`, `EVID-010` |
-| Exact internal contents of `index.html`, `theme-provider.tsx`, `i18n-provider.tsx`, `preferences.ts`, `preferences-provider.tsx`, `settings.appearance.tsx`, `styles/globals.css` | `UNKNOWN` | Not read by Guardian (requires explicit PO permission per `pif-guardian.init.md`) |
+| `main` `HEAD` = `65e01eeb` (PR `#85` merged); `Q-001` resolved via `ADR-002` (`CHG-014`) | `VERIFIED` + `USER_APPROVED` | `git rev-parse HEAD`, `.pif/decisions/ADR-002-i18n-theme-adaptation.md`, Product Owner decisions `2026-11-27` |
+| `src/locales/` and `AppearanceScreen.tsx` absent; `src/hooks/` contains only `.gitkeep` and `useInView.ts`; existing providers, `language.ts`, `preferences.ts`, 3 domain formatters, and `i18n`/`language`/`settings` tests present | `VERIFIED` | Direct read-only directory checks on `main` @ `65e01eeb` |
+| Spec §9 snippet bug (`nf.format(bytes / 1024, 1)` 2-arg call) | `VERIFIED` | Direct read of `.roadmap/14-i18n-theme.md` (L497–498) |
+| Architectural coupling (`useI18n()` 99 edges, `useMessageText()` 189 edges, `preferences-provider.tsx` `withOfflineFallback`, `settings.appearance.tsx` `useChatBackground`, no `i18next` in `package.json`) | `INFERRED` (structural graph) | `graphify-out/graph.json` built at `65e01eeb` |
+| Exact internal gaps in `index.html`, `theme-provider.tsx`, `i18n-provider.tsx`, `preferences.ts`, `language.ts`, `preferences-provider.tsx`, `settings.appearance.tsx`, and the 3 domain formatters | `UNKNOWN` (delegated to Engineer) | Product Owner directed delegating source discovery to PIF Engineer |
 
 ---
 
 ## 8. Required Acceptance Criteria & Quality Gates
 
-- **`G0` — Safe isolation:** Engineer works in a dedicated worktree/branch created from `main` (e.g., `.worktrees/task-015-i18n-theme`, branch `feat/i18n-theme`); primary checkout remains clean on `main`.
-- **`G1` — Requirements & Plan (`CURRENTLY BLOCKED`):** PO resolves §3 decisions (`Q-001`, paths/adaptation, storage keys, `useFormatters`, and deps if applicable); Engineer submits an implementation plan matching the approved decisions; PO approves the plan (and any new pinned deps + lockfile) before application edits begin.
-- **`G2` — Implementation Integrity:** Changes strictly within approved §4 scope; zero regressions to `useChatBackground`, `withOfflineFallback`, existing `en`/`es` feature translations, or `user_settings` schema; no canonical `.pif/` edits by Engineer.
+- **`G0` — Safe isolation:** Engineer creates a dedicated worktree/branch from `main` (`65e01eeb`), e.g. `.worktrees/task-015-i18n-theme` on branch `feat/i18n-theme`. Primary checkout stays untouched on `main`.
+- **`G1` — Requirements & Plan (`CURRENTLY BLOCKED` on Engineer plan):** Engineer commits a source-verified gap analysis + implementation plan (e.g. `docs/superpowers/plans/2026-11-27-i18n-theme.md`) conforming to `ADR-002`, gets Product Owner approval, and submits `.pif/inbox/TASK-015-delivery.md` (G1 package) for Guardian `G1` verification before editing application code.
+- **`G2` — Implementation Integrity:** Changes strictly within §4; `0` new dependencies (`package.json` & `pnpm-lock.yaml` unchanged); `0` DB migrations; `useChatBackground` and `withOfflineFallback` preserved; all 3 domain formatters cleanly adopting the shared `Intl` core; canonical `.pif/` files untouched by Engineer.
 - **`G3` — AI Technical Verification (evidence required in `.pif/inbox/TASK-015-delivery.md`):**
-  - `pnpm typecheck` (`exit 0`), `pnpm test` (all existing + new unit tests `PASS`, including `tests/language.test.ts` and `useFormatters` unit tests), `pnpm build` (`exit 0`), scoped `pnpm exec biome check` on all touched files (LF-safe on Windows), `git diff --check` (`exit 0`).
-  - Browser suites against an isolated Vite dev server: `tests/i18n-browser.mjs`, `tests/settings-browser.mjs`, `tests/chat-background-browser.mjs`, plus any new theme/FOUC/i18n browser assertions (verified with exact commands, outputs, commit SHA, and environment).
+  - `pnpm typecheck` (`exit 0`), `pnpm test` (all unit tests `PASS`, including `language.test.ts`, new `formatters` / `useFormatters` unit tests, and `calls-presentation.test.ts` / `chats.test.ts` / `messages.test.ts` / `settings.test.ts`), `pnpm build` (`exit 0`), scoped `pnpm exec biome check` on all touched files (LF-clean on Windows), `git diff --check` (`exit 0`).
+  - Browser suites against an isolated Vite dev server: `tests/i18n-browser.mjs`, `tests/settings-browser.mjs`, `tests/chat-background-browser.mjs`, `tests/chats-browser.mjs`, `tests/messages-browser.mjs`, plus targeted assertions for FOUC reload, `prefers-color-scheme` live toggle, unsupported stored language fallback, and user-switch preference sync.
+  - Record exact commands, outputs, environment, and final commit SHA.
 - **`G4` — Human Verification (Product Owner confirmation required; never self-marked `PASS`):**
-  - Fresh `localStorage` detection from `navigator.language` (`es*` → `es`, unsupported → `en`).
-  - Changing language in `/settings/appearance` updates UI live without reload and persists across reload and cross-browser/cross-device login (`user_settings.language`).
-  - Logout → login as another user with a different language/theme/accent switches to the new user's preference.
-  - Theme Light/Dark/System toggles `<html data-theme>` (`dark` only when effective dark); reload in dark theme shows **no flash of light theme (FOUC)**.
+  - Fresh `localStorage`: language auto-detected from `navigator.language` (`es*` → `es`, unsupported → `en`).
+  - Unsupported stored language key manually set (e.g. `'fr'`) → safely falls back to `'en'`.
+  - Changing language in `/settings/appearance` updates UI live without reload, persists across reload, and persists across browsers/devices (`user_settings.language`).
+  - Logout → login as a different user with different language/theme/accent applies the new user's preference.
+  - Theme Light/Dark/System updates `<html data-theme>` (`dark` only when effective dark); reloading in dark mode shows **no flash of light theme (FOUC)**.
   - Toggling all 6 accents updates `<html class="theme-*">` cleanly without breaking custom chat backgrounds.
-  - With `theme === 'system'`, toggling OS light/dark updates the app live; with explicit `light`/`dark`, OS change does not override user choice.
-  - `useFormatters()` outputs locale-aware relative time in `es`/`en` and `"1.0 MB"` (locale-formatted) for `formatBytes(1024 * 1024)`.
-- **`G5` / `G6`:** Push, PR creation, CI verification, merge, and Production release remain outside this brief and require separate explicit Product Owner authorization.
+  - With `theme === 'system'`, toggling OS dark/light updates live; with explicit Light/Dark, OS changes do not override user choice.
+  - `useFormatters` / domain formatters render locale-aware relative time (`es`/`en`), timestamps, durations, and `formatBytes(1024 * 1024)` cleanly.
+- **`G5` / `G6`:** Push, PR creation, CI verification, merge, and Production release are outside this brief and require separate explicit Product Owner authorization.
 
 ---
 
 ## 9. Git & Release Restrictions
 
-- Work exclusively in an isolated task worktree/branch created from `main`; never edit or commit on `main`.
-- Stage only files belonging to `TASK-015`. Do not touch canonical `.pif/` files; submit delivery evidence to `.pif/inbox/TASK-015-delivery.md`.
-- Do not install, upgrade, or remove dependencies without explicit Product Owner approval and exact version pinning.
-- Do not run Supabase CLI writes or remote migrations (none are in scope for `TASK-015`).
+- Work exclusively in an isolated worktree/branch created from `main` (`65e01eeb`); never edit or commit on `main`.
+- Stage only files belonging to `TASK-015`. Do not modify canonical `.pif/` records; submit delivery evidence to `.pif/inbox/TASK-015-delivery.md`.
+- Do not add, upgrade, or remove dependencies.
+- Do not run Supabase CLI writes, migrations, or Edge Function deployments.
 - Do not push, open a PR, merge, or deploy without explicit, operation-specific Product Owner authorization.
 
 ---
 
 ## 10. Next Authorized Action
 
-1. **Product Owner** decides **D1 (`Q-001`)–D6** in §3 (and optionally grants Guardian read-only permission to inspect `index.html`, `src/app/providers/theme-provider.tsx`, `src/app/providers/i18n-provider.tsx`, `src/lib/preferences.ts`, `src/lib/language.ts`, `src/features/settings/preferences-provider.tsx`, and `src/routes/settings.appearance.tsx` to produce a `VERIFIED` gap table before finalizing the brief).
-2. **PIF Guardian** incorporates the approved decisions into this brief (and drafts `ADR-002` if an adapted architecture is chosen) so the Product Owner can hand a decision-complete brief to **PIF Engineer** for worktree creation and implementation planning.
+1. **Product Owner** hands this brief (`.pif/handoffs/TASK-015-g1-brief.md` + `ADR-002`) to **PIF Engineer**.
+2. **PIF Engineer** creates the isolated worktree from `main` (`65e01eeb`), inspects all files in §5, produces the source-verified gap matrix and implementation plan, commits the plan on the task branch, and returns it for Product Owner approval and Guardian `G1` audit before modifying application code.
