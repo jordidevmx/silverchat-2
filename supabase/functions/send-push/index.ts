@@ -6,7 +6,7 @@
 // optional VAPID_SUBJECT (defaults to mailto:noreply@silverchat.app).
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-provided by Supabase.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import webpush from "npm:web-push@4.0.0";
+import * as webpush from "npm:web-push@4.0.0";
 import {
   type DevicePushRow,
   deliverPushToDevices,
