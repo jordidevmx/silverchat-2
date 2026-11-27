@@ -5,6 +5,7 @@ import { QueryState, useAction } from "@/features/settings/components/shared";
 import { useNotificationPreview } from "@/features/settings/hooks/useNotificationPreview";
 import { usePreferences } from "@/features/settings/preferences-provider";
 import { useAuth } from "@/lib/auth-provider";
+import { resolvePushStatusNote } from "@/lib/push";
 import { usePushControls } from "@/pwa/usePushSubscription";
 export function NotificationsPage() {
   const { user, mfaRequired } = useAuth();
@@ -17,30 +18,16 @@ export function NotificationsPage() {
     settings ? settings.notifications_enabled : null,
   );
 
-  const pushNote = (() => {
-    if (push.iosBlocked) {
-      return t(
-        "Install SilverChat to your Home Screen to enable push notifications on iOS (16.4+).",
-      );
-    }
-    if (!push.supported) {
-      return t("Push notifications are not supported by this browser.");
-    }
-    if (!push.configured) {
-      return t("Push notifications are not configured for this environment yet.");
-    }
-    if (push.permission === "denied") {
-      return t(
-        "Notifications are blocked in your browser settings. Allow them for this site to receive push notifications.",
-      );
-    }
-    if (push.permission === "granted" && push.subscribed && settings?.notifications_enabled) {
-      return t("Push notifications are enabled on this device.");
-    }
-    return t(
-      "Push notifications require installing the app. In-browser notifications are shown while the app is open in a tab.",
-    );
-  })();
+  const pushNote = t(
+    resolvePushStatusNote({
+      iosBlocked: push.iosBlocked,
+      supported: push.supported,
+      configured: push.configured,
+      permission: push.permission,
+      subscribed: push.subscribed,
+      notificationsEnabled: settings?.notifications_enabled ?? false,
+    }),
+  );
 
   return (
     <SettingsPage title="Notifications">

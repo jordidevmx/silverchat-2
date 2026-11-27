@@ -12,7 +12,7 @@ export function UpdateAvailableBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-4 left-4 right-4 z-50 flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/95 p-3 shadow-xl backdrop-blur-xl md:left-auto md:right-4 md:max-w-sm"
+      className="fixed bottom-[calc(80px+env(safe-area-inset-bottom))] left-4 right-4 z-50 flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/95 p-3 shadow-xl backdrop-blur-xl md:left-auto md:right-4 md:max-w-sm lg:bottom-4"
     >
       <span className="text-sm font-medium">{t("New version available.")}</span>
       <Button

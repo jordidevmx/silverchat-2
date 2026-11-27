@@ -73,18 +73,6 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//, /^\/functions\//, /^\/\.netlify\//],
         runtimeCaching: [
           {
-            urlPattern: ({ request, url }) =>
-              request.mode === "navigate" &&
-              !url.pathname.startsWith("/api/") &&
-              !url.pathname.startsWith("/functions/") &&
-              !url.pathname.startsWith("/.netlify/"),
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "app-shell",
-              networkTimeoutSeconds: 5,
-            },
-          },
-          {
             urlPattern: ({ request, sameOrigin }) =>
               sameOrigin &&
               (request.destination === "script" ||

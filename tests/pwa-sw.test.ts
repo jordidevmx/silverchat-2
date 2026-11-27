@@ -268,3 +268,13 @@ test("public/manifest.json keeps brand #0082ff, standalone mode, scope, shortcut
     assert.ok(existsSync(resolve(root, "public", p.slice(1))), `Missing public asset: ${p}`);
   }
 });
+
+test("vite.config.ts does not define a dead app-shell NetworkFirst rule shadowed by navigateFallback", () => {
+  const cfg = readFileSync(resolve(root, "vite.config.ts"), "utf8");
+  assert.equal(cfg.includes('navigateFallback: "/index.html"'), true);
+  assert.equal(
+    cfg.includes('cacheName: "app-shell"'),
+    false,
+    "app-shell NetworkFirst runtimeCaching is shadowed by Workbox NavigationRoute and must be removed",
+  );
+});

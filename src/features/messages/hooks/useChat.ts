@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { allRows, chunks } from "@/features/chats/hooks/useChats";
 import { useAuth } from "@/lib/auth-provider";
-import { cacheChatDetails, readCachedChatDetails, withOfflineFallback } from "@/lib/message-cache";
+import {
+  attachPostgrestStatus,
+  cacheChatDetails,
+  readCachedChatDetails,
+  withOfflineFallback,
+} from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 import { CHAT_QUERY_OPTIONS } from "../lib/chatQueryPolicy";
 import { type ChatDetails, detailKey } from "../types";
@@ -33,8 +38,8 @@ export function useChat(chatId: string) {
               .limit(1)
               .maybeSingle(),
           ]);
-          if (chat.error) throw chat.error;
-          if (requests.error) throw requests.error;
+          if (chat.error) throw attachPostgrestStatus(chat.error, chat.status);
+          if (requests.error) throw attachPostgrestStatus(requests.error, requests.status);
           const own = members.find((m) => m.user_id === (user?.id ?? ""));
           const request = requests.data ?? undefined;
           const pendingRecipient = request?.recipient_id === (user?.id ?? "");

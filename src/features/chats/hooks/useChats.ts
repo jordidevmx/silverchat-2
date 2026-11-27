@@ -13,7 +13,12 @@ import { inAppNotification, playNotificationSound } from "@/features/settings/no
 import { usePreferences } from "@/features/settings/preferences-provider";
 import { useAuth } from "@/lib/auth-provider";
 import { getInitials } from "@/lib/avatar";
-import { cacheChats, readCachedChats, withOfflineFallback } from "@/lib/message-cache";
+import {
+  attachPostgrestStatus,
+  cacheChats,
+  readCachedChats,
+  withOfflineFallback,
+} from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 import type { Chat, MessageType } from "../types";
 import { isMuted, orderChats, receiptStatus } from "../utils/computeChatDisplay";
@@ -36,12 +41,15 @@ export function chunks<T>(items: T[], size = 50): T[][] {
 }
 // PostgREST caps a response at 1,000 rows; paginate batched child queries too.
 export async function allRows<T>(
-  fetchPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+  fetchPage: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{ data: T[] | null; error: unknown; status?: number }>,
 ) {
   const rows: T[] = [];
   for (let from = 0; ; from += 500) {
     const result = await fetchPage(from, from + 499);
-    if (result.error) throw result.error;
+    if (result.error) throw attachPostgrestStatus(result.error, result.status);
     rows.push(...(result.data ?? []));
     if (!result.data || result.data.length < 500) return rows;
   }
@@ -64,7 +72,7 @@ export async function fetchChats(userId: string): Promise<Chat[]> {
     .order("pinned_at", { ascending: false, nullsFirst: false })
     .order("chat(last_message_at)", { ascending: false, nullsFirst: false })
     .limit(200);
-  if (result.error) throw result.error;
+  if (result.error) throw attachPostgrestStatus(result.error, result.status);
   const memberships = result.data ?? [];
   const ids = memberships.map((m) => m.chat_id);
   if (!ids.length) return [];

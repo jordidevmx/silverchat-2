@@ -1,7 +1,13 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { allRows } from "@/features/chats/hooks/useChats";
 import { useAuth } from "@/lib/auth-provider";
-import { cacheMessages, readCachedMessages, withOfflineFallback } from "@/lib/message-cache";
+import {
+  attachPostgrestStatus,
+  cacheMessages,
+  extractHttpStatus,
+  readCachedMessages,
+  withOfflineFallback,
+} from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 import { CHAT_QUERY_OPTIONS } from "../lib/chatQueryPolicy";
 import { getOutboxMessages, isOfflineOrNetworkError } from "../lib/outbox";
@@ -133,7 +139,7 @@ export function useMessages(chatId: string) {
           p_chat_id: chatId,
           ...(pageParam ? { p_before_at: pageParam.at, p_before_id: pageParam.id } : {}),
         });
-        if (result.error) throw result.error;
+        if (result.error) throw attachPostgrestStatus(result.error, result.status);
         const rows = result.data ?? [];
         const last = rows.at(-1);
         return {
@@ -177,10 +183,10 @@ export function useMessages(chatId: string) {
           .order("message_id")
           .limit(1)
           .maybeSingle();
-        if (r.error) throw r.error;
+        if (r.error) throw attachPostgrestStatus(r.error, r.status);
         return r.data?.message_id ?? null;
       } catch (error) {
-        if (isOfflineOrNetworkError(error)) return null;
+        if (isOfflineOrNetworkError(error, extractHttpStatus(error))) return null;
         throw error;
       }
     },

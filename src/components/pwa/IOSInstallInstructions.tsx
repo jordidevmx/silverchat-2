@@ -39,7 +39,7 @@ export function IOSInstallInstructions() {
   return (
     <div
       role="status"
-      className="ios-install-banner sticky top-0 z-30 flex shrink-0 items-center justify-center gap-2 border-b border-border/70 bg-card/95 px-4 py-2 text-xs text-foreground backdrop-blur-md"
+      className="ios-install-banner sticky top-0 z-40 flex shrink-0 items-center justify-center gap-2 border-b border-border/70 bg-card/95 px-4 py-2 text-xs text-foreground backdrop-blur-md lg:pl-[84px]"
     >
       <Share size={14} aria-hidden="true" className="shrink-0 text-neon" />
       <span>{t("To install SilverChat on iOS: tap Share → Add to Home Screen.")}</span>

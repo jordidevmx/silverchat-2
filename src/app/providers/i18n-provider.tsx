@@ -99,6 +99,8 @@ const spanish: Record<string, string> = {
     "Las notificaciones push requieren instalar la app. Las notificaciones del navegador se muestran mientras la app está abierta en una pestaña.",
   "Push notifications are enabled on this device.":
     "Las notificaciones push están activadas en este dispositivo.",
+  "Notifications are turned off for this account.":
+    "Las notificaciones están desactivadas para esta cuenta.",
   "Enable push notifications": "Activar notificaciones push",
   Enable: "Activar",
   "Not now": "Ahora no",

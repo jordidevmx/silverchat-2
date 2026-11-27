@@ -76,17 +76,97 @@ export function resolvePushSyncIntent({
   return "subscribe";
 }
 
+export function resolvePushStatusNote({
+  iosBlocked,
+  supported,
+  configured,
+  permission,
+  subscribed,
+  notificationsEnabled,
+}: {
+  iosBlocked: boolean;
+  supported: boolean;
+  configured: boolean;
+  permission: NotificationPermission;
+  subscribed: boolean;
+  notificationsEnabled: boolean;
+}): string {
+  if (iosBlocked) {
+    return "Install SilverChat to your Home Screen to enable push notifications on iOS (16.4+).";
+  }
+  if (!supported) {
+    return "Push notifications are not supported by this browser.";
+  }
+  if (!configured) {
+    return "Push notifications are not configured for this environment yet.";
+  }
+  if (!notificationsEnabled) {
+    return "Notifications are turned off for this account.";
+  }
+  if (permission === "denied") {
+    return "Notifications are blocked in your browser settings. Allow them for this site to receive push notifications.";
+  }
+  if (permission === "granted" && subscribed) {
+    return "Push notifications are enabled on this device.";
+  }
+  if (permission === "default") {
+    return "Enable notifications to receive messages and calls when SilverChat is in the background.";
+  }
+  return "Push notifications require installing the app. In-browser notifications are shown while the app is open in a tab.";
+}
+
+export function applicationServerKeysMatch(
+  existingKey: ArrayBuffer | null | undefined,
+  expectedKey: Uint8Array,
+): boolean {
+  if (!existingKey) return false;
+  const existing = new Uint8Array(existingKey);
+  if (existing.length !== expectedKey.length) return false;
+  for (let i = 0; i < existing.length; i++) {
+    if (existing[i] !== expectedKey[i]) return false;
+  }
+  return true;
+}
+
+const DEFAULT_SW_READY_TIMEOUT_MS = 8_000;
+
 export async function subscribeToPush(
   vapidPublicKey: string = getVapidPublicKey(),
+  options: {
+    supported?: boolean;
+    readyTimeoutMs?: number;
+    serviceWorker?: Pick<ServiceWorkerContainer, "ready">;
+  } = {},
 ): Promise<PushSubscription | null> {
-  if (!isPushSupported() || !vapidPublicKey) return null;
-  const reg = await navigator.serviceWorker.ready;
+  const supported = options.supported ?? isPushSupported();
+  if (!supported || !vapidPublicKey) return null;
+  const sw = options.serviceWorker ?? navigator.serviceWorker;
+  const timeoutMs = options.readyTimeoutMs ?? DEFAULT_SW_READY_TIMEOUT_MS;
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const reg = await Promise.race<ServiceWorkerRegistration | null>([
+    sw.ready,
+    new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), timeoutMs);
+    }),
+  ]).finally(() => {
+    if (timer !== undefined) clearTimeout(timer);
+  });
+  if (!reg?.pushManager) return null;
+
+  const expectedKey = urlBase64ToUint8Array(vapidPublicKey);
   const existing = await reg.pushManager.getSubscription();
-  if (existing) return existing;
+  if (existing) {
+    const existingKey = existing.options?.applicationServerKey;
+    if (!existingKey || applicationServerKeysMatch(existingKey, expectedKey)) {
+      return existing;
+    }
+    await existing.unsubscribe();
+  }
 
   return reg.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    applicationServerKey: expectedKey,
   });
 }
 

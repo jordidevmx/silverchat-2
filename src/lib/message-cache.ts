@@ -237,7 +237,14 @@ export const cacheChatDetails = (userId: string, chatId: string, details: ChatDe
 export const readCachedChatDetails = (userId: string, chatId: string) =>
   readUserChatDetailsCache(userId, chatId);
 
-function extractHttpStatus(error: unknown): number | undefined {
+export function attachPostgrestStatus<T>(error: T, status?: number): T {
+  if (error && typeof error === "object" && typeof status === "number" && !("status" in error)) {
+    return Object.assign(error, { status });
+  }
+  return error;
+}
+
+export function extractHttpStatus(error: unknown): number | undefined {
   if (error && typeof error === "object" && "status" in error) {
     const status = (error as { status?: unknown }).status;
     if (typeof status === "number") return status;

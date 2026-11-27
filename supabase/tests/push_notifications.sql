@@ -68,6 +68,31 @@ BEGIN
     'anon role must not execute private.get_push_config()'
   );
 
+  PERFORM pg_temp.assert_true(
+    NOT has_function_privilege('service_role', 'private.get_push_config()', 'EXECUTE'),
+    'service_role must not directly execute private.get_push_config()'
+  );
+
+  PERFORM pg_temp.assert_true(
+    NOT has_function_privilege('service_role', 'private.resolve_message_push_targets(public.messages)', 'EXECUTE'),
+    'service_role must not directly execute private.resolve_message_push_targets()'
+  );
+
+  PERFORM pg_temp.assert_true(
+    NOT has_function_privilege('service_role', 'private.resolve_call_push_targets(public.calls)', 'EXECUTE'),
+    'service_role must not directly execute private.resolve_call_push_targets()'
+  );
+
+  PERFORM pg_temp.assert_true(
+    NOT has_function_privilege('service_role', 'public.notify_new_message()', 'EXECUTE'),
+    'service_role must not directly execute public.notify_new_message()'
+  );
+
+  PERFORM pg_temp.assert_true(
+    NOT has_function_privilege('service_role', 'public.notify_new_call()', 'EXECUTE'),
+    'service_role must not directly execute public.notify_new_call()'
+  );
+
   -- 2. Create synthetic users, profiles, user_settings, devices, block, and a group chat.
   INSERT INTO auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
   VALUES

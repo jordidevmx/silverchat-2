@@ -3,6 +3,7 @@ import test from "node:test";
 import type { Chat } from "../src/features/chats/types.ts";
 import type { ChatDetails, Message } from "../src/features/messages/types.ts";
 import {
+  attachPostgrestStatus,
   clearOfflineSessionHint,
   clearUserOfflineCache,
   type OfflineStoreBackend,
@@ -289,4 +290,20 @@ test("chat details cache and non-secret offline session hint are user-scoped and
   );
   await clearOfflineSessionHint(backend);
   assert.equal(await readOfflineSessionHint(backend), null);
+});
+
+test("attachPostgrestStatus preserves HTTP status 0 so withOfflineFallback serves cache even when navigator.onLine is true", async () => {
+  const rawError = { message: "upstream unreachable", details: "", hint: "", code: "" };
+  const enriched = attachPostgrestStatus(rawError, 0);
+  assert.equal((enriched as { status?: number }).status, 0);
+
+  const fallback = await withOfflineFallback({
+    fetchOnline: async () => {
+      throw attachPostgrestStatus({ message: "upstream unreachable" }, 0);
+    },
+    writeCache: async () => {},
+    readCache: async () => ["cached-item"],
+    isOnline: () => true,
+  });
+  assert.deepEqual(fallback, ["cached-item"]);
 });
