@@ -366,7 +366,11 @@ try {
     return canvas.toDataURL("image/png");
   });
   await page.getByRole("button", { name: "Change photo", exact: true }).click();
-  const dialog = page.getByRole("dialog");
+  const dialog = page.getByRole("dialog", { name: "Change photo" });
+  assert.ok(
+    await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    "Avatar studio dialog containment",
+  );
   await dialog
     .locator("input[type=file]")
     .first()
@@ -376,6 +380,8 @@ try {
       buffer: Buffer.from(fileUrl.split(",")[1], "base64"),
     });
   await dialog.getByLabel(/Zoom/).waitFor();
+  await dialog.getByRole("button", { name: "Increase magnification", exact: true }).click();
+  assert.equal(await dialog.getByLabel(/Zoom/).getAttribute("aria-valuetext"), "1.2×");
   await dialog.getByRole("button", { name: "Save", exact: true }).click();
   await page.getByText("Profile photo updated", { exact: true }).waitFor();
   assert.match(profile.avatar_url, new RegExp(`^${id}/avatar-.*\\.webp$`));

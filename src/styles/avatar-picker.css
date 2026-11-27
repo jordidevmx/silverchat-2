@@ -1,0 +1,620 @@
+/* SilverChat Photo Studio modal — imported directly by AvatarPickerModal so
+ * Profile, Group, Community, and Channel photo pickers share one presentation. */
+@layer components {
+  dialog.avatar-studio-dialog {
+    padding: 0;
+    margin: auto;
+    inline-size: min(440px, calc(100vw - 24px));
+    max-inline-size: calc(100vw - 24px);
+    max-block-size: min(90dvh, 720px);
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid color-mix(in oklab, var(--neon) 22%, var(--border));
+    background:
+      radial-gradient(
+        ellipse 82% 46% at 50% 0%,
+        color-mix(in oklab, var(--neon) 14%, transparent),
+        transparent 72%
+      ),
+      color-mix(in oklab, var(--card) 92%, var(--background));
+    color: var(--foreground);
+    box-shadow:
+      0 28px 68px -16px oklch(0 0 0 / 0.58),
+      0 0 0 1px color-mix(in oklab, var(--neon) 8%, transparent),
+      inset 0 1px 0 color-mix(in oklab, white 8%, transparent);
+    backdrop-filter: blur(22px);
+    animation: avatar-studio-in var(--duration-base) var(--ease-out) both;
+  }
+
+  dialog.avatar-studio-dialog[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  dialog.avatar-studio-dialog:modal {
+    overscroll-behavior: contain;
+  }
+
+  dialog.avatar-studio-dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background: oklch(0.08 0.015 255 / 0.72);
+    backdrop-filter: blur(10px);
+    animation: avatar-studio-backdrop-in var(--duration-base) var(--ease-out) both;
+  }
+
+  dialog.avatar-studio-dialog[data-closing="true"] {
+    animation: avatar-studio-out var(--duration-fast) var(--ease-out) both;
+  }
+
+  dialog.avatar-studio-dialog[data-closing="true"]::backdrop {
+    animation: avatar-studio-backdrop-out var(--duration-fast) var(--ease-out) both;
+  }
+
+  .avatar-studio-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 22px 16px;
+    border-block-end: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  }
+
+  .avatar-studio-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.25;
+    color: var(--foreground);
+  }
+
+  .avatar-studio-close {
+    inline-size: 34px;
+    block-size: 34px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+    background: color-mix(in oklab, var(--card) 70%, transparent);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .avatar-studio-close:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--neon) 12%, var(--card));
+    border-color: color-mix(in oklab, var(--neon) 38%, transparent);
+    color: var(--foreground);
+  }
+
+  .avatar-studio-close:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .avatar-studio-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px;
+    overflow-y: auto;
+    min-block-size: 0;
+  }
+
+  .avatar-studio-dropzone {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    border-radius: 22px;
+    padding: 4px;
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .avatar-studio-dropzone[data-dragging="true"] {
+    background: color-mix(in oklab, var(--neon) 10%, transparent);
+    box-shadow:
+      inset 0 0 0 1.5px color-mix(in oklab, var(--neon) 75%, transparent),
+      var(--shadow-glow);
+  }
+
+  /* Hero circular preview orb */
+  .avatar-studio-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding-block: 6px 2px;
+  }
+
+  .avatar-studio-stage::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: 168px;
+    block-size: 168px;
+    transform: translate(-50%, -50%);
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--neon) 22%, transparent) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  .avatar-studio-orb-ring {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 9999px;
+    border: 1.5px solid color-mix(in oklab, var(--neon) 36%, var(--border));
+    background: color-mix(in oklab, var(--card) 65%, transparent);
+    box-shadow:
+      var(--shadow-silver),
+      0 0 28px -8px color-mix(in oklab, var(--neon) 42%, transparent);
+  }
+
+  .avatar-studio-orb {
+    inline-size: 108px;
+    block-size: 108px;
+    border-radius: 9999px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(
+      circle at 30% 25%,
+      color-mix(in oklab, var(--neon) 20%, var(--card)),
+      color-mix(in oklab, var(--muted) 75%, var(--background))
+    );
+    border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+    color: var(--neon);
+  }
+
+  .avatar-studio-orb-img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-studio-orb-placeholder {
+    display: grid;
+    place-items: center;
+    inline-size: 74px;
+    block-size: 74px;
+    border-radius: 9999px;
+    border: 1px dashed color-mix(in oklab, var(--neon) 40%, var(--border));
+    background: color-mix(in oklab, var(--neon) 8%, transparent);
+  }
+
+  /* Two-column futuristic action tiles */
+  .avatar-studio-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .avatar-studio-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-block-size: 102px;
+    padding: 16px 12px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+    background: color-mix(in oklab, var(--card) 78%, var(--background));
+    color: var(--foreground);
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 color-mix(in oklab, white 6%, transparent);
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .avatar-studio-tile-primary {
+    border-color: color-mix(in oklab, var(--neon) 32%, var(--border));
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--neon) 11%, var(--card)) 0%,
+      color-mix(in oklab, var(--card) 82%, var(--background)) 100%
+    );
+  }
+
+  .avatar-studio-tile:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--neon) 68%, transparent);
+    background: color-mix(in oklab, var(--neon) 11%, var(--card));
+    box-shadow:
+      0 10px 24px -12px color-mix(in oklab, var(--neon) 55%, transparent),
+      inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .avatar-studio-tile:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .avatar-studio-tile-icon {
+    inline-size: 38px;
+    block-size: 38px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in oklab, var(--neon) 30%, var(--border));
+    background: color-mix(in oklab, var(--neon) 12%, var(--card));
+    color: var(--neon);
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .avatar-studio-tile:hover:not(:disabled) .avatar-studio-tile-icon {
+    background: color-mix(in oklab, var(--neon) 20%, var(--card));
+    box-shadow: 0 0 16px -4px color-mix(in oklab, var(--neon) 60%, transparent);
+  }
+
+  .avatar-studio-hint {
+    margin: 0;
+    text-align: center;
+    text-wrap: balance;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+  }
+
+  /* Existing photo secondary actions */
+  .avatar-studio-secondary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .avatar-studio-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-block-size: 40px;
+    padding: 8px 12px;
+    border-radius: 13px;
+    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
+    background: color-mix(in oklab, var(--muted) 50%, transparent);
+    color: var(--foreground);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .avatar-studio-pill:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--neon) 10%, var(--card));
+    border-color: color-mix(in oklab, var(--neon) 42%, transparent);
+  }
+
+  .avatar-studio-pill-danger {
+    border-color: color-mix(in oklab, var(--destructive) 32%, var(--border));
+    background: color-mix(in oklab, var(--destructive) 8%, transparent);
+    color: var(--destructive);
+  }
+
+  .avatar-studio-pill-danger:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--destructive) 65%, transparent);
+    background: color-mix(in oklab, var(--destructive) 16%, transparent);
+    color: var(--destructive);
+  }
+
+  /* Precision Crop Studio */
+  .avatar-studio-dialog .avatar-crop {
+    position: relative;
+    block-size: 300px;
+    max-block-size: 44dvh;
+    margin: 0;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--neon) 30%, var(--border));
+    background: oklch(0.11 0.015 255);
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 0.05),
+      0 14px 32px -14px oklch(0 0 0 / 0.6);
+    touch-action: pan-x pan-y;
+  }
+
+  .avatar-studio-zoom-deck {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+    background: color-mix(in oklab, var(--background) 65%, var(--card));
+  }
+
+  .avatar-studio-zoom-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .avatar-studio-zoom-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+  }
+
+  .avatar-studio-zoom-value {
+    padding: 2px 8px;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in oklab, var(--neon) 28%, transparent);
+    background: color-mix(in oklab, var(--neon) 10%, transparent);
+    color: var(--neon);
+    font-size: 0.74rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .avatar-studio-zoom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar-studio-zoom-step {
+    inline-size: 30px;
+    block-size: 30px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+    background: color-mix(in oklab, var(--card) 75%, transparent);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .avatar-studio-zoom-step:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--neon) 45%, transparent);
+    background: color-mix(in oklab, var(--neon) 12%, var(--card));
+    color: var(--foreground);
+  }
+
+  /* Brand-consistent native range slider */
+  .avatar-studio-slider {
+    --slider-track-size: 0.375rem;
+    --slider-thumb-size: 1.125rem;
+    --slider-track-radius: 999px;
+    --slider-thumb-radius: 999px;
+    --slider-track-color: color-mix(in oklab, var(--muted-foreground) 32%, var(--muted));
+    --slider-fill-color: var(--neon);
+    --slider-thumb-color: var(--neon);
+    --slider-direction: to right;
+    --slider-progress: calc(
+      (var(--control-value) - var(--attr-min)) /
+      (var(--attr-max) - var(--attr-min)) *
+      100%
+    );
+
+    appearance: none;
+    inline-size: 100%;
+    block-size: 2rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .avatar-studio-slider:dir(rtl) {
+    --slider-direction: to left;
+  }
+
+  .avatar-studio-slider::-webkit-slider-runnable-track {
+    block-size: var(--slider-track-size);
+    border: 0;
+    border-radius: var(--slider-track-radius);
+    background: linear-gradient(
+      var(--slider-direction),
+      var(--slider-fill-color) var(--slider-progress),
+      var(--slider-track-color) var(--slider-progress)
+    );
+  }
+
+  .avatar-studio-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    inline-size: var(--slider-thumb-size);
+    block-size: var(--slider-thumb-size);
+    margin-block-start: calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2);
+    border: 2px solid var(--card);
+    border-radius: var(--slider-thumb-radius);
+    background: var(--slider-thumb-color);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--neon) 65%, transparent);
+  }
+
+  .avatar-studio-slider::-moz-range-track {
+    block-size: var(--slider-track-size);
+    border: 0;
+    border-radius: var(--slider-track-radius);
+    background: var(--slider-track-color);
+  }
+
+  .avatar-studio-slider::-moz-range-progress {
+    block-size: var(--slider-track-size);
+    border-radius: var(--slider-track-radius);
+    background: var(--slider-fill-color);
+  }
+
+  .avatar-studio-slider::-moz-range-thumb {
+    inline-size: var(--slider-thumb-size);
+    block-size: var(--slider-thumb-size);
+    border: 2px solid var(--card);
+    border-radius: var(--slider-thumb-radius);
+    background: var(--slider-thumb-color);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--neon) 65%, transparent);
+  }
+
+  .avatar-studio-slider:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
+    border-radius: 6px;
+  }
+
+  /* Lightbox preview stage */
+  .avatar-studio-preview-stage {
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    border-radius: 22px;
+    border: 1px solid color-mix(in oklab, var(--neon) 24%, var(--border));
+    background: oklch(0.11 0.015 255 / 0.85);
+  }
+
+  .avatar-studio-dialog .avatar-preview {
+    display: block;
+    inline-size: 100%;
+    max-block-size: 48dvh;
+    margin: 0;
+    object-fit: contain;
+    border-radius: 16px;
+  }
+
+  /* Alert banner */
+  .avatar-studio-alert {
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 13px;
+    border: 1px solid color-mix(in oklab, var(--destructive) 40%, transparent);
+    background: color-mix(in oklab, var(--destructive) 11%, var(--card));
+    color: var(--destructive);
+    font-size: 0.82rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* Footer */
+  .avatar-studio-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 22px;
+    border-block-start: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  }
+
+  .avatar-studio-footer-split {
+    justify-content: space-between;
+  }
+
+  .avatar-studio-footer-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  dialog.avatar-studio-dialog :is(button, input):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @keyframes avatar-studio-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.975);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes avatar-studio-out {
+    to {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+  }
+
+  @keyframes avatar-studio-backdrop-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes avatar-studio-backdrop-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .avatar-studio-header {
+      padding: 16px 18px 14px;
+    }
+    .avatar-studio-body {
+      padding: 18px;
+      gap: 14px;
+    }
+    .avatar-studio-footer {
+      padding: 14px 18px;
+    }
+    .avatar-studio-tile {
+      min-block-size: 92px;
+      padding: 14px 10px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    dialog.avatar-studio-dialog,
+    dialog.avatar-studio-dialog::backdrop,
+    dialog.avatar-studio-dialog[data-closing="true"],
+    dialog.avatar-studio-dialog[data-closing="true"]::backdrop {
+      animation: none;
+    }
+    .avatar-studio-close,
+    .avatar-studio-dropzone,
+    .avatar-studio-tile,
+    .avatar-studio-tile-icon,
+    .avatar-studio-pill,
+    .avatar-studio-zoom-step {
+      transition: none;
+    }
+    .avatar-studio-close:active,
+    .avatar-studio-tile:hover,
+    .avatar-studio-tile:active {
+      transform: none;
+    }
+  }
+}
