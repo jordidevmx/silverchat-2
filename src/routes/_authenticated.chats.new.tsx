@@ -1,4 +1,5 @@
-import { ArrowLeft, MessageSquarePlus, Users, X } from "lucide-react";
+import { MessageSquarePlus, Users, X } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { SearchField } from "@/components/ui/search-field";
 import { ChatContactRow, ChatListSkeleton } from "@/features/chats/components/ChatPickerSurfaces";
@@ -9,7 +10,6 @@ import { Avatar } from "@/features/settings/components/shared";
 export function NewChatPage() {
   const {
     t,
-    router,
     inputRef,
     query,
     setQuery,
@@ -40,16 +40,7 @@ export function NewChatPage() {
     <main id="main" className="chats-page">
       <div className="chats-surface new-chat-surface">
         <header className="new-chat-header">
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            className="new-chat-back"
-            aria-label={t("Back to chats")}
-            onClick={() => void router.navigate({ href: "/chats" })}
-          >
-            <ArrowLeft size={20} />
-          </Button>
+          <BackButton href="/chats" label={t("Back to chats")} />
           <div className="new-chat-header-titles">
             <h1 className="new-chat-heading">{t("New chat")}</h1>
           </div>

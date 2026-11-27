@@ -1,5 +1,6 @@
-import { Link, useRouter } from "@tanstack/react-router";
-import { Ban, ChevronLeft, MoreVertical, Phone, Pin, Search, Users } from "lucide-react";
+import { useRouter } from "@tanstack/react-router";
+import { Ban, MoreVertical, Phone, Pin, Search, Users } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { ConversationHeaderSurface } from "@/components/ui/conversation-surface";
 import { useVoiceCallStart } from "@/features/calls/hooks/useVoiceCallStart";
 import { getCallEligibility } from "@/features/calls/lib/callEligibility";
@@ -101,23 +102,17 @@ export function ChatHeader({
       data-blocked={isBlocked ? "true" : undefined}
     >
       {chat.type === "community_chat" && chat.communityId ? (
-        <Link
-          to="/communities/$communityId"
-          params={{ communityId: chat.communityId }}
-          className="message-icon conversation-back"
-          aria-label={say("Back to community", "Volver a la comunidad")}
-        >
-          <ChevronLeft />
-        </Link>
+        <BackButton
+          href={`/communities/${chat.communityId}`}
+          label={say("Back to community", "Volver a la comunidad")}
+          className="conversation-back [.chat-workspace_&]:lg:hidden"
+        />
       ) : (
-        <Link
-          to="/chats"
-          search={{ filter: "all", q: "", selectedIds: "", select: undefined, notice: undefined }}
-          className="message-icon conversation-back"
-          aria-label={say("Back to chats", "Volver a chats")}
-        >
-          <ChevronLeft />
-        </Link>
+        <BackButton
+          href="/chats"
+          label={say("Back to chats", "Volver a chats")}
+          className="conversation-back [.chat-workspace_&]:lg:hidden"
+        />
       )}
       {chat.type === "self" ? (
         <div className="conversation-identity">{identity}</div>

@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   Bell,
   CircleHelp,
   HardDrive,
@@ -12,6 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useI18n } from "@/app/providers/i18n-provider";
+import { BackButton } from "@/components/ui/back-button";
 import { BrandLockup } from "@/components/ui/brand-lockup";
 import { SettingsRowContent, settingsRowClassName } from "@/components/ui/settings-row";
 import { SettingsShellSurface } from "@/components/ui/settings-surfaces";
@@ -86,10 +86,7 @@ export function SettingsLayout() {
       }
     >
       <main id="main">
-        <NavLink href={back} className="settings-back">
-          <ArrowLeft size={17} />
-          {t("Back")}
-        </NavLink>
+        <BackButton href={back} label={t("Back")} className="mb-4 -ml-2" />
         {preferences.error && (
           <div className="settings-error" role="alert">
             {preferences.error}

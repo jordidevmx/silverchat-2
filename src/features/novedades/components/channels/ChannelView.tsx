@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ConversationShell } from "@/components/ui/conversation-shell";
 import { SystemPill } from "@/components/ui/conversation-surface";
@@ -16,7 +17,7 @@ import { useInChatSearch } from "@/features/messages/hooks/useInChatSearch";
 import { useSendMessage } from "@/features/messages/hooks/useSendMessage";
 import { useMessageText } from "@/features/messages/i18n";
 import { canPublishChannelPost } from "@/features/roles/lib/permissions";
-import { NavLink, QueryState } from "@/features/settings/components/shared";
+import { QueryState } from "@/features/settings/components/shared";
 import { useChannelInfo } from "../../hooks/channels/useChannelInfo";
 import { useChannelMessages } from "../../hooks/channels/useChannelMessages";
 import { useChannelReadCursor } from "../../hooks/channels/useChannelReadCursor";
@@ -61,7 +62,7 @@ export function ChannelView({ channelId }: { channelId: string }) {
   if (!channel)
     return (
       <main id="main" className="novedades-page">
-        <NavLink href="/novedades">← {say("Novedades", "Novedades")}</NavLink>
+        <BackButton href="/novedades" label={say("Back to updates", "Volver a novedades")} />
         <QueryState loading={info.isPending} error={info.error} retry={() => void info.refetch()} />
         {!info.isPending && !info.error && (
           <p>{say("Channel unavailable", "Canal no disponible")}</p>

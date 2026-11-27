@@ -388,11 +388,6 @@
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border);
   }
-  .chat-settings-panel > header > a {
-    color: var(--muted-foreground);
-    font-size: 13px;
-    border-radius: 8px;
-  }
   .chat-settings-panel h1 {
     font-size: 24px;
     font-weight: 650;
