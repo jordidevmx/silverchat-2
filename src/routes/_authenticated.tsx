@@ -4,6 +4,7 @@ import { NotificationPermissionPrompt } from "@/components/pwa/NotificationPermi
 import { AppSkeleton } from "@/features/auth/components";
 import { nextDestination, safeRedirect } from "@/features/auth/navigation";
 import type { AuthState } from "@/features/auth/types";
+import { ActiveCallBanner } from "@/features/calls/components/ActiveCallBanner";
 import { CallProvider } from "@/features/calls/components/CallProvider";
 import { ChatDetailsPanel } from "@/features/chats/components/ChatDetailsPanel";
 import { ChatLayout } from "@/features/chats/components/ChatLayout";
@@ -44,6 +45,7 @@ export function AuthenticatedLayout() {
     section === "onboarding" ? (
       <>
         <IOSInstallInstructions />
+        <ActiveCallBanner />
         <PendingDeletionBanner />
         <Outlet />
       </>

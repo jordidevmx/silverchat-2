@@ -515,6 +515,55 @@ try {
   const contactDialog = page.getByRole("dialog", { name: "Contact profile", exact: true });
   await contactDialog.getByRole("button", { name: "Block", exact: true }).waitFor();
   assert.equal(await contactDialog.getByRole("button", { name: "Report", exact: true }).count(), 0);
+  const viewFullProfileBtn = contactDialog.getByRole("button", {
+    name: "View full profile",
+    exact: true,
+  });
+  assert.equal(await viewFullProfileBtn.count(), 1, "View full profile omits ugly arrow");
+  assert.equal(
+    await contactDialog.locator(".social-pills").count(),
+    0,
+    "Empty social-pills container is not rendered",
+  );
+  const [titleBox, closeBox, msgBox, callBox, fullProfileBox, blockBox] = await Promise.all([
+    contactDialog.locator("> h2").boundingBox(),
+    contactDialog.locator(".contact-close").boundingBox(),
+    contactDialog.getByRole("button", { name: "Message", exact: true }).boundingBox(),
+    contactDialog.getByRole("button", { name: "Call", exact: true }).boundingBox(),
+    viewFullProfileBtn.boundingBox(),
+    contactDialog.getByRole("button", { name: "Block", exact: true }).boundingBox(),
+  ]);
+  assert.ok(titleBox && closeBox && msgBox && callBox && fullProfileBox && blockBox);
+  assert.ok(
+    closeBox.x > titleBox.x &&
+      Math.abs(closeBox.y + closeBox.height / 2 - (titleBox.y + titleBox.height / 2)) <= 4,
+    "Close button is aligned to the right of Contact profile title",
+  );
+  assert.ok(
+    Math.abs(msgBox.y - callBox.y) <= 2 && callBox.x > msgBox.x,
+    "Message and Call share the primary action row on desktop",
+  );
+  assert.ok(
+    fullProfileBox.y > msgBox.y + msgBox.height &&
+      blockBox.y > fullProfileBox.y + fullProfileBox.height,
+    "Actions follow tiered hierarchy: primary -> view full profile -> block",
+  );
+  const dialogBox = await contactDialog.boundingBox();
+  assert.ok(dialogBox);
+  // Clicking dialog padding does not close the modal.
+  await page.mouse.click(dialogBox.x + 8, dialogBox.y + 8);
+  assert.ok(await contactDialog.evaluate((el) => el.open));
+  // Dragging from inside the dialog onto the backdrop does not close it.
+  await page.mouse.move(dialogBox.x + dialogBox.width / 2, dialogBox.y + 24);
+  await page.mouse.down();
+  await page.mouse.move(10, 10);
+  await page.mouse.up();
+  assert.ok(await contactDialog.evaluate((el) => el.open));
+  // Clicking outside the modal closes it cleanly.
+  await page.mouse.click(10, 10);
+  await contactDialog.waitFor({ state: "detached" });
+  await page.locator("button.conversation-identity").click();
+  await contactDialog.waitFor();
   await page.getByRole("button", { name: "Close", exact: true }).click();
   await options("Mute");
   let releasePatch;
@@ -653,6 +702,7 @@ try {
   await creating;
   assert.ok(await messageButton.isDisabled());
   await page.keyboard.press("Escape");
+  await page.mouse.click(10, 10);
   assert.ok(await page.getByRole("dialog", { name: "Contact profile" }).evaluate((el) => el.open));
   createGate = null;
   releaseCreate();
@@ -804,7 +854,38 @@ try {
   const mp = await mobile.newPage();
   await mp.goto(`${process.env.UI_BASE_URL ?? "http://127.0.0.1:5173"}/chats/${chatId}`);
   await mp.locator("button.conversation-identity").click();
-  await mp.getByRole("dialog", { name: "Contact profile" }).waitFor();
+  const mobileDialog = mp.getByRole("dialog", { name: "Contact profile" });
+  await mobileDialog.waitFor();
+  assert.equal(await mp.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  const [mTitleBox, mCloseBox] = await Promise.all([
+    mobileDialog.locator("> h2").boundingBox(),
+    mobileDialog.locator(".contact-close").boundingBox(),
+  ]);
+  assert.ok(
+    mTitleBox &&
+      mCloseBox &&
+      mCloseBox.x > mTitleBox.x &&
+      Math.abs(mCloseBox.y + mCloseBox.height / 2 - (mTitleBox.y + mTitleBox.height / 2)) <= 4,
+    "Mobile close button stays aligned with Contact profile title",
+  );
+  await mp.setViewportSize({ width: 360, height: 740 });
+  await mp.waitForTimeout(100);
+  const [narrowCardBox, narrowAvatarBox, narrowMsgBox, narrowCallBox] = await Promise.all([
+    mobileDialog.locator(".public-profile-card").boundingBox(),
+    mobileDialog.locator(".public-profile-identity .avatar").boundingBox(),
+    mobileDialog.getByRole("button", { name: "Message", exact: true }).boundingBox(),
+    mobileDialog.getByRole("button", { name: "Call", exact: true }).boundingBox(),
+  ]);
+  assert.ok(
+    narrowCardBox &&
+      narrowAvatarBox &&
+      narrowAvatarBox.x < narrowCardBox.x + narrowCardBox.width / 3,
+    "Mobile avatar stays left-aligned inside profile card",
+  );
+  assert.ok(
+    narrowMsgBox && narrowCallBox && narrowCallBox.y > narrowMsgBox.y,
+    "Primary actions stack cleanly below 380px",
+  );
   assert.equal(await mp.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   await mobile.close();
   assert.deepEqual(errors, []);

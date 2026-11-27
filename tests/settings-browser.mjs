@@ -269,6 +269,29 @@ const visit = async (path, title) => {
   await page.goto(`${process.env.UI_BASE_URL ?? "http://127.0.0.1:5173"}${path}`);
   await page.getByRole("heading", { name: title, exact: true }).first().waitFor();
 };
+const assertProfilePhotoTriggerLayout = async (widthLabel) => {
+  const avatarTrigger = page.getByRole("button", { name: "Change photo", exact: true });
+  const triggerBox = await avatarTrigger.boundingBox();
+  const avatarBox = await avatarTrigger.locator('[data-slot="avatar"]').boundingBox();
+  const labelBox = await avatarTrigger.getByText("Change photo", { exact: true }).boundingBox();
+  const formBox = await page.locator(".settings-form.settings-card").boundingBox();
+  assert.ok(triggerBox && avatarBox && labelBox && formBox, "Profile photo trigger boxes exist");
+  assert.ok(
+    triggerBox.height >= 130,
+    `Profile photo trigger must wrap avatar and label at ${widthLabel} (got ${triggerBox.height}px)`,
+  );
+  assert.ok(
+    avatarBox.y >= triggerBox.y - 1 &&
+      labelBox.y + labelBox.height <= triggerBox.y + triggerBox.height + 1,
+    `Avatar and label must fit inside trigger box at ${widthLabel}`,
+  );
+  assert.ok(
+    formBox.y - (triggerBox.y + triggerBox.height) >= 16 &&
+      formBox.y - (labelBox.y + labelBox.height) >= 16,
+    `Profile photo trigger and label must clear form card at ${widthLabel} (gap=${Math.round(formBox.y - (labelBox.y + labelBox.height))}px)`,
+  );
+  return avatarTrigger;
+};
 try {
   await visit("/settings", "Account");
   await page.waitForURL("**/settings/account");
@@ -310,6 +333,7 @@ try {
     "PASS settings default Account route, profile card placement, no duplication, URL navigation/history and desktop layout",
   );
   await visit("/settings/profile", "Edit profile");
+  await assertProfilePhotoTriggerLayout("1440px");
   await page.getByLabel("Display name", { exact: true }).fill("Alice Updated");
   await page.getByLabel("Bio", { exact: true }).fill("Updated bio");
   await page.getByLabel("Username", { exact: true }).fill("user_abcdef12");
@@ -342,7 +366,11 @@ try {
     return canvas.toDataURL("image/png");
   });
   await page.getByRole("button", { name: "Change photo", exact: true }).click();
-  const dialog = page.getByRole("dialog");
+  const dialog = page.getByRole("dialog", { name: "Change photo" });
+  assert.ok(
+    await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    "Avatar studio dialog containment",
+  );
   await dialog
     .locator("input[type=file]")
     .first()
@@ -352,6 +380,8 @@ try {
       buffer: Buffer.from(fileUrl.split(",")[1], "base64"),
     });
   await dialog.getByLabel(/Zoom/).waitFor();
+  await dialog.getByRole("button", { name: "Increase magnification", exact: true }).click();
+  assert.equal(await dialog.getByLabel(/Zoom/).getAttribute("aria-valuetext"), "1.2×");
   await dialog.getByRole("button", { name: "Save", exact: true }).click();
   await page.getByText("Profile photo updated", { exact: true }).waitFor();
   assert.match(profile.avatar_url, new RegExp(`^${id}/avatar-.*\\.webp$`));
@@ -728,7 +758,7 @@ try {
     await page.keyboard.press("Escape");
     await codeForm.waitFor({ state: "detached" });
     await visit("/settings/profile", "Edit profile");
-    const avatarTrigger = page.getByRole("button", { name: "Change photo", exact: true });
+    const avatarTrigger = await assertProfilePhotoTriggerLayout(`${width}px`);
     await avatarTrigger.click();
     const picker = page.getByRole("dialog");
     assert.ok(

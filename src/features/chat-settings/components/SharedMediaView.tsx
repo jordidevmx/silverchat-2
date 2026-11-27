@@ -1,10 +1,10 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ChatSettingsScreenSurface } from "@/components/ui/chat-settings-surfaces";
 import { useChat } from "@/features/messages/hooks/useChat";
 import { useMessageText } from "@/features/messages/i18n";
-import { NavLink } from "@/features/settings/components/shared";
 import { useSharedMedia } from "../hooks/useSharedMedia";
 import { ChatSettingsLayer, ChatSettingsLoading } from "./ChatSettingsLayer";
 import { SharedFilesTab } from "./SharedFilesTab";
@@ -61,7 +61,7 @@ export function SharedMediaView({
       className="shared-media-screen"
       header={
         <>
-          <NavLink href={base}>← {say("Back to chat", "Volver al chat")}</NavLink>
+          <BackButton href={base} label={say("Back to chat", "Volver al chat")} />
           <h1>{say("Shared media", "Archivos compartidos")}</h1>
         </>
       }

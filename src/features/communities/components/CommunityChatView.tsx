@@ -1,5 +1,6 @@
+import { BackButton } from "@/components/ui/back-button";
 import { useMessageText } from "@/features/messages/i18n";
-import { NavLink, QueryState } from "@/features/settings/components/shared";
+import { QueryState } from "@/features/settings/components/shared";
 import { Conversation } from "@/routes/_authenticated.chats.$chatId";
 import { useCommunityConversation } from "../hooks/useCommunityConversation";
 export function CommunityChatView({
@@ -16,7 +17,10 @@ export function CommunityChatView({
   if (!valid)
     return (
       <main id="main" className="p-6">
-        <NavLink href={`/communities/${communityId}`}>← {say("Back", "Volver")}</NavLink>
+        <BackButton
+          href={`/communities/${communityId}`}
+          label={say("Back to community", "Volver a la comunidad")}
+        />
         <QueryState loading={chat.isPending} error={chat.error} retry={() => void chat.refetch()} />
         {chat.isSuccess && (
           <p>

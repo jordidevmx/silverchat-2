@@ -1,4 +1,5 @@
-import { BadgeCheck, ChevronLeft, MoreVertical } from "lucide-react";
+import { BadgeCheck, MoreVertical } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { ConversationHeaderSurface } from "@/components/ui/conversation-surface";
 import { ChatOptionsMenu } from "@/features/chat-settings/components/ChatOptionsMenu";
 import { MuteSubmenu } from "@/features/chat-settings/components/MuteSubmenu";
@@ -36,13 +37,7 @@ export function ChannelHeader({
   return (
     <>
       <ConversationHeaderSurface className="channel-header">
-        <NavLink
-          className="message-icon"
-          href="/novedades"
-          aria-label={say("Back to updates", "Volver a novedades")}
-        >
-          <ChevronLeft size={22} />
-        </NavLink>
+        <BackButton href="/novedades" label={say("Back to updates", "Volver a novedades")} />
         <NavLink href={`/channels/${c.id}/info`} className="channel-header-identity">
           <Avatar
             profile={{ id: c.id, display_name: c.name, avatar_url: c.avatar_url }}

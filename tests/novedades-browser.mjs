@@ -892,8 +892,12 @@ try {
   assert.equal(blocks.length, 0);
   await goto(`/channels/${owned}/info`);
   await page.locator(".channel-profile").waitFor();
+  assert.equal(await page.locator(".channel-header").count(), 0);
+  const channelBackLink = page.getByRole("link", { name: "Back to channel", exact: true });
+  await channelBackLink.waitFor();
+  assert.equal((await channelBackLink.textContent())?.trim(), "");
   assert.equal(await page.getByRole("button", { name: "Report channel", exact: true }).count(), 0);
-  await goto(`/channels/${followed}/info`);
+  await goto(`/channels/${followed}`);
   await page.getByRole("button", { name: "Channel options" }).click();
   await page.getByRole("menuitem", { name: "Search in chat", exact: true }).click();
   await page.getByRole("searchbox", { name: "Search in conversation" }).waitFor();

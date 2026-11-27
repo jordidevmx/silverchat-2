@@ -1,4 +1,4 @@
-import { type PropsWithChildren, useEffect, useRef } from "react";
+import { type PointerEvent, type PropsWithChildren, useEffect, useRef } from "react";
 
 const modalStack: HTMLDialogElement[] = [];
 
@@ -7,10 +7,27 @@ export function Modal({
   children,
   onClose,
   className = "",
-}: PropsWithChildren<{ title: string; onClose?: () => void; className?: string }>) {
+  lightDismiss = false,
+}: PropsWithChildren<{
+  title: string;
+  onClose?: () => void;
+  className?: string;
+  lightDismiss?: boolean;
+}>) {
   const ref = useRef<HTMLDialogElement>(null);
   const closeRef = useRef(onClose);
+  const pressedOutsideRef = useRef(false);
   closeRef.current = onClose;
+  const closedBy = lightDismiss ? (onClose ? "any" : "none") : undefined;
+  const isOutsideDialog = (event: PointerEvent<HTMLDialogElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return (
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    );
+  };
   useEffect(() => {
     const dialog = ref.current;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -44,6 +61,31 @@ export function Modal({
       ref={ref}
       tabIndex={-1}
       aria-label={title}
+      {...(closedBy ? ({ closedby: closedBy } as Record<string, string>) : {})}
+      onPointerDown={(event) => {
+        if (
+          !lightDismiss ||
+          !closeRef.current ||
+          (typeof HTMLDialogElement !== "undefined" && "closedBy" in HTMLDialogElement.prototype)
+        ) {
+          pressedOutsideRef.current = false;
+          return;
+        }
+        pressedOutsideRef.current = isOutsideDialog(event);
+      }}
+      onPointerUp={(event) => {
+        const startedOutside = pressedOutsideRef.current;
+        pressedOutsideRef.current = false;
+        if (
+          !startedOutside ||
+          !lightDismiss ||
+          !closeRef.current ||
+          (typeof HTMLDialogElement !== "undefined" && "closedBy" in HTMLDialogElement.prototype)
+        ) {
+          return;
+        }
+        if (isOutsideDialog(event)) closeRef.current();
+      }}
       onKeyDown={(event) => {
         // Handle Escape before the browser's native close action, including repeated
         // presses while busy. The owning dialog controls dismissal and exit presence.

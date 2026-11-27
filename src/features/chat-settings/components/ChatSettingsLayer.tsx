@@ -1,8 +1,9 @@
+import { BackButton } from "@/components/ui/back-button";
 import { CommunityChatPhotoPicker } from "@/features/communities/components/CommunityChatPhotoPicker";
 import { useMessageText } from "@/features/messages/i18n";
 import type { ChatDetails } from "@/features/messages/types";
 import { BlockUserModal } from "@/features/settings/components/BlockUserModal";
-import { NavLink, QueryState } from "@/features/settings/components/shared";
+import { QueryState } from "@/features/settings/components/shared";
 import { useChatSettingsLayer } from "../hooks/useChatSettingsLayer";
 import type { ChatAction } from "../lib/chatActions";
 import { AddMembersModal } from "./AddMembersModal";
@@ -20,7 +21,7 @@ export function ChatSettingsLoading({
   const { say } = useMessageText();
   return (
     <main id="main" className="chat-settings-screen chat-settings-panel settings-panel">
-      <NavLink href="/chats">← {say("Back to chats", "Volver a chats")}</NavLink>
+      <BackButton href="/chats" label={say("Back to chats", "Volver a chats")} />
       {query && (
         <QueryState
           loading={query.isPending}
