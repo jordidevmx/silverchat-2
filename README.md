@@ -34,12 +34,18 @@ powershell -File scripts/setup-supabase.ps1   # Windows PowerShell
 
 ## Scripts
 
-| Script          | What it does                                                     |
-| --------------- | ---------------------------------------------------------------- |
-| `pnpm dev`      | Start the Vite dev server                                        |
-| `pnpm build`    | Type-check then production build                                 |
-| `pnpm lint`     | Biome check (lint + format)                                      |
-| `pnpm db:types` | Regenerate `src/types/database.ts` from the live Supabase schema |
+| Script | What it does |
+| --- | --- |
+| `pnpm dev` | Start the Vite dev server |
+| `pnpm build` | Type-check (`tsc -b`) then production build |
+| `pnpm typecheck` | Run the TypeScript project check only |
+| `pnpm test` | Run the Node unit test suites |
+| `pnpm lint` | Biome check (lint + format) |
+| `pnpm db:types` | Regenerate `src/types/database.ts` from the linked remote schema |
+| `pnpm test:db --all` | Run every SQL suite in CI (local Supabase + `psql`) |
+| `pnpm test:db --staging supabase/tests/<suite>.sql` | Run one rollback-safe SQL suite against Staging |
+
+The Supabase CLI is a dev dependency: invoke it as `pnpm exec supabase` (never assume a global binary).
 
 ## Roadmap
 
@@ -71,7 +77,9 @@ drafts, mentions, emoji, private attachments and media viewing. Apply **migratio
 0008 after 0001–0007** before releasing the frontend. See the
 [conversation deployment notes and verification checklist](docs/messages.md).
 Run `pnpm test:messages` alongside the existing checks. New chat/group creation
-forms remain future work.
+is implemented at `/chats/new` and `/chats/new-group`; see the
+[chat-list notes](docs/chats-list.md) and
+[new chat/group verification](docs/new-chat-flow.md).
 
 ## Message actions and voice notes
 
@@ -87,42 +95,54 @@ Prompt 09 adds contact modals, chat menus, group administration, reporting,
 shared media/files, and personal clear-chat. Apply **migration 0011 after
 0001–0010** manually in the SQL Editor before deploying this frontend. See the
 [deployment notes and manual checklist](docs/chat-settings.md). Run
-`pnpm test:chat-settings` alongside the existing checks. Calls remain part of
-Prompt 12. No new dependencies are required.
+`pnpm test:chat-settings` alongside the existing checks. Voice and video calls
+are implemented under Prompt 12 and merged to `main` (see below). No new
+dependencies are required for Prompt 09.
 
 ### Novedades (Prompt 10)
 
-Stories and broadcast Channels are implemented on `feat/novedades-stories-channels`.
-See [implementation/deployment notes](docs/novedades.md) and
-[verification status](docs/novedades-implementation-status.md). Migration 0012
-is locally validated; staging application and manual end-to-end checks remain
-pending. Do not change deployed migrations 0001–0011.
+Stories and broadcast Channels are implemented and merged to `main`. Migrations
+`0012` and `0013` are applied and catalog-verified on Staging and Production
+(`EVID-011`); the live UI checklist is still pending (`AWAITING_VERIFICATION` in
+`.pif/state.md`). See [implementation/deployment notes](docs/novedades.md) and the
+[historical implementation status](docs/novedades-implementation-status.md). Do
+not rewrite applied migrations.
 
-# PIF Shared Memory v1.0
+## Communities (Prompt 11)
 
-A file-based governance and evidence system shared by **PIF Engineer v2.0** and **PIF Guardian v1.0**. This folder is a template, not evidence of a completed project.
+Communities with hierarchical child chats, ownership succession and moderation
+roles are implemented and merged to `main`. Migration `0014` is catalog-verified
+on Staging and Production; live multi-user acceptance and the deferred Prompt 09
+checks remain pending (`AWAITING_VERIFICATION`). See
+[implementation notes](docs/communities.md) and `.pif/state.md`.
 
-## Getting started
+## Calls (Prompt 12)
 
-1. Copy `.pif/` into the project repository, on an agreed governance branch or otherwise approved location.
-2. Set the project ID, title and scope in `project.md`; approve the initial baseline.
-3. Guardian maintains canonical records only when authorized. Engineer reads them and submits change proposals via `inbox/` or a PR; Engineer never silently edits the approved baseline.
-4. Record implementation evidence with stable paths and revision identifiers; do not equate reported results with verified results.
-5. Commit governance changes to Git for history and review. Protect sensitive content; never commit credentials.
-6. Read `SHARED_MEMORY_PROTOCOL.md` for mandatory procedures and decision rules.
+Voice and video calls use a LiveKit token Edge Function, a call state machine and
+in-app call UI, merged via PR `#46` with follow-ups `#67`, `#71` and `#81`. The
+delivery and `G4` claims remain `REPORTED` (`AWAITING_VERIFICATION`); see
+`.pif/roadmap.md`.
 
-## Files
+## PWA, offline & push (Prompt 13, adapted)
 
-- `.pif/manifest.json`: schema, baseline and ownership metadata.
-- `.pif/project.md`: approved purpose, boundaries and success.
-- `.pif/requirements.md`: requirements and acceptance criteria.
-- `.pif/roadmap.md`: milestones and task dependencies.
-- `.pif/state.md`: current evidence-backed state (a snapshot, not a history rewrite).
-- `.pif/traceability.md`: relationships between objectives, requirements, tasks, implementation and tests.
-- `.pif/decisions/`: decision records.
-- `.pif/evidence/index.md`: evidence index; artifacts may live elsewhere.
-- `.pif/history/changes.md`: append-only material governance change log.
-- `.pif/inbox/`: Engineer proposals and review requests (suggestions, not authoritative state).
-- `.pif/handoffs/`: concise, dated handoff notes with source revision.
+An installable PWA with Workbox offline caching, an IndexedDB read cache, an
+offline outbox and Web Push (`send-push`) is merged via PR `#82`. Acceptance
+through `a8bc376` is recorded (`CHG-007`); the post-`a8bc376` delta and the
+Production push rollout are `AWAITING_VERIFICATION` (`REPORTED`). See
+`.pif/state.md` and `.pif/roadmap.md`.
 
-**Policy:** no background synchronization is implied; agents must have file access or receive explicit handoffs. Repository permissions and branch protections, where configured, enforce boundaries more reliably than prompt text alone.
+The authoritative status for every prompt is in [`.pif/state.md`](.pif/state.md)
+and [`.pif/roadmap.md`](.pif/roadmap.md); the sections above are summaries, not
+acceptance records.
+
+## PIF governance
+
+SilverChat uses the Project Intelligence Framework (PIF). Shared Memory is
+governed by [`SHARED_MEMORY_PROTOCOL.md`](./SHARED_MEMORY_PROTOCOL.md), with
+canonical records in [`.pif/`](./.pif/) and current status in
+[`.pif/state.md`](./.pif/state.md). PIF mode is opt-in: agents follow
+[`pif-engineer.init.md`](./.agents/workflows/pif-engineer.init.md) or
+`.agents/workflows/pif-guardian.init.md` only when the Product Owner explicitly
+initializes that role. Engineer proposals go to `.pif/inbox/`; Guardian owns the
+canonical records. A reported result is not a verified result until independently
+audited.

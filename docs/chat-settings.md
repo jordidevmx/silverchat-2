@@ -1,5 +1,11 @@
 # Contact profiles and chat settings (Prompt 09)
 
+> **Historical Snapshot:** This is a pre-PIF implementation record, not the
+> current project state. The feature was merged to `main`, and migrations
+> `0001`–`0014` were reconciled under `TASK-012` (`EVID-011`). Authoritative
+> current status lives in [`.pif/state.md`](../.pif/state.md) and
+> [`.pif/roadmap.md`](../.pif/roadmap.md).
+
 Prompt 09 adds the 12 requested components, eight hooks, the chat-action matrix,
 Zustand modal state, and three protected routes for group info, members, and
 shared media. Block confirmation, avatar cropping, message search, and media
