@@ -34,6 +34,8 @@ const defaults = {
   isMicEnabled: true,
   isCameraEnabled: false,
   isSpeakerOn: true,
+  isMinimized: false,
+  floatingVideoClosed: false,
   remoteAudioLevel: 0,
   localAudioLevel: 0,
   answeredAt: null as string | null,
@@ -66,6 +68,21 @@ export function resetCallStoreIfCurrent(callId: string): void {
 /** Set the transient status note. */
 export function notifyCall(note: string | null) {
   useCallStore.setState({ note });
+}
+
+/** Minimize the active call so the user can navigate the app freely. */
+export function minimizeActiveCall() {
+  useCallStore.setState({ isMinimized: true, floatingVideoClosed: false });
+}
+
+/** Return the active call to the fullscreen modal. */
+export function maximizeActiveCall() {
+  useCallStore.setState({ isMinimized: false, floatingVideoClosed: false });
+}
+
+/** Collapse the floating video window into the top banner without hanging up. */
+export function closeFloatingCallWindow() {
+  useCallStore.setState({ floatingVideoClosed: true });
 }
 
 /** Enter the incoming-ringing phase with the resolved peer profile. The ring

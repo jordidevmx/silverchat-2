@@ -57,6 +57,17 @@ const es: Record<string, string> = {
   // Active call
   "Camera off": "Cámara apagada",
   "Toggle video size": "Cambiar tamaño del vídeo",
+  "Minimize call": "Minimizar llamada",
+  "Active call": "Llamada activa",
+  "Return to call": "Volver a la llamada",
+  "Return to full screen": "Volver a pantalla completa",
+  "Close floating video": "Cerrar ventana flotante",
+  "Video call window. Drag or use arrow keys to move. Double-click to expand.":
+    "Ventana de videollamada. Arrastra o usa las flechas para moverla. Doble toque para ampliar.",
+  "Moved left": "Movido a la izquierda",
+  "Moved right": "Movido a la derecha",
+  "Moved up": "Movido hacia arriba",
+  "Moved down": "Movido hacia abajo",
   You: "Tú",
   Muted: "Silenciado",
   "Ending…": "Finalizando…",

@@ -95,7 +95,8 @@
     min-height: 0;
     height: auto;
   }
-  .app-shell .deletion-banner {
+  .app-shell .deletion-banner,
+  .app-shell .call-top-banner {
     flex: none;
   }
   .nav-logout {

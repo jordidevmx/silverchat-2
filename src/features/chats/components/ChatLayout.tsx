@@ -1,6 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import { type PropsWithChildren, type ReactNode, useSyncExternalStore } from "react";
 import { ShellBackdrop } from "@/components/ui/shell-backdrop";
+import { ActiveCallBanner } from "@/features/calls/components/ActiveCallBanner";
 import { useMessageText } from "@/features/messages/i18n";
 import { PendingDeletionBanner } from "@/features/settings/components/PendingDeletionBanner";
 import { AppNavigation } from "./AppNavigation";
@@ -35,6 +36,7 @@ export function ChatLayout({
       <AppNavigation />
       <div className="authenticated-content">
         <ShellBackdrop />
+        <ActiveCallBanner />
         <PendingDeletionBanner />
         {list ? (
           <div className="chat-workspace">
