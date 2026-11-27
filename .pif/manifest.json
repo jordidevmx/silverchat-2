@@ -9,6 +9,6 @@
   "implementation_owner": "PIF Engineer",
   "approval_authority": "Product Owner",
   "documentation_language": "en",
-  "last_reconciled_revision": "42501c4",
-  "note": "Initial brownfield governance baseline APPROVED on 2026-11-10; TASK-012 (Supabase Migration Reconciliation) APPROVED and ACCEPTED by Product Owner on 2026-11-11 following PIF Guardian PASS audit verdict (EVID-011)."
+  "last_reconciled_revision": "6aed855",
+  "note": "Initial brownfield governance baseline APPROVED on 2026-11-10; TASK-012 (Supabase Migration Reconciliation) APPROVED and ACCEPTED by Product Owner on 2026-11-11 following PIF Guardian PASS audit verdict (EVID-011); TASK-014 (PWA, Offline & Web Push, adapted) APPROVED and ACCEPTED through commit a8bc376 by Product Owner on 2026-11-27 (EVID-012, EVID-013, CHG-007, ADR-001). Documentary reconciliation CHG-008 on 2026-11-27 aligned canonical records to main HEAD 6aed855 (204 commits after a0037a1f; EVID-014) and integrated governance/pwa-offline-g1-brief artifacts without retrospective feature acceptance; TASK-013, CHG-006, and TASK-014 post-a8bc376 delta (4ad2372 / PR #82 / Production push rollout) remain AWAITING_VERIFICATION (REPORTED)."
 }

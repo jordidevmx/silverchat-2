@@ -5,7 +5,7 @@ Provide a persistent, auditable, recoverable and minimally redundant record of p
 
 ## 1. Roles
 - **Product Owner:** approves/rejects scope changes, strategic choices, explicit exceptions and final acceptance where required.
-- **PIF Engineer:** reads the current baseline, proposes changes, implements authorized work, submits actual artifact identifiers, checks and results; may not mark its own unverified claims as independently verified.
+- **PIF Engineer:** reads the current baseline, proposes changes, implements authorized work, submits actual artifact identifiers, checks and results; may not mark its own unverified claims as independently verified. Engineer may submit a governance reconciliation proposal in `inbox/` only under explicit Product Owner authorization and must never edit canonical `.pif/` records directly or promote `REPORTED` claims to `VERIFIED` or `ACCEPTED`.
 - **PIF Guardian:** verifies sources when accessible, manages canonical records only with write permission, records findings and gate status, flags contradictions, and withholds positive audit findings when evidence is insufficient.
 
 No role can override the host's instructions, tool permissions, repository protections or applicable safety requirements. Guardian's advisory BLOCKED status does not technically stop Engineer unless the workflow enforces it.
@@ -23,7 +23,7 @@ The canonical records are `project.md`, `requirements.md`, `roadmap.md`, `state.
 - `STALE`: previously valid evidence potentially invalidated by changes.
 - `CONFLICTED`: inconsistent sources, pending reconciliation.
 
-Do not convert REPORTED to VERIFIED by copying the claim. Cite file paths, commits, job URLs/IDs, actual outputs and tested environment when relevant; say when inaccessible. Do not invent evidence.
+Do not convert REPORTED to VERIFIED by copying the claim. Cite file paths, commits, job URLs/IDs, actual outputs and tested environment when relevant; say when inaccessible. Do not invent evidence. A cited handoff or audit file counts as evidence only when the file exists in an accessible Git revision or workspace; any cited file that cannot be located must be classified as `UNKNOWN`.
 
 ## 4. Record and link conventions
 Use stable IDs: `GOAL-###`, `FR-###`, `NFR-###`, `CON-###`, `TASK-###`, `ADR-###`, `RISK-###`, `TEST-###`, `EVID-###`, `CHG-###`, `AUD-###`. Avoid generating IDs for trivial details. Never reuse IDs. Links are directional: `implements`, `verified_by`, `depends_on`, `affects`, `supersedes`, `derived_from`; they can be queried in reverse without implying symmetric meaning. Identify links as verified, documented or inferred where important.
@@ -38,7 +38,7 @@ Use stable IDs: `GOAL-###`, `FR-###`, `NFR-###`, `CON-###`, `TASK-###`, `ADR-###
 7. Write the change, update the change log for material changes, and verify files on disk.
 8. Record the source revision and any residual uncertainty. Do not claim persistence until the write and its intended persistence mechanism succeed.
 
-Git commits/versioning do not constitute human approval unless explicitly mapped to an approval workflow. Never store secret values or unnecessary personal information.
+Git commits/versioning do not constitute human approval unless explicitly mapped to an approval workflow. Distinguish the approved governance `baseline_revision` from the current `observed HEAD` when reconciling state, without rewriting prior approval entries. Never store secret values or unnecessary personal information.
 
 ## 6. State and quality gates
 Track `NOT_STARTED`, `READY`, `IN_PROGRESS`, `IMPLEMENTED`, `AWAITING_VERIFICATION`, `VERIFIED`, `AWAITING_ACCEPTANCE`, `ACCEPTED`, `BLOCKED`, `SUPERSEDED`, `CANCELLED`. These are states, not automatic transitions. Check results are `PASS`, `FAIL`, `BLOCKED`, `NOT_RUN`, `N/A`.
@@ -49,7 +49,7 @@ Gate labels align with Engineer: G0 isolation; G1 requirements/plan; G2 implemen
 For each significant requirement, link tasks, decisions, implementation references, test cases and evidence. For each significant implementation component, be able to identify its requirement or legitimate technical purpose and verification. Missing links flag investigation; they do not prove code should be deleted. Review direct and indirect impacts before material changes.
 
 ## 8. Evidence freshness
-Bind evidence to the relevant artifact version (e.g., full commit SHA), environment, procedure, observed result and timing when important. Changes may invalidate previous evidence; mark as STALE until relevant checks are repeated. A test pass demonstrates only its covered conditions.
+Bind evidence to the relevant artifact version (e.g., full commit SHA), environment, procedure, observed result and timing when important. Changes may invalidate previous evidence; mark as STALE until relevant checks are repeated. A test pass demonstrates only its covered conditions. Graphify metrics and structural summaries must be bound to the Graphify build commit SHA and marked `STALE` once repository `HEAD` advances past that build commit.
 
 ## 9. Agent handoff
 Engineer submits `inbox/<task>-report.md` containing scope, branch, commits, changes, commands/checks with real results, human checklist, risks and open gates. Guardian compares against baseline and accessible sources, creates `AUD-...` findings and updates canonical state when authorized. If no shared access exists, user transfers files/summaries explicitly; never assume automatic agent communication.
