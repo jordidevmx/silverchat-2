@@ -16,7 +16,8 @@
   - `dc597a2584eb6df06757b24ce2b537b5747d907d` — `fix(push): use ESM namespace import for web-push@4.0.0 in send-push`
   - `1f28b97f0e2b6e3ffb648d07d7bfd7ec87572904` — G3 Staging delivery (`AUD-014-G3` `G0`–`G3 = PASS`, `VERIFIED`)
   - `a8bc376f2192e749ef7f3995da16d6e1219dc5ae` — `fix(pwa): address 6 deferred review minors across SW, banners, push, cache, and SQL grants` (Product Owner–directed follow-up addressing all 6 tracked minors from `AUD-014-IMP` F6 / `AUD-014-G3` F3)
-  - Docs-only submission commit adding this revision of `.pif/inbox/TASK-014-PWA-delivery.md` (due to Git content-addressing, a commit cannot embed its own SHA inside its tree; `a8bc376f2192e749ef7f3995da16d6e1219dc5ae` is the exact audited code tree, and this docs-only commit SHA is reported verbatim in chat and resolves via `git rev-parse HEAD` on `feature/pwa-offline`)
+  - `02c6070620456151db6e37260969aa994f57e565` — Prior delivery recording the 6 resolved minors
+  - Docs-only submission commit adding this revision of `.pif/inbox/TASK-014-PWA-delivery.md` (recording Product Owner–authorized Production DB migration application; `a8bc376f2192e749ef7f3995da16d6e1219dc5ae` remains the exact audited code tree, and this docs-only commit SHA is reported verbatim in chat and resolves via `git rev-parse HEAD` on `feature/pwa-offline`)
 - **Claim status:** `REPORTED` (until independently checked by PIF Guardian)
 
 ---
@@ -31,8 +32,8 @@
   5. **PostgREST HTTP status `0` preservation (`message-cache.ts`, `useChats.ts`, `useMessages.ts`, `useChat.ts`):** Added `attachPostgrestStatus(error, status)` so network failures with `result.status === 0` keep `.status = 0` when thrown, allowing `withOfflineFallback` and `first-unread` to serve cache even when `navigator.onLine` is still `true`.
   6. **Explicit `service_role` function privilege revocation (`supabase/migrations/20261127150500_revoke_push_functions_service_role.sql`, `supabase/tests/push_notifications.sql`):** Created additive timestamped LF migration revoking direct `EXECUTE` on all 5 push helper/trigger functions from `service_role`, applied ONLY `20261127150500` to Staging (`gffdrrtatxdiucigtwdn`) with `db-guard` exit `0` + ledger repair (leaving pre-existing foreign `20261125120000` untouched), and asserted all 5 revocations in `push_notifications.sql`.
 - **Explicit boundaries respected:**
-  - Production (`lmzbaxlojgsdwgcxkmzx`) was **never** linked, queried, or modified.
-  - Pre-existing foreign local-only migration `20261125120000` (`AUD-014-G3` F4) remains untouched (`remote: ""`).
+  - **Production DB migration (`silverchat-prod`, ref `lmzbaxlojgsdwgcxkmzx`):** Executed ONLY after explicit Product Owner authorization on `2026-11-27` (`"Tambien haz la migracion a la Prod DB pq solo lo hiciste en stage"`). Applied strictly the two `TASK-014` SQL migrations (`20261127040628_push_notifications_triggers.sql` and `20261127150500_revoke_push_functions_service_role.sql`) after passing `node scripts/db-guard.mjs --expect lmzbaxlojgsdwgcxkmzx --allow-production` (`exit 0`) before every write, repaired only those two versions in `schema_migrations`, verified read-only schema/triggers/privileges and `db lint` (`exit 0`, `0` issues on `TASK-014` objects), and immediately relinked the worktree back to Staging (`gffdrrtatxdiucigtwdn`, verified via `db-guard` `exit 0`). Production Vault secrets, Production VAPID keys, and Production `send-push` Edge Function deploy were **NOT** authorized and remain **`NOT_RUN`** (Production triggers safely no-op via `private.get_push_config()` returning 0 rows).
+  - Pre-existing foreign local-only migration `20261125120000` (`AUD-014-G3` F4) remains untouched on Staging (`remote: ""`) and untouched on Production (alongside `20261126000000`).
   - Zero canonical `.pif/` files were modified.
   - No `git push`, PR, or merge was executed.
 
@@ -77,6 +78,7 @@ Environment: Windows host, worktree `.worktrees/pwa-offline`, branch `feature/pw
 | Staging SQL test suite (`G3`) | `db-guard` → `pnpm test:db --staging supabase/tests/push_notifications.sql` | `PASS` | `SQL TEST PASSED (Staging): all 1 file(s) passed` (`exit 0`, rollback-only, including all 5 `service_role` revocation checks) |
 | Staging schema lint (`G3`) | `db-guard` → `pnpm exec supabase db lint --remote=gffdrrtatxdiucigtwdn` | `PASS` | `exit 0`; `0` errors/warnings on `TASK-014` objects (only 2 pre-existing warnings in unrelated functions) |
 | Staging `send-push` & VAPID/Vault (`G3`) | Verified in `AUD-014-G3` (`1f28b97`) — `supabase/functions/send-push/*` unchanged since `dc597a2` | `PASS` | `send-push` `ACTIVE` v2 (`verify_jwt: false`), Vault secrets verified, `0` smoke fixtures left |
+| Production DB migrations (`silverchat-prod`, authorized) | Link `lmzbaxlojgsdwgcxkmzx` → `db-guard --expect lmzbaxlojgsdwgcxkmzx --allow-production` (before every write) → `db query -f` for `20261127040628` & `20261127150500` → `migration repair --status applied` → read-only verify + `db lint` → relink Staging `gffdrrtatxdiucigtwdn` | `PASS` | Both versions applied & recorded; all 5 functions `SECURITY DEFINER` with pinned `search_path` and `service_role` revoked; both triggers active; `db lint --remote=lmzbaxlojgsdwgcxkmzx` `exit 0` (`0` issues on `TASK-014` objects); relinked to Staging (`db-guard` `exit 0`). Prod Vault/VAPID/Edge deploy `NOT_RUN`. |
 | CI pipeline (`G5`) | GitHub Actions workflow (`pnpm test:db --all`, build, lint) | `NOT_RUN` | Deferred to `G5` (push/PR require separate Product Owner authorization) |
 
 ---
@@ -94,7 +96,7 @@ Environment: Windows host, worktree `.worktrees/pwa-offline`, branch `feature/pw
   - `G0`–`G1`: `PASS` (`AUD-014` / `AUD-014-G3`).
   - `G2`–`G3`: Previously `PASS` (`AUD-014-G3` on `1f28b97`); incremental delta `a8bc376f2192e749ef7f3995da16d6e1219dc5ae` submitted here as `REPORTED` for Guardian verification. All 6 tracked minor items (`AUD-014-IMP` F6 / `AUD-014-G3` F3) are now resolved.
   - `G4`: Confirmed by Product Owner in chat on `2026-11-27` (`REPORTED` pending Guardian canonical update).
-  - `G5` / `G6`: Pending separate Product Owner authorizations for `git push` and PR creation; Production remains out of scope.
+  - `G5` / `G6`: Pending separate Product Owner authorizations for `git push` and PR creation; Production DB migrations `20261127040628` & `20261127150500` were applied under explicit Product Owner authorization (`2026-11-27`), while Production Vault secrets, VAPID keys, and `send-push` Edge Function deploy remain `NOT_RUN`.
 - **Pre-existing out-of-scope items (unchanged):** `tests/settings-browser.mjs:270` (`Account` heading on `main`), foreign local-only migration `20261125120000` on Staging, and 2 pre-existing `db lint` warnings on unrelated functions.
 
 ---
