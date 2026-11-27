@@ -196,25 +196,31 @@ async function readIdbCounts(page) {
   return page.evaluate(
     () =>
       new Promise((resolve) => {
-        const req = indexedDB.open("silverchat", 1);
-        req.onerror = () => resolve({ chats: -1, messages: -1 });
+        const req = indexedDB.open("silverchat");
+        req.onerror = () => resolve({ chats: -1, messages: -1, views: -1 });
         req.onsuccess = () => {
           const db = req.result;
           if (!db.objectStoreNames.contains("chats") || !db.objectStoreNames.contains("messages")) {
             db.close();
-            resolve({ chats: 0, messages: 0 });
+            resolve({ chats: 0, messages: 0, views: 0 });
             return;
           }
-          const tx = db.transaction(["chats", "messages"], "readonly");
+          const stores = db.objectStoreNames.contains("view_cache")
+            ? ["chats", "messages", "view_cache"]
+            : ["chats", "messages"];
+          const tx = db.transaction(stores, "readonly");
           const cReq = tx.objectStore("chats").count();
           const mReq = tx.objectStore("messages").count();
+          const vReq = stores.includes("view_cache")
+            ? tx.objectStore("view_cache").count()
+            : { result: 0 };
           tx.oncomplete = () => {
             db.close();
-            resolve({ chats: cReq.result, messages: mReq.result });
+            resolve({ chats: cReq.result, messages: mReq.result, views: vReq.result });
           };
           tx.onerror = () => {
             db.close();
-            resolve({ chats: -1, messages: -1 });
+            resolve({ chats: -1, messages: -1, views: -1 });
           };
         };
       }),
@@ -233,24 +239,29 @@ try {
   await page.goto(`${baseUrl}/chats/${chatId}`);
   await page.locator(".message-list").getByText("Cached offline hello!").waitFor();
 
-  // Verify IndexedDB cache stores chats and messages for the active user.
+  // Verify IndexedDB cache stores chats, messages, and view_cache for the active user.
   await page.waitForFunction(
     () =>
       new Promise((resolve) => {
-        const req = indexedDB.open("silverchat", 1);
+        const req = indexedDB.open("silverchat");
+        req.onerror = () => resolve(false);
         req.onsuccess = () => {
           const db = req.result;
-          if (!db.objectStoreNames.contains("messages")) {
+          if (
+            !db.objectStoreNames.contains("messages") ||
+            !db.objectStoreNames.contains("view_cache")
+          ) {
             db.close();
             resolve(false);
             return;
           }
-          const tx = db.transaction(["chats", "messages"], "readonly");
+          const tx = db.transaction(["chats", "messages", "view_cache"], "readonly");
           const c = tx.objectStore("chats").count();
           const m = tx.objectStore("messages").count();
+          const v = tx.objectStore("view_cache").count();
           tx.oncomplete = () => {
             db.close();
-            resolve(c.result >= 1 && m.result >= 1);
+            resolve(c.result >= 1 && m.result >= 1 && v.result >= 1);
           };
         };
       }),
@@ -260,6 +271,7 @@ try {
   const cachedCounts = await readIdbCounts(page);
   assert.ok(cachedCounts.chats >= 1, "IndexedDB chats store must be populated");
   assert.ok(cachedCounts.messages >= 1, "IndexedDB messages store must be populated");
+  assert.ok(cachedCounts.views >= 1, "IndexedDB view_cache store must be populated");
 
   // One-time notification permission prompt (when VITE_VAPID_PUBLIC_KEY is set on test server).
   const notifPrompt = page.locator("aside[aria-label='Notifications']");
@@ -352,6 +364,7 @@ try {
   const afterLogoutCounts = await readIdbCounts(page);
   assert.equal(afterLogoutCounts.chats, 0, "IndexedDB chats must be cleared on logout");
   assert.equal(afterLogoutCounts.messages, 0, "IndexedDB messages must be cleared on logout");
+  assert.equal(afterLogoutCounts.views, 0, "IndexedDB view_cache must be cleared on logout");
   await desktop.close();
 
   // 2. iOS Safari mobile context: shows iOS install instructions banner, hides push prompt.

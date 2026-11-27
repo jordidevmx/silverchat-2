@@ -53,3 +53,24 @@ test("IOSInstallInstructions clears the desktop left nav rail and UpdateAvailabl
     "UpdateAvailableBanner should return to bottom-4 on desktop where nav is a left rail",
   );
 });
+
+test("OfflineBanner uses dynamic theme tokens, includes a Reload button, and App auto-reloads on reconnect error", () => {
+  const offlineSrc = readFileSync(resolve(root, "src/components/pwa/OfflineBanner.tsx"), "utf8");
+  assert.equal(
+    offlineSrc.includes("bg-amber-500"),
+    false,
+    "OfflineBanner must use dynamic theme tokens instead of hardcoded amber colors",
+  );
+  assert.equal(offlineSrc.includes("bg-card/95"), true);
+  assert.equal(offlineSrc.includes("text-primary"), true);
+  assert.equal(offlineSrc.includes("lg:pl-[84px]"), true);
+  assert.equal(offlineSrc.includes('t("Reload")'), true);
+
+  const appSrc = readFileSync(resolve(root, "src/app/App.tsx"), "utf8");
+  assert.equal(appSrc.includes('t("Reload")'), true);
+  assert.equal(
+    appSrc.includes('window.addEventListener("online"'),
+    true,
+    "App offline/error frame must auto-recover when connectivity returns",
+  );
+});

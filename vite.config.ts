@@ -67,6 +67,7 @@ export default defineConfig({
         "sounds/*.mp3",
       ],
       workbox: {
+        clientsClaim: true,
         importScripts: ["/sw-custom.js"],
         globPatterns: ["**/*.{js,css,html,svg,woff2,mp3}"],
         navigateFallback: "/index.html",

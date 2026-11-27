@@ -5,6 +5,7 @@ import {
   type CachedChatDetailsRecord,
   type CachedChatsRecord,
   type CachedMessagesRecord,
+  type CachedViewRecord,
   clearAllUserData,
   clearOfflineSessionRecord,
   getDB,
@@ -22,6 +23,8 @@ export interface OfflineStoreBackend {
   getMessages: (userId: string, chatId: string) => Promise<CachedMessagesRecord | null>;
   putChatDetails: (record: CachedChatDetailsRecord) => Promise<void>;
   getChatDetails: (userId: string, chatId: string) => Promise<CachedChatDetailsRecord | null>;
+  putView: (record: CachedViewRecord) => Promise<void>;
+  getView: (userId: string, cacheKey: string) => Promise<CachedViewRecord | null>;
   putSessionHint: (record: OfflineSessionHintRecord) => Promise<void>;
   getSessionHint: () => Promise<OfflineSessionHintRecord | null>;
   clearSessionHint: () => Promise<void>;
@@ -58,6 +61,16 @@ const indexedDbBackend: OfflineStoreBackend = {
     const db = await getDB();
     if (!db) return null;
     return (await db.get("chat_details", [userId, chatId])) ?? null;
+  },
+  async putView(record) {
+    const db = await getDB();
+    if (!db) return;
+    await db.put("view_cache", record);
+  },
+  async getView(userId, cacheKey) {
+    const db = await getDB();
+    if (!db) return null;
+    return (await db.get("view_cache", [userId, cacheKey])) ?? null;
   },
   async putSessionHint(record) {
     const db = await getDB();
@@ -176,6 +189,39 @@ export async function readUserChatDetailsCache(
   }
 }
 
+export async function writeUserViewCache<T>(
+  userId: string,
+  cacheKey: string,
+  data: T,
+  backend: OfflineStoreBackend = indexedDbBackend,
+): Promise<void> {
+  if (!userId || !cacheKey) return;
+  try {
+    await backend.putView({
+      user_id: userId,
+      cache_key: cacheKey,
+      data,
+      updated_at: new Date().toISOString(),
+    });
+  } catch {
+    /* Optional offline cache; ignore quota/private-mode errors. */
+  }
+}
+
+export async function readUserViewCache<T>(
+  userId: string,
+  cacheKey: string,
+  backend: OfflineStoreBackend = indexedDbBackend,
+): Promise<T | null> {
+  if (!userId || !cacheKey) return null;
+  try {
+    const row = await backend.getView(userId, cacheKey);
+    return row ? (row.data as T) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function writeOfflineSessionHint(
   user: { id: string; email: string | null },
   profile: OfflineProfile,
@@ -236,6 +282,10 @@ export const cacheChatDetails = (userId: string, chatId: string, details: ChatDe
   writeUserChatDetailsCache(userId, chatId, details);
 export const readCachedChatDetails = (userId: string, chatId: string) =>
   readUserChatDetailsCache(userId, chatId);
+export const cacheView = <T>(userId: string, cacheKey: string, data: T) =>
+  writeUserViewCache(userId, cacheKey, data);
+export const readCachedView = <T>(userId: string, cacheKey: string) =>
+  readUserViewCache<T>(userId, cacheKey);
 
 export function attachPostgrestStatus<T>(error: T, status?: number): T {
   if (error && typeof error === "object" && typeof status === "number" && !("status" in error)) {

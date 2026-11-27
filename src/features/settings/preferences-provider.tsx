@@ -11,6 +11,12 @@ import { useI18n } from "@/app/providers/i18n-provider";
 import { useTheme } from "@/app/providers/theme-provider";
 import { registerBeforeSignOut } from "@/lib/auth";
 import { useAuth } from "@/lib/auth-provider";
+import {
+  attachPostgrestStatus,
+  cacheView,
+  readCachedView,
+  withOfflineFallback,
+} from "@/lib/message-cache";
 import { supabase } from "@/lib/supabase";
 import type { Settings, SettingsPatch } from "./hooks";
 
@@ -45,15 +51,20 @@ function AccountPreferences({ children, userId }: PropsWithChildren<{ userId?: s
     enabled: !!userId,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
-    queryFn: async () => {
-      const r = await supabase
-        .from("user_settings")
-        .select("*")
-        .eq("user_id", userId ?? "")
-        .single();
-      if (r.error) throw r.error;
-      return r.data;
-    },
+    queryFn: () =>
+      withOfflineFallback({
+        fetchOnline: async () => {
+          const r = await supabase
+            .from("user_settings")
+            .select("*")
+            .eq("user_id", userId ?? "")
+            .single();
+          if (r.error) throw attachPostgrestStatus(r.error, r.status);
+          return r.data;
+        },
+        writeCache: (data) => cacheView(userId ?? "", "preferences", data),
+        readCache: () => readCachedView<Settings>(userId ?? "", "preferences"),
+      }),
   });
   const { setTheme, setAccent } = theme;
   const { applyLanguage, setLanguage } = i18n;

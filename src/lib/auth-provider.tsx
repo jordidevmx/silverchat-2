@@ -95,20 +95,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
     };
   }, [queryClient]);
   useEffect(() => {
-    if (!offlineHydrated) return;
+    if (!user && !offlineHydrated) return;
     const reconnect = () => {
-      void refreshSession().catch(async (error: unknown) => {
-        if (error instanceof AuthError && error.status === 401) {
-          setOfflineHydrated(false);
-          setUser(null);
-          setProfile(null);
-          await clearOfflineSessionHint();
-        }
-      });
+      if (offlineHydrated) {
+        void refreshSession()
+          .then(() => {
+            void queryClient.invalidateQueries();
+          })
+          .catch(async (error: unknown) => {
+            if (error instanceof AuthError && error.status === 401) {
+              setOfflineHydrated(false);
+              setUser(null);
+              setProfile(null);
+              await clearOfflineSessionHint();
+            }
+          });
+      } else {
+        void queryClient.invalidateQueries();
+      }
     };
     window.addEventListener("online", reconnect);
     return () => window.removeEventListener("online", reconnect);
-  }, [offlineHydrated]);
+  }, [user, offlineHydrated, queryClient]);
   useEffect(() => {
     const version = ++sequence.current;
     if (!session) {

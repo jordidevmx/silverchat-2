@@ -106,6 +106,7 @@ const spanish: Record<string, string> = {
   "Not now": "Ahora no",
   Reload: "Recargar",
   "New version available.": "Nueva versión disponible.",
+  "You’re offline": "Estás sin conexión",
   "You’re offline. Messages will be sent when you reconnect.":
     "Estás sin conexión. Los mensajes se enviarán al reconectar.",
   "Enable notifications to receive messages and calls when SilverChat is in the background.":

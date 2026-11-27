@@ -277,4 +277,14 @@ test("vite.config.ts does not define a dead app-shell NetworkFirst rule shadowed
     false,
     "app-shell NetworkFirst runtimeCaching is shadowed by Workbox NavigationRoute and must be removed",
   );
+  assert.equal(
+    cfg.includes("clientsClaim: true"),
+    true,
+    "Workbox must claim first-visit clients immediately so offline reloads work without an extra online reload",
+  );
+  assert.equal(
+    cfg.includes("skipWaiting: true"),
+    false,
+    "Updates must remain prompt-driven (no forced skipWaiting)",
+  );
 });

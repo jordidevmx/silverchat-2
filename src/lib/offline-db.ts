@@ -6,7 +6,7 @@ import type { Tables } from "../types/database.ts";
 export type OfflineProfile = Tables<"profiles">;
 
 export const OFFLINE_DB_NAME = "silverchat";
-export const OFFLINE_DB_VERSION = 1;
+export const OFFLINE_DB_VERSION = 2;
 
 export interface CachedChatsRecord {
   user_id: string;
@@ -25,6 +25,13 @@ export interface CachedChatDetailsRecord {
   user_id: string;
   chat_id: string;
   details: ChatDetails;
+  updated_at: string;
+}
+
+export interface CachedViewRecord {
+  user_id: string;
+  cache_key: string;
+  data: unknown;
   updated_at: string;
 }
 
@@ -49,6 +56,11 @@ export interface SilverChatOfflineDB extends DBSchema {
   chat_details: {
     key: [string, string];
     value: CachedChatDetailsRecord;
+    indexes: { "by-user": string };
+  };
+  view_cache: {
+    key: [string, string];
+    value: CachedViewRecord;
     indexes: { "by-user": string };
   };
   offline_session: {
@@ -81,6 +93,12 @@ export function getDB(): Promise<IDBPDatabase<SilverChatOfflineDB> | null> {
           });
           details.createIndex("by-user", "user_id");
         }
+        if (!db.objectStoreNames.contains("view_cache")) {
+          const views = db.createObjectStore("view_cache", {
+            keyPath: ["user_id", "cache_key"],
+          });
+          views.createIndex("by-user", "user_id");
+        }
         if (!db.objectStoreNames.contains("offline_session")) {
           db.createObjectStore("offline_session", { keyPath: "key" });
         }
@@ -102,7 +120,7 @@ export async function clearAllUserData(userId: string): Promise<void> {
     const db = await getDB();
     if (!db) return;
     const tx = db.transaction(
-      ["chats", "messages", "chat_details", "offline_session"],
+      ["chats", "messages", "chat_details", "view_cache", "offline_session"],
       "readwrite",
     );
     await tx.objectStore("chats").delete(userId);
@@ -117,6 +135,12 @@ export async function clearAllUserData(userId: string): Promise<void> {
     const detailKeys = await detailStore.index("by-user").getAllKeys(userId);
     for (const key of detailKeys) {
       await detailStore.delete(key);
+    }
+
+    const viewStore = tx.objectStore("view_cache");
+    const viewKeys = await viewStore.index("by-user").getAllKeys(userId);
+    for (const key of viewKeys) {
+      await viewStore.delete(key);
     }
 
     const sessionStore = tx.objectStore("offline_session");

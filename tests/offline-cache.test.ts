@@ -11,11 +11,13 @@ import {
   readUserChatDetailsCache,
   readUserChatsCache,
   readUserMessagesCache,
+  readUserViewCache,
   withOfflineFallback,
   writeOfflineSessionHint,
   writeUserChatDetailsCache,
   writeUserChatsCache,
   writeUserMessagesCache,
+  writeUserViewCache,
 } from "../src/lib/message-cache.ts";
 
 function createMemoryOfflineBackend(): OfflineStoreBackend {
@@ -27,6 +29,10 @@ function createMemoryOfflineBackend(): OfflineStoreBackend {
   const chatDetails = new Map<
     string,
     { user_id: string; chat_id: string; details: ChatDetails; updated_at: string }
+  >();
+  const views = new Map<
+    string,
+    { user_id: string; cache_key: string; data: unknown; updated_at: string }
   >();
   let sessionHint: {
     key: "current";
@@ -53,6 +59,12 @@ function createMemoryOfflineBackend(): OfflineStoreBackend {
     async getChatDetails(userId, chatId) {
       return chatDetails.get(`${userId}:${chatId}`) ?? null;
     },
+    async putView(record) {
+      views.set(`${record.user_id}:${record.cache_key}`, record);
+    },
+    async getView(userId, cacheKey) {
+      return views.get(`${userId}:${cacheKey}`) ?? null;
+    },
     async putSessionHint(record) {
       sessionHint = record as unknown as typeof sessionHint;
     },
@@ -69,6 +81,9 @@ function createMemoryOfflineBackend(): OfflineStoreBackend {
       }
       for (const key of [...chatDetails.keys()]) {
         if (key.startsWith(`${userId}:`)) chatDetails.delete(key);
+      }
+      for (const key of [...views.keys()]) {
+        if (key.startsWith(`${userId}:`)) views.delete(key);
       }
       if (sessionHint?.user.id === userId) sessionHint = null;
     },
@@ -209,6 +224,12 @@ test("cache helpers degrade safely when IndexedDB backend fails or is unavailabl
     async getChatDetails() {
       throw new Error("SecurityError");
     },
+    async putView() {
+      throw new Error("QuotaExceededError");
+    },
+    async getView() {
+      throw new Error("SecurityError");
+    },
     async putSessionHint() {
       throw new Error("QuotaExceededError");
     },
@@ -306,4 +327,29 @@ test("attachPostgrestStatus preserves HTTP status 0 so withOfflineFallback serve
     isOnline: () => true,
   });
   assert.deepEqual(fallback, ["cached-item"]);
+});
+
+test("view cache stores user-scoped preferences/calls/communities/novedades and clears on logout", async () => {
+  const backend = createMemoryOfflineBackend();
+  await writeUserViewCache("alice", "preferences", { theme: "dark", accent: "purple" }, backend);
+  await writeUserViewCache("alice", "calls", [{ id: "call-1" }], backend);
+  await writeUserViewCache("bob", "preferences", { theme: "light", accent: "green" }, backend);
+
+  assert.deepEqual(await readUserViewCache("alice", "preferences", backend), {
+    theme: "dark",
+    accent: "purple",
+  });
+  assert.deepEqual(await readUserViewCache("alice", "calls", backend), [{ id: "call-1" }]);
+  assert.deepEqual(await readUserViewCache("bob", "preferences", backend), {
+    theme: "light",
+    accent: "green",
+  });
+
+  await clearUserOfflineCache("alice", backend);
+  assert.equal(await readUserViewCache("alice", "preferences", backend), null);
+  assert.equal(await readUserViewCache("alice", "calls", backend), null);
+  assert.deepEqual(await readUserViewCache("bob", "preferences", backend), {
+    theme: "light",
+    accent: "green",
+  });
 });
