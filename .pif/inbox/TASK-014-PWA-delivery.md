@@ -18,7 +18,10 @@
   - `a8bc376f2192e749ef7f3995da16d6e1219dc5ae` — `fix(pwa): address 6 deferred review minors across SW, banners, push, cache, and SQL grants` (Product Owner–directed follow-up addressing all 6 tracked minors from `AUD-014-IMP` F6 / `AUD-014-G3` F3)
   - `02c6070620456151db6e37260969aa994f57e565` — Prior delivery recording the 6 resolved minors
   - `4c9dfa50189daff38016a96cd9809feec45cf87d` — Prior delivery recording Production DB migrations
-  - Docs-only submission commit adding this revision of `.pif/inbox/TASK-014-PWA-delivery.md` (recording Product Owner–authorized Production VAPID, Vault, secrets, and `send-push` deploy; `a8bc376f2192e749ef7f3995da16d6e1219dc5ae` remains the exact audited code tree, and this docs-only commit SHA is reported verbatim in chat and resolves via `git rev-parse HEAD` on `feature/pwa-offline`)
+  - `cb175b1eb26b97df5562fc7eafc72db33f65f24a` — Prior delivery recording Production VAPID, Vault, secrets, and `send-push` deploy (PR #82 opened)
+  - `c36ccdc51819bb5ce5f5af983637907a234f3801` — Merge `origin/main` into `feature/pwa-offline` (`_authenticated.tsx` conflict + `NotificationPermissionPrompt` active-call suppression & offset)
+  - `4ad2372eb0ef7d76f5421fdfadb853011ef1d9d2` — `feat(pwa): add clientsClaim, themed offline banner with reload, auto-reconnect, and IDB view cache` (Product Owner–approved points 1–5 before merging PR #82: `clientsClaim: true`, dynamic-theme `OfflineBanner` + `Reload` button, automatic `online` reconnect & React Query invalidation in `AuthProvider` + `App.tsx`, and `silverchat` IDB v2 `view_cache` store for `preferences`, `calls`, `communities`, `stories`, and `channels` with full logout cleanup)
+  - Docs-only submission commit adding this revision of `.pif/inbox/TASK-014-PWA-delivery.md` (`4ad2372eb0ef7d76f5421fdfadb853011ef1d9d2` is the exact audited code tree; this docs-only commit SHA is reported verbatim in chat)
 - **Claim status:** `REPORTED` (until independently checked by PIF Guardian)
 
 ---
@@ -69,15 +72,14 @@ Environment: Windows host, worktree `.worktrees/pwa-offline`, branch `feature/pw
 | Check | Command/procedure | Result (PASS/FAIL/BLOCKED/NOT_RUN/N/A) | Evidence |
 |---|---|---|---|
 | Isolated worktree (`G0`) | `git rev-parse --git-dir`, `git status -sb`, `git log --oneline main..HEAD` | `PASS` | `.worktrees/pwa-offline` on `feature/pwa-offline`, primary checkout untouched on `main` |
-| Biome format & lint (`G3`) | `pnpm exec biome check` on all **39** touched/new JS/TS/JSON files (`main..HEAD`, including `package.json`) | `PASS` | `BIOME_FILE_COUNT: 39`; `Checked 39 files in 30ms. No fixes applied.` (`0` errors, `0` warnings, `exit 0`) |
+| Biome format & lint (`G3`) | `pnpm exec biome check` on all **49** touched/new JS/TS/JSON files (`origin/main..HEAD`) | `PASS` | `BIOME_FILE_COUNT: 49`; `Checked 49 files in 37ms. No fixes applied.` (`0` errors, `0` warnings, `exit 0`) |
 | Migration LF line endings (`G3`) | `git ls-files --eol` on both `TASK-014` migrations | `PASS` | Both `20261127040628_push_notifications_triggers.sql` and `20261127150500_revoke_push_functions_service_role.sql` are `i/lf w/lf attr/text eol=lf` |
-| Git diff whitespace check (`G3`) | `git diff --cached --check` / `git diff --check main..HEAD` | `PASS` | `exit 0` |
+| Git diff whitespace check (`G3`) | `git diff --cached --check` / `git diff --check origin/main..HEAD` | `PASS` | `exit 0` |
 | Staging write guard (`G0`/`G3`) | `node scripts/db-guard.mjs --expect gffdrrtatxdiucigtwdn` | `PASS` | Executed before every Staging operation; `exit 0` each time |
 | TypeScript typecheck (`G3`) | `pnpm typecheck` (`tsc -b`) | `PASS` | `exit 0` |
-| Unit tests (`G3`) | `pnpm test` (`node --experimental-strip-types --test tests/*.test.ts`) | `PASS` | **`303` tests, `303` passed, `0` failed, `0` skipped** (`977ms`, `exit 0`, `+6` TDD tests for minors) |
-| Production build & PWA SW (`G3`) | `pnpm build` (`tsc -b && vite build`) | `PASS` | `✓ built in 743ms`; `PWA v2.0.0`, `mode generateSW`, `precache 144 entries (2728.34 KiB)`, `dist/sw.js` + `dist/workbox-fc5b6e35.js` (`exit 0`) |
-| Playwright outbox regression (`G3`) | Isolated worktree Vite `:5175` (`VITE_SUPABASE_URL=https://supabase.test`) → `node tests/offline-outbox-browser.mjs` | `PASS` | `OUTBOX_BROWSER_EXIT: 0` (re-run on `a8bc376`) |
-| Playwright PWA/offline suite (`G3`) | Isolated worktree Vite `:5175` (`VITE_SUPABASE_URL=https://supabase.test`) → `node tests/pwa-offline-browser.mjs` | `PASS` | `PWA_BROWSER_EXIT: 0` (re-run on `a8bc376`) |
+| Unit tests (`G3`) | `pnpm test` (`node --experimental-strip-types --test tests/*.test.ts`) | `PASS` | **`322` tests, `322` passed, `0` failed, `0` skipped** (`1137ms`, `exit 0`) |
+| Production build & PWA SW (`G3`) | `pnpm build` (`tsc -b && vite build`) | `PASS` | `✓ built in 803ms`; `PWA v2.0.0`, `mode generateSW`, `precache 147 entries (2789.08 KiB)`, `clientsClaim: true` verified in `dist/sw.js` (`exit 0`) |
+| Playwright suites (`G3`) | Isolated worktree Vite `:5175` → `offline-outbox-browser.mjs`, `pwa-offline-browser.mjs`, `call-minimized-browser.mjs` | `PASS` | All 3 suites `exit 0` (including IDB v2 `chats`, `messages`, and `view_cache` populate + logout wipe) |
 | Pre-existing `settings-browser` suite (out of scope) | `node tests/settings-browser.mjs` | `FAIL` (pre-existing on `main`) | Fails at `tests/settings-browser.mjs:270` (`visit()` waiting for heading `Account`); verified pre-existing on `main` in `AUD-014-IMP`. Untouched by `TASK-014`. |
 | Staging additive migration `20261127150500` (`G3`) | `db-guard` → `supabase db query -f 20261127150500_revoke_push_functions_service_role.sql` → `migration repair --status applied 20261127150500` | `PASS` | `20261127040628` & `20261127150500` applied on `gffdrrtatxdiucigtwdn`; foreign `20261125120000` still untouched (`remote: ""`) |
 | Staging SQL test suite (`G3`) | `db-guard` → `pnpm test:db --staging supabase/tests/push_notifications.sql` | `PASS` | `SQL TEST PASSED (Staging): all 1 file(s) passed` (`exit 0`, rollback-only, including all 5 `service_role` revocation checks) |
