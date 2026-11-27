@@ -72,6 +72,18 @@ test("ChannelInfoScreen omits ChannelHeader and ChatHeader preserves desktop con
     /\bChannelHeader\b/,
     "ChannelInfoScreen must not render ChannelHeader",
   );
+  assert.match(
+    channelInfo,
+    /<ChannelInfoSurface[\s\S]*?\bback=\{[\s\S]*?<BackButton\b/,
+    "ChannelInfoScreen must render BackButton inside ChannelInfoSurface",
+  );
+
+  const channelSurfaces = read("src/components/ui/channel-surfaces.tsx");
+  assert.match(
+    channelSurfaces,
+    /back\?:\s*ReactNode/,
+    "ChannelInfoSurface must accept an optional back slot",
+  );
 
   const chatHeader = read("src/features/messages/components/ChatHeader.tsx");
   assert.match(chatHeader, /conversation-back/);

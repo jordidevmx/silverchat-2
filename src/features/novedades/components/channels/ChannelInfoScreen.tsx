@@ -115,17 +115,25 @@ export function ChannelInfoScreen({ channelId }: { channelId: string }) {
   const isOwner = canEditChannelInfo(role);
   return (
     <main id="main" className="novedades-page channel-info">
-      <header className="mb-4 flex items-center">
-        <BackButton
-          href={`/channels/${channelId}`}
-          label={say("Back to channel", "Volver al canal")}
-        />
-      </header>
+      {!c && (
+        <header data-slot="channel-info-header" className="mb-4 flex items-center justify-start">
+          <BackButton
+            href={`/channels/${channelId}`}
+            label={say("Back to channel", "Volver al canal")}
+          />
+        </header>
+      )}
       <QueryState loading={q.isPending} error={q.error} retry={() => void q.refetch()} />
       {!q.isPending && !c && <p>{say("Channel unavailable", "Canal no disponible")}</p>}
       {c && (
         <>
           <ChannelInfoSurface
+            back={
+              <BackButton
+                href={`/channels/${channelId}`}
+                label={say("Back to channel", "Volver al canal")}
+              />
+            }
             avatar={
               <>
                 <Avatar

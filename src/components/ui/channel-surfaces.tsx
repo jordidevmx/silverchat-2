@@ -67,6 +67,7 @@ export function ChannelFollowButton({
 }
 
 export function ChannelInfoSurface({
+  back,
   avatar,
   title,
   meta,
@@ -74,6 +75,7 @@ export function ChannelInfoSurface({
   created,
   children,
 }: {
+  back?: ReactNode;
   avatar: ReactNode;
   title: ReactNode;
   meta: ReactNode;
@@ -82,7 +84,8 @@ export function ChannelInfoSurface({
   children: ReactNode;
 }) {
   return (
-    <CardSurface className="channel-profile">
+    <CardSurface className="channel-profile relative">
+      {back && <div className="absolute top-3.5 left-3.5 z-10">{back}</div>}
       <div className="channel-profile-identity">
         <div className="group-photo">{avatar}</div>
         <h1>{title}</h1>

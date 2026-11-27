@@ -1012,7 +1012,6 @@
     font-size: 14px;
   }
   .channel-profile {
-    margin-top: 24px;
     animation: channel-reveal var(--duration-base) var(--ease-out) both;
   }
   .channel-profile-identity {
