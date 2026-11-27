@@ -9,6 +9,6 @@
   "implementation_owner": "PIF Engineer",
   "approval_authority": "Product Owner",
   "documentation_language": "en",
-  "last_reconciled_revision": "6aed855",
-  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); CHG-006 and AUD-020 ACCEPTED 2026-11-27 (CHG-010, EVID-015, EVID-016); TASK-013 ACCEPTED 2026-11-27 following live Production G4 PASS (CHG-012/CHG-013, EVID-015..EVID-019); TASK-014 unconditionally ACCEPTED in full (CHG-007 through a8bc376 + CHG-010/CHG-013 closing the post-a8bc376 4ad2372 Netlify VITE_VAPID_PUBLIC_KEY condition, EVID-012..EVID-019). Staging (38/38, 3/3 functions) and Production (38/38, 3/3 functions, LIVEKIT_* & VAPID_* secrets present) synchronized; RISK-008 & RISK-009 CLOSED."
+  "last_reconciled_revision": "65e01ee",
+  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); CHG-006, AUD-020, TASK-013, and TASK-014 (unconditionally in full) ACCEPTED 2026-11-27 (CHG-010, CHG-013, EVID-012..EVID-019); PR #85 merged to main at 65e01ee; Staging (38/38, 3/3 functions) and Production (38/38, 3/3 functions, LIVEKIT_* & VAPID_* secrets present) synchronized; RISK-008 & RISK-009 CLOSED. Draft G1 brief prepared for TASK-015 (governance/task-015-i18n-theme-g1, G1 BLOCKED pending PO decisions on Q-001)."
 }
