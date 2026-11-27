@@ -63,8 +63,9 @@ foundation. Three Edge Functions are committed: `livekit-token`,
   (`livekit-token`, `sign-channel-media`, `send-push`); `livekit-token` uses JWT
   verification and its Production `ezbr_sha256` matches Staging
   (`92074dfd…`). The `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `LIVEKIT_URL`
-  secrets are **not present** on Production, so calls cannot mint tokens until
-  the owner configures them.
+  secrets are configured on Production (names only; no values are stored in the
+  repository), and a zero-fixture smoke check returned `OPTIONS 200` /
+  unauthenticated `POST 401`.
 
 Ledger state changes over time: run
 `pnpm exec supabase migration list --remote=<ref>` and consult

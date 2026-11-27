@@ -134,7 +134,7 @@ counts: always run `pnpm exec supabase migration list --remote=<ref>` and consul
 | Environment | Project ref | Status as of 2026-11-27 |
 | --- | --- | --- |
 | Staging | `gffdrrtatxdiucigtwdn` | 38/38 applied; 3/3 Edge Functions `ACTIVE`, including `livekit-token` v3. |
-| Production | `lmzbaxlojgsdwgcxkmzx` | 38/38 applied; 3/3 Edge Functions `ACTIVE`. `livekit-token` is deployed with `verify_jwt=true`; the `LIVEKIT_*` secrets are not configured (blocker). Writes require explicit Product Owner authorization and the `--allow-production` guard, then an immediate relink to Staging. |
+| Production | `lmzbaxlojgsdwgcxkmzx` | 38/38 applied; 3/3 Edge Functions `ACTIVE`. `livekit-token` is deployed with `verify_jwt=true`; `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `LIVEKIT_URL` are configured (names only). Writes require explicit Product Owner authorization and the `--allow-production` guard, then an immediate relink to Staging. |
 
 ## Rules for migration files
 
