@@ -10,5 +10,5 @@
   "approval_authority": "Product Owner",
   "documentation_language": "en",
   "last_reconciled_revision": "65e01ee",
-  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); CHG-006, AUD-020, TASK-013, and TASK-014 (unconditionally in full) ACCEPTED 2026-11-27 (CHG-010, CHG-013, EVID-012..EVID-019); PR #85 merged to main at 65e01ee; Staging (38/38, 3/3 functions) and Production (38/38, 3/3 functions, LIVEKIT_* & VAPID_* secrets present) synchronized; RISK-008 & RISK-009 CLOSED. Q-001 resolved via ADR-002 (CHG-014); TASK-015 G1 brief ready for PIF Engineer on governance/task-015-i18n-theme-g1."
+  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); CHG-006, AUD-020, TASK-013, and TASK-014 (unconditionally in full) ACCEPTED 2026-11-27 (CHG-010, CHG-013, EVID-012..EVID-019); PR #85 merged to main at 65e01ee; Staging (38/38, 3/3 functions) and Production (38/38, 3/3 functions, LIVEKIT_* & VAPID_* secrets present) synchronized; RISK-008 & RISK-009 CLOSED. Q-001 resolved via ADR-002 (CHG-014, amended AUD-025); TASK-015 audited @ be85b85 (AUD-026, EVID-020: G0-G2 PASS, G4 PASS USER_APPROVED, CHANGES REQUIRED for PO-requested automated user-switch test + plan cleanup)."
 }

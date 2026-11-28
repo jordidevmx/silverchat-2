@@ -145,3 +145,31 @@ Complete `FR-014` (`TASK-015` — Internationalization & Runtime Theme System) a
 
 1. **Product Owner** hands this brief (`.pif/handoffs/TASK-015-g1-brief.md` + `ADR-002`) to **PIF Engineer**.
 2. **PIF Engineer** creates the isolated worktree from `main` (`65e01eeb`), inspects all files in §5, produces the source-verified gap matrix and implementation plan, commits the plan on the task branch, and returns it for Product Owner approval and Guardian `G1` audit before modifying application code.
+
+---
+
+## 11. G1 Audit & Conditional Unblock (`2026-11-27` — `AUD-025`)
+
+**Artifacts independently audited (`VERIFIED`):**
+- Worktree `.worktrees/task-015-i18n-theme` on branch `feat/i18n-theme` @ `10a5e4cd5bd52658c44f51c0bff9809167018860` (`git merge-base main HEAD` = `65e01eeb`, `1` commit, `2` doc files only, `0` app/dep/DB/canonical-`.pif/` changes, `0` remote pushes, `git diff --check` exit `0`).
+- `.pif/inbox/TASK-015-delivery.md` and `docs/superpowers/plans/2026-11-27-i18n-theme.md`.
+
+**Audit findings & Product Owner resolutions (`USER_APPROVED`, `2026-11-27`):**
+1. **`HIGH` — `G-04` vs. `src/styles/globals.css` dark-OS light-theme regression (RESOLVED → Option 1):** Plan proposed `removeAttribute('data-theme')` for light while `globals.css` retains `@media (prefers-color-scheme: dark) { :root:not([data-theme]) }`. PO approved **Option 1**: remove that fallback block from `src/styles/globals.css` and apply `data-theme="dark"` only for effective dark (`removeAttribute('data-theme')` for light) identically in both `index.html` and `theme-provider.tsx`. Add a browser test asserting OS dark + explicit Light renders light.
+2. **`MEDIUM` — `G-14` `formatBytes` precision contradiction:** Plan cited `{ maximumFractionDigits: 1 }` while pinning `"1.0 MB"` for `1024 * 1024` (without `minimumFractionDigits: 1`, `Intl.NumberFormat` outputs `"1 MB"`). Engineer must explicitly reconcile decimal precision (and `es` decimal separator) in the plan and `T1` against `tests/messages.test.ts` and the `"1.0 MB"` requirement.
+3. **`OQ-01` (REVISED → Single `silverchat_language` key):** PO superseded the prior `silverchat_language_chosen=1` proposal to keep the architecture dynamic and scalable. Engineer must remove dependency on `silverchat_language_chosen=1`, read/validate `silverchat_language` directly (`silverchat_language` → normalized `navigator.language` → `'en'`, overridden by `user_settings.language` on auth), mirror this rule in the FOUC script, prevent stale-language bleed on account switch/logout, and update `tests/i18n-browser.mjs` / `tests/language.test.ts` accordingly.
+4. **Commit cadence (`USER_APPROVED`):** Per Product Owner instruction, Engineer must update `docs/superpowers/plans/2026-11-27-i18n-theme.md` with items 1–3 **first**, without creating an intermediate docs-only commit — commit the updated plan together with the implementation work on `feat/i18n-theme`.
+
+**Gate status & disposition (`AUD-025`):**
+- **`G0` (Safe Isolation):** `PASS` (`VERIFIED`).
+- **`G1` (Requirements & Plan):** `CONDITIONALLY ACCEPTABLE` — unblocked for Engineer to update the plan in place with items 1–3 above and proceed directly into implementation on `feat/i18n-theme` (no intermediate docs-only commit). Guardian will verify the updated plan alongside `G2`/`G3` upon implementation delivery.
+
+---
+
+## 12. Implementation Audit (`2026-11-27` — `AUD-026` @ `be85b85`)
+
+Guardian independently audited `feat/i18n-theme` @ `be85b85a611ccfef890debf9071d8173de47623c` and `.pif/inbox/TASK-015-delivery.md`. Formal audit: `.pif/handoffs/TASK-015-guardian-audit-be85b85.md` (`AUD-026`, `EVID-020`).
+
+- **Verified (`VERIFIED`):** `G0 = PASS`, `G1 = PASS` (all 3 `AUD-025` corrections in plan + committed with code), `G2 = PASS` (19 files in scope, `0` dep/DB/canonical-`.pif/` changes, `0` `silverchat_language_chosen` in `src/`/`index.html`, `0` `:root:not([data-theme])` in `globals.css`, built `dist/index.html` inline `<script>` before `module` and `stylesheet`), `pnpm typecheck` (`0`), `pnpm test` (`332/332 PASS`), `pnpm build` (`0`, PWA 148 precache entries), scoped `biome check` (`15/15`, `0` errors), `git diff --check` (`0`), `tests/i18n-browser.mjs` (`6/6 PASS`), `tests/chat-background-browser.mjs` (`PASS`), `tests/messages-browser.mjs` (`PASS`), and `9/9` settings blocks in `tests/settings-browser.mjs` (`PASS` before pre-existing L583 timeout).
+- **Human verification (`USER_APPROVED`):** Product Owner confirmed `G4 PASS` (`2026-11-27`).
+- **Disposition (`CHANGES REQUIRED` before formal `ACCEPTED`):** Product Owner directed PIF Engineer to complete two incremental items on `feat/i18n-theme` before final acceptance: (1) add the automated user-switch preference sync test, and (2) clean up the 4 stale pre-`AUD-025` lines in `docs/superpowers/plans/2026-11-27-i18n-theme.md` (§6 L94, §7 L98, §8 L112, §11 L140). `G5`/`G6` remain `NOT_RUN`.
