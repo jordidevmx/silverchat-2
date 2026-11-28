@@ -173,3 +173,12 @@ Guardian independently audited `feat/i18n-theme` @ `be85b85a611ccfef890debf9071d
 - **Verified (`VERIFIED`):** `G0 = PASS`, `G1 = PASS` (all 3 `AUD-025` corrections in plan + committed with code), `G2 = PASS` (19 files in scope, `0` dep/DB/canonical-`.pif/` changes, `0` `silverchat_language_chosen` in `src/`/`index.html`, `0` `:root:not([data-theme])` in `globals.css`, built `dist/index.html` inline `<script>` before `module` and `stylesheet`), `pnpm typecheck` (`0`), `pnpm test` (`332/332 PASS`), `pnpm build` (`0`, PWA 148 precache entries), scoped `biome check` (`15/15`, `0` errors), `git diff --check` (`0`), `tests/i18n-browser.mjs` (`6/6 PASS`), `tests/chat-background-browser.mjs` (`PASS`), `tests/messages-browser.mjs` (`PASS`), and `9/9` settings blocks in `tests/settings-browser.mjs` (`PASS` before pre-existing L583 timeout).
 - **Human verification (`USER_APPROVED`):** Product Owner confirmed `G4 PASS` (`2026-11-27`).
 - **Disposition (`CHANGES REQUIRED` before formal `ACCEPTED`):** Product Owner directed PIF Engineer to complete two incremental items on `feat/i18n-theme` before final acceptance: (1) add the automated user-switch preference sync test, and (2) clean up the 4 stale pre-`AUD-025` lines in `docs/superpowers/plans/2026-11-27-i18n-theme.md` (§6 L94, §7 L98, §8 L112, §11 L140). `G5`/`G6` remain `NOT_RUN`.
+
+---
+
+## 13. Delta Audit & Formal Acceptance (`2026-11-27` — `AUD-027` @ `e8245d9`, `CHG-015`)
+
+Guardian independently audited incremental commit `e8245d9930715c03e80b99f85b7f5252b06cc779` (`test(task-015): cover account switch and clean up plan`). Formal audit: `.pif/handoffs/TASK-015-guardian-audit-e8245d9.md` (`AUD-027`, `EVID-021`).
+
+- **Verified (`VERIFIED`):** `3` files only (`tests/i18n-user-switch-browser.mjs`, plan cleanup, delivery update), `0` runtime `src/`/dep/DB/canonical-`.pif/` changes, `pnpm typecheck` (`0`), `pnpm test` (`332/332 PASS`), `biome check` (`0` errors, `16/16` touched files LF-clean), `git diff --check` (`0`), `tests/i18n-browser.mjs` (`6/6 PASS`), `tests/i18n-user-switch-browser.mjs` (`3/3 PASS`), and all 4 stale plan lines (§6, §7, §8, §11) cleanly fixed. Product Owner `G4 PASS` (`EVID-020`) remains fresh.
+- **Outcome (`USER_APPROVED`, `CHG-015`):** `AUD-026` **CLOSED**; `G0`–`G4` = **`PASS`**; Product Owner formally accepted **`TASK-015` (`FR-014`)** as **`ACCEPTED`** through `e8245d9` under `ADR-002`. Push, PR creation, CI `G5`, merge, and `G6` remain separately authorized.
