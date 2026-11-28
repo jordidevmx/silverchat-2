@@ -1,0 +1,3 @@
+permissions:
+  '@tanstack/devtools-vite':
+    skills: true
