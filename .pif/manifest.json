@@ -9,6 +9,6 @@
   "implementation_owner": "PIF Engineer",
   "approval_authority": "Product Owner",
   "documentation_language": "en",
-  "last_reconciled_revision": "65e01ee",
-  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); CHG-006, AUD-020, TASK-013, and TASK-014 (unconditionally in full) ACCEPTED 2026-11-27 (CHG-010, CHG-013, EVID-012..EVID-019); PR #85 merged to main at 65e01ee; Staging (38/38, 3/3 functions) and Production (38/38, 3/3 functions, LIVEKIT_* & VAPID_* secrets present) synchronized; RISK-008 & RISK-009 CLOSED. TASK-015 (FR-014, adapted via ADR-002 / CHG-014) formally ACCEPTED 2026-11-27 on feat/i18n-theme @ e8245d9 (AUD-026/AUD-027, EVID-020/EVID-021, CHG-015); G5 push & PR authorized by PO (CI & owner merge pending)."
+  "last_reconciled_revision": "92bd820",
+  "note": "Baseline APPROVED 2026-11-10; TASK-012 ACCEPTED 2026-11-11 (EVID-011); CHG-006, AUD-020, TASK-013, TASK-014 (full), and TASK-015 (FR-014, ADR-002, CHG-015) ACCEPTED 2026-11-27 (EVID-012..EVID-021); PR #85 (65e01ee), PR #86 (82f7306), and PR #87 (92bd820) merged to main; Staging & Production synchronized; RISK-008 & RISK-009 CLOSED. CHG-016 PIF workflow protocol updates prepared on governance/pif-workflow-updates."
 }
