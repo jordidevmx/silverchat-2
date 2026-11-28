@@ -17,6 +17,14 @@ export function hasPreference(key: string) {
     return false;
   }
 }
+/** Raw stored value, so callers can reject unsupported values instead of silently defaulting. */
+export function readRawPreference(key: string): string | null {
+  try {
+    return localStorage.getItem(`silverchat_${key}`);
+  } catch {
+    return null;
+  }
+}
 export function writePreference(key: string, value: string) {
   try {
     localStorage.setItem(`silverchat_${key}`, value);

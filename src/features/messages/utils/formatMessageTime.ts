@@ -1,18 +1,23 @@
+import { createFormatters } from "../../../lib/formatters.ts";
+
+const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
 export const formatMessageTime = (iso: string, locale: string) =>
-  new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+  createFormatters(locale).formatTime(iso);
+
 export function dateLabel(iso: string, locale: string, now = new Date()) {
+  const formatters = createFormatters(locale);
   const day = new Date(iso);
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (day.toDateString() === now.toDateString()) return locale === "es" ? "Hoy" : "Today";
+  // Intl yields lowercase "today"/"yesterday"; the timeline labels are capitalized.
+  if (day.toDateString() === now.toDateString())
+    return capitalize(formatters.formatRelativeAmount(0, "day"));
   if (day.toDateString() === yesterday.toDateString())
-    return locale === "es" ? "Ayer" : "Yesterday";
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(
-    day,
-  );
+    return capitalize(formatters.formatRelativeAmount(-1, "day"));
+  return formatters.formatLongDate(iso);
 }
+
 export function formatBytes(bytes: number, locale: string) {
-  const units = ["B", "KB", "MB", "GB"];
-  const index = Math.min(3, Math.max(0, Math.floor(Math.log(Math.max(1, bytes)) / Math.log(1024))));
-  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(bytes / 1024 ** index)} ${units[index]}`;
+  return createFormatters(locale).formatBytes(bytes);
 }

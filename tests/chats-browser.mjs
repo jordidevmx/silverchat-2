@@ -483,8 +483,10 @@ try {
     ["dark", darkFill],
   ]) {
     await page.emulateMedia({ colorScheme });
+    // G-04 Option 1: :root is light, so the attribute is absent for effective light.
     await page.waitForFunction(
-      (mode) => document.documentElement.dataset.theme === mode,
+      (mode) =>
+        document.documentElement.getAttribute("data-theme") === (mode === "dark" ? "dark" : null),
       colorScheme,
     );
     assert.equal(await fill(), expected);

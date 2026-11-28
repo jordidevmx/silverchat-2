@@ -2,6 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var root = document.documentElement;
+          var themes = ["light", "dark", "system"];
+          var accents = ["blue", "purple", "red", "orange", "yellow", "green"];
+          var languages = ["en", "es"];
+          var read = function (key) {
+            return localStorage.getItem("silverchat_" + key);
+          };
+          var theme = read("theme");
+          if (themes.indexOf(theme) === -1) theme = "system";
+          var accent = read("accent");
+          if (accents.indexOf(accent) === -1) accent = "blue";
+          var dark =
+            theme === "dark" ||
+            (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) root.setAttribute("data-theme", "dark");
+          else root.removeAttribute("data-theme");
+          for (var i = 0; i < accents.length; i++) root.classList.remove("theme-" + accents[i]);
+          root.classList.add("theme-" + accent);
+          var language = read("language");
+          if (languages.indexOf(language) === -1) {
+            var tags =
+              navigator.languages && navigator.languages.length
+                ? navigator.languages
+                : [navigator.language];
+            language = "en";
+            for (var t = 0; t < tags.length; t++) {
+              var primary = String(tags[t] || "").split("-")[0].toLowerCase();
+              if (languages.indexOf(primary) !== -1) {
+                language = primary;
+                break;
+              }
+            }
+          }
+          root.lang = language;
+        } catch (error) {
+          // Storage can be unavailable (Safari private mode); runtime providers still apply preferences.
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0082ff" />
     <meta name="referrer" content="no-referrer" />
